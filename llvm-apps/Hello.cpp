@@ -11,79 +11,91 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/PassManager.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Linker/Linker.h"
 
+#include <memory>
+
 using namespace llvm;
 
-// std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths, const std::vector<std::string> &includeDirs, LLVMContext &llvm_ctx)
-// {
-//     auto composite = std::make_unique<Module>("composite", llvm_ctx);
-//     Linker linker(*composite);
+std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths, const std::vector<std::string> &includeDirs, LLVMContext &llvm_ctx)
+{
+    auto composite = std::make_unique<Module>("composite", llvm_ctx);
+    Linker linker(*composite);
 
-//     for (const auto &filepath : filepaths)
-//     {
-//         clang::CompilerInstance compiler;
-//         compiler.createDiagnostics();
+    for (const auto &filepath : filepaths)
+    {
+        clang::CompilerInstance compiler;
+        compiler.createDiagnostics();
 
-//         std::vector<const char *> args = {
-//             "clang-tool",
-//             "-O0",
-//             "-debug-info-kind=limited",
+        std::vector<const char *> args = {
+            "clang-tool",
+            "-O0",
+            // "-g",
+            // "-fno-builtin",
+            // "-fno-freestanding",
+            "-debug-info-kind=limited",
+            "-DENABLE_PARAMS_DYNAMIC=ON"};
 
-//             "-DENABLE_PARAMS_DYNAMIC=ON"};
+        std::string resourceDir = "/usr/local/lib/clang/23";
 
-//         std::string resourceDir =
-//             clang::driver::Driver("clang", llvm::sys::getDefaultTargetTriple(),
-//                                   compiler.getDiagnostics())
-//                 .ResourceDir;
+        args.push_back("-resource-dir");
+        args.push_back(resourceDir.c_str());
 
-//         args.push_back("-resource-dir");
-//         args.push_back(resourceDir.c_str());
-//         args.push_back("-isystem");
-//         args.push_back("/usr/include");
-//         args.push_back("-isystem");
-//         args.push_back("/usr/include/x86_64-linux-gnu");
-//         args.push_back("-isystem");
-//         args.push_back("/usr/local/include");
-//         for (const auto &dir : includeDirs)
-//         {
-//             args.push_back("-I");
-//             args.push_back(dir.c_str());
-//         }
+        std::string builtinInclude = resourceDir + "/include";
+        args.push_back("-internal-isystem");
+        args.push_back(strdup(builtinInclude.c_str()));
+        args.push_back("-isystem");
+        args.push_back("/usr/include");
+        args.push_back("-isystem");
+        args.push_back("/usr/include/x86_64-linux-gnu");
+        args.push_back("-isystem");
+        args.push_back("/usr/local/include");
+        for (const auto &dir : includeDirs)
+        {
+            args.push_back("-I");
+            args.push_back(dir.c_str());
+        }
 
-//         clang::CompilerInvocation::CreateFromArgs(compiler.getInvocation(), args, compiler.getDiagnostics());
-//         compiler.getHeaderSearchOpts().Verbose = true;
+        clang::CompilerInvocation::CreateFromArgs(compiler.getInvocation(), args, compiler.getDiagnostics());
 
-//         auto &frontendOpts = compiler.getInvocation().getFrontendOpts();
-//         frontendOpts.Inputs.clear();
-//         frontendOpts.Inputs.emplace_back(
-//             filepath,
-//             clang::Language::C);
-//         compiler.getInvocation().getTargetOpts().Triple = llvm::sys::getDefaultTargetTriple();
+        auto &HSO = compiler.getHeaderSearchOpts();
+        HSO.UseBuiltinIncludes = true;
+        HSO.UseStandardSystemIncludes = true;
+        HSO.UseStandardCXXIncludes = false;
 
-//         compiler.createFileManager();
-//         compiler.createSourceManager();
+        // compiler.getHeaderSearchOpts().Verbose = true;
 
-//         compiler.setTarget(
-//             clang::TargetInfo::CreateTargetInfo(compiler.getDiagnostics(), compiler.getInvocation().getTargetOpts()));
+        auto &frontendOpts = compiler.getInvocation().getFrontendOpts();
+        frontendOpts.Inputs.clear();
+        frontendOpts.Inputs.emplace_back(
+            filepath,
+            clang::Language::C);
+        compiler.getInvocation().getTargetOpts().Triple = llvm::sys::getDefaultTargetTriple();
 
-//         auto action = std::make_unique<clang::EmitLLVMOnlyAction>(&llvm_ctx);
-//         if (!compiler.ExecuteAction(*action))
-//         {
-//             return nullptr;
-//         }
+        compiler.createFileManager();
+        compiler.createSourceManager();
 
-//         std::unique_ptr<Module> mod = action->takeModule();
-//         if (linker.linkInModule(std::move(mod)))
-//         {
-//             return nullptr;
-//         }
-//     }
-//     return composite;
-// }
+        compiler.setTarget(
+            clang::TargetInfo::CreateTargetInfo(compiler.getDiagnostics(), compiler.getInvocation().getTargetOpts()));
+
+        auto action = std::make_unique<clang::EmitLLVMOnlyAction>(&llvm_ctx);
+        if (!compiler.ExecuteAction(*action))
+        {
+            return nullptr;
+        }
+
+        std::unique_ptr<Module> mod = action->takeModule();
+        if (linker.linkInModule(std::move(mod)))
+        {
+            return nullptr;
+        }
+    }
+    return composite;
+}
 
 std::unique_ptr<Module> ir2Module(const std::string &filepath, LLVMContext &llvm_ctx)
 {
@@ -96,8 +108,9 @@ std::unique_ptr<Module> ir2Module(const std::string &filepath, LLVMContext &llvm
     return module;
 }
 
-struct MyFirstPass : PassInfoMixin<MyFirstPass>
+class MyFirstPass : public PassInfoMixin<MyFirstPass>
 {
+public:
     PreservedAnalyses run(Function &F, FunctionAnalysisManager &)
     {
         if (F.getName() != "decode")
@@ -140,7 +153,6 @@ struct MyFirstPass : PassInfoMixin<MyFirstPass>
 
 void prepare(std::unique_ptr<llvm::Module> &module)
 {
-    using namespace llvm;
 
     LoopAnalysisManager LAM;
     FunctionAnalysisManager FAM;
@@ -168,12 +180,44 @@ void prepare(std::unique_ptr<llvm::Module> &module)
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
-        return 1;
+    // if (argc != 2)
+    //     return 1;
 
-    const char *ir_file = argv[1];
+    // const char *ir_file = argv[1];
+
+    // std::unique_ptr<llvm::Module> module = ir2Module(ir_file, llvm_ctx);
+
+    std::vector<std::string> files = {
+        "../example.c",
+        "../../src/mayo.c"};
+
+    // 2. Define your include paths (replaces -I)
+    std::vector<std::string> includes = {
+        "../../include",
+        "../../src",
+        "../../src/common",
+        "../../src/generic"};
+
     llvm::LLVMContext llvm_ctx;
+    std::unique_ptr<llvm::Module> module = c2ir(files, includes, llvm_ctx);
 
-    std::unique_ptr<llvm::Module> module = ir2Module(ir_file, llvm_ctx);
+    if (llvm::verifyModule(*module, &llvm::errs()))
+    {
+        llvm::errs() << "Invalid module\n";
+        return 1;
+    }
+
+    std::error_code EC;
+    llvm::raw_fd_ostream outFile("mayo.ll", EC);
+
+    if (EC)
+    {
+        llvm::errs() << "Cannot open mayo.ll: " << EC.message() << "\n";
+    }
+    else
+    {
+        module->print(outFile, nullptr);
+        llvm::outs() << "Successfully wrote mayo.ll\n";
+    }
     prepare(module);
 }
