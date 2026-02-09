@@ -205,7 +205,7 @@ void prepare(std::unique_ptr<llvm::Module> &module)
     FunctionPassManager FPM;
     FPM.addPass(PromotePass());
     FPM.addPass(MyFirstPass());
-    // FPM.addPass(CFGPrinterPass());
+    FPM.addPass(CFGPrinterPass());
 
     ModulePassManager MPM;
     MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
@@ -246,17 +246,17 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::error_code EC;
-    llvm::raw_fd_ostream outFile("../mayo.ll", EC);
+    // std::error_code EC;
+    // llvm::raw_fd_ostream outFile("../mayo.ll", EC);
 
-    if (EC)
-    {
-        llvm::errs() << "Cannot open mayo.ll: " << EC.message() << "\n";
-    }
-    else
-    {
-        module->print(outFile, nullptr);
-        llvm::outs() << "Successfully wrote mayo.ll\n";
-    }
-    // prepare(module);
+    // if (EC)
+    // {
+    //     llvm::errs() << "Cannot open mayo.ll: " << EC.message() << "\n";
+    // }
+    // else
+    // {
+    //     module->print(outFile, nullptr);
+    //     llvm::outs() << "Successfully wrote mayo.ll\n";
+    // }
+    prepare(module);
 }
