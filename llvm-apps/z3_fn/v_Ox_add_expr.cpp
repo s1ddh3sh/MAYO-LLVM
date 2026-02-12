@@ -38,9 +38,51 @@ std::unique_ptr<Module> ir2Module(const std::string &filepath, LLVMContext &llvm
     return module;
 }
 
+struct SymbolicStore
+{
+    std::map<llvm::Value *, z3::expr> store;
+    z3::context &ctx;
+
+    SymbolicStore(z3::context &c) : ctx(c) {}
+
+    z3::expr &operator[](llvm::Value *key)
+    {
+        auto it = store.find(key);
+        if (it == store.end())
+        {
+            // If the register isn't found, initialize it as 'public' (false)
+            // This prevents the "default constructor" error
+            auto res = store.emplace(key, ctx.bool_val(false));
+            return res.first->second;
+        }
+        return it->second;
+    }
+
+    // Check if we already have a taint for this value
+    bool has(llvm::Value *key)
+    {
+        return store.find(key) != store.end();
+    }
+
+    void printAll()
+    {
+        for (auto &entry : store)
+        {
+            Value *key = entry.first;
+            z3::expr expr = entry.second;
+
+            std::string name = key->getName().str();
+            std::cout << "%" << name << " : "
+                      << expr << "\n";
+        }
+    }
+};
+
 void translateToZ3(Function &F, z3::context &ctx)
 {
-    std::map<Value *, z3::expr> term_store;
+    SymbolicStore value_store(ctx);
+    SymbolicStore mem_store(ctx);
+
     z3::expr secret = ctx.bool_const("SECRET_KEY");
     z3::expr public_val = ctx.bool_val(false);
     z3::expr mask = ctx.bool_const("VINEGAR_MASK");
@@ -57,35 +99,41 @@ void translateToZ3(Function &F, z3::context &ctx)
             if (auto *gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I))
             {
 
-                Value *basePtr = gep->getPointerOperand();
-                std::string baseName = basePtr->getName().str();
+                Value *base = gep->getPointerOperand();
 
-                z3::expr property = public_val; // Default to public
-                if (term_store.count(basePtr))
+                z3::expr vt = public_val; // Default to public
+                z3::expr mt = public_val; // Default to public
+                if (value_store.has(base))
                 {
-                    property = term_store.at(basePtr);
+                    vt = value_store[base];
                 }
-                else
+                if (mem_store.has(base))
                 {
+                    mt = mem_store[base];
+                }
+                if (!value_store.has(base) && !mem_store.has(base))
+                {
+                    std::string name = base->getName().str();
 
-                    if (baseName.find("sk") != std::string::npos)
+                    if (name.find("sk") != std::string::npos)
                     {
-                        property = secret;
+                        mt = secret;
                     }
-                    else if (baseName.find("Vdec") != std::string::npos)
+                    else if (name.find("Vdec") != std::string::npos)
                     {
-                        property = mask;
+                        mt = mask;
                     }
                 }
-                term_store.insert({gep, property});
+                value_store[gep] = vt;
+                mem_store[gep] = mt;
             }
             if (auto *load = dyn_cast<LoadInst>(&I))
             {
                 Value *src = load->getPointerOperand();
 
-                if (term_store.count(src))
+                if (mem_store.has(src))
                 {
-                    term_store.insert({&I, term_store.at(src)});
+                    value_store[&I] = mem_store[src];
                 }
             }
 
@@ -94,9 +142,9 @@ void translateToZ3(Function &F, z3::context &ctx)
                 Value *src = store->getValueOperand();
                 Value *dst = store->getPointerOperand();
 
-                if (term_store.count(src))
+                if (value_store.has(src))
                 {
-                    term_store.insert({dst, term_store.at(src)});
+                    mem_store[dst] = value_store[src];
                 }
             }
 
@@ -112,59 +160,53 @@ void translateToZ3(Function &F, z3::context &ctx)
                 if (funcName == "mat_add")
                 {
                     // Expression: vi_eph || Ox_sec
-                    llvm::Value *arg_vi = call->getArgOperand(0); // ptr %115 (vi)
-                    llvm::Value *arg_Ox = call->getArgOperand(1); // ptr %arraydecay123
+                    Value *arg_vi = call->getArgOperand(0); // ptr %115 (vi)
+                    Value *arg_Ox = call->getArgOperand(1); // ptr %arraydecay123
+                    Value *dest = call->getArgOperand(2);
 
-                    // std::cout << "Checking mat_add args:\n";
-                    // std::cout << "  arg_vi: ";
-                    // arg_vi->print(llvm::errs());
-                    // std::cout << "\n  arg_Ox: ";
-                    // arg_Ox->print(llvm::errs());
-                    // std::cout << "\n";
+                    z3::expr vi_taint = ctx.bool_val(false);
+                    z3::expr Ox_taint = ctx.bool_val(false);
 
-                    // std::cout << "term_store has arg_vi? "
-                    //           << term_store.count(arg_vi) << "\n";
-                    // std::cout << "term_store has arg_Ox? "
-                    //           << term_store.count(arg_Ox) << "\n";
+                    if (mem_store.has(arg_vi))
+                        vi_taint = mem_store[arg_vi];
 
-                    if (term_store.count(arg_vi) && term_store.count(arg_Ox))
+                    if (mem_store.has(arg_Ox))
+                        Ox_taint = mem_store[arg_Ox];
+
+                    z3::expr result = vi_taint || Ox_taint;
+
+                    mem_store[dest] = result;
+
+                    if (auto *gep = dyn_cast<GetElementPtrInst>(dest))
                     {
-                        z3::expr res = term_store.at(arg_vi) || term_store.at(arg_Ox);
-
-                        // The result of mat_add is stored in the buffer provided in Arg 2
-                        llvm::Value *dest = call->getArgOperand(2);
-                        term_store.insert({dest, res});
-                        if (auto *gep = dyn_cast<GetElementPtrInst>(dest))
-                        {
-                            Value *base = gep->getPointerOperand();
-                            term_store.insert({base, res});
-                        }
-                        // std::cout << "mat_add result at "
-                        //           << call->getArgOperand(2)->getName().str()
-                        //           << " : "
-                        //           << res.simplify()
-                        //           << "\n";
+                        Value *base = gep->getPointerOperand();
+                        mem_store[base] = result;
                     }
                 }
 
                 else if (funcName == "mat_mul")
                 {
-                    llvm::Value *arg_O = call->getArgOperand(0); // ptr %arraydecay117
-                    llvm::Value *arg_x = call->getArgOperand(1); // ptr %add.ptr120
+                    Value *arg_O = call->getArgOperand(0); // ptr %arraydecay117
+                    Value *arg_x = call->getArgOperand(1); // ptr %add.ptr120
+                    Value *dest = call->getArgOperand(2);
 
-                    if (term_store.count(arg_O) && term_store.count(arg_x))
+                    z3::expr O_taint = ctx.bool_val(false);
+                    z3::expr x_taint = ctx.bool_val(false);
+
+                    if (mem_store.has(arg_O))
+                        O_taint = mem_store[arg_O];
+
+                    if (mem_store.has(arg_x))
+                        x_taint = mem_store[arg_x];
+
+                    z3::expr result = O_taint || x_taint;
+
+                    mem_store[dest] = result;
+
+                    if (auto *gep = dyn_cast<GetElementPtrInst>(dest))
                     {
-                        z3::expr res = term_store.at(arg_O) || term_store.at(arg_x);
-
-                        // Result goes into Arg 2 (%arraydecay121)
-                        llvm::Value *dest = call->getArgOperand(2);
-                        term_store.insert({dest, res});
-                        if (auto *gep = dyn_cast<GetElementPtrInst>(dest))
-                        {
-                            Value *base = gep->getPointerOperand();
-                            term_store.insert({base, res});
-                        }
-                        // std::cout << "  -> Z3 mat_mul: " << res.simplify() << "\n";
+                        Value *base = gep->getPointerOperand();
+                        mem_store[base] = result;
                     }
                 }
                 else if (funcName == "memcpy")
@@ -173,31 +215,23 @@ void translateToZ3(Function &F, z3::context &ctx)
                     llvm::Value *dest = call->getArgOperand(0);
                     llvm::Value *src = call->getArgOperand(1);
 
-                    if (term_store.count(src))
+                    z3::expr res = ctx.bool_val(false);
+                    if (mem_store.has(src))
+                        res = mem_store[src];
+
+                    mem_store[dest] = res;
+                    if (auto *gep = dyn_cast<GetElementPtrInst>(dest))
                     {
-                        z3::expr res = term_store.at(src);
-                        term_store.insert({dest, res});
-                        if (auto *gep = dyn_cast<GetElementPtrInst>(dest))
-                        {
-                            Value *base = gep->getPointerOperand();
-                            term_store.insert({base, res});
-                        }
-                        // std::cout << "  -> Z3 memcpy: " << res.simplify() << "\n";
+                        Value *base = gep->getPointerOperand();
+                        mem_store[base] = res;
                     }
                 }
             }
         }
     }
 
-    for (auto &entry : term_store)
-    {
-        Value *key = entry.first;
-        z3::expr expr = entry.second;
-
-        std::string name = key->getName().str();
-        std::cout << "%" << name << " : "
-                  << expr << "\n";
-    }
+    value_store.printAll();
+    mem_store.printAll();
 }
 
 int main()
