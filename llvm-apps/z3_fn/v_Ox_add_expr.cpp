@@ -229,8 +229,9 @@ void translateToZ3(Function &F, z3::context &ctx)
             }
         }
     }
-
+    std::cout << "Value store : \n" << std::endl;
     value_store.printAll();
+    std::cout << "\nMem Ptr store : \n" << std::endl;
     mem_store.printAll();
 }
 
