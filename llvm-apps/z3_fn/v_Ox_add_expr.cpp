@@ -84,7 +84,7 @@ void translateToZ3(Function &F, z3::context &ctx)
     SymbolicStore mem_store(ctx);
 
     z3::expr secret = ctx.bool_const("SECRET_KEY");
-    z3::expr public_val = ctx.bool_val(false);
+    z3::expr public_val = ctx.bool_const("PUBLIC");
     z3::expr mask = ctx.bool_const("VINEGAR_MASK");
 
     for (auto &BB : F)
@@ -92,7 +92,6 @@ void translateToZ3(Function &F, z3::context &ctx)
         for (auto &I : BB)
         {
             // I.print(errs());
-           
 
             if (auto *gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&I))
             {
@@ -227,9 +226,11 @@ void translateToZ3(Function &F, z3::context &ctx)
             }
         }
     }
-    std::cout << "Value store : \n" << std::endl;
+    std::cout << "Value store : \n"
+              << std::endl;
     value_store.printAll();
-    std::cout << "\nMem Ptr store : \n" << std::endl;
+    std::cout << "\nMem Ptr store : \n"
+              << std::endl;
     mem_store.printAll();
 }
 
