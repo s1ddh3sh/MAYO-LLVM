@@ -170,7 +170,7 @@ int main()
 
         else if (auto *gep = dyn_cast<GetElementPtrInst>(&I))
         {
-            
+
             continue;
         }
 
@@ -256,7 +256,7 @@ int main()
 
         z3::expr e = safe_get(mem, (Value *)(uintptr_t)(0x500000 + r), ctx, 4);
 
-        std::cout << "s[" << r << "] = " << e << "\n\n";
+        std::cout << "Expressions for s[" << r << "] => \n\n " << e << "\n\n";
     }
 
     return 0;

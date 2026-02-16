@@ -1,7 +1,9 @@
 
 Symbolic expressions for s = v + O*x
 
-s[0] = (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_0_0)) #b1)
+Expressions for s[0] => 
+
+ (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_0_0)) #b1)
                 (bvshl ((_ zero_extend 4) x_0) #x00)
                 #x00))
       (a!2 (ite (= ((_ extract 1 1) ((_ zero_extend 4) O_0_0)) #b1)
@@ -70,7 +72,9 @@ s[0] = (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_0_0)) #b1)
          (bvand a!15 #xf)
          (bvand a!20 #xf))))
 
-s[1] = (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_1_0)) #b1)
+Expressions for s[1] => 
+
+ (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_1_0)) #b1)
                 (bvshl ((_ zero_extend 4) x_0) #x00)
                 #x00))
       (a!2 (ite (= ((_ extract 1 1) ((_ zero_extend 4) O_1_0)) #b1)
@@ -139,7 +143,9 @@ s[1] = (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_1_0)) #b1)
          (bvand a!15 #xf)
          (bvand a!20 #xf))))
 
-s[2] = (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_2_0)) #b1)
+Expressions for s[2] => 
+
+ (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_2_0)) #b1)
                 (bvshl ((_ zero_extend 4) x_0) #x00)
                 #x00))
       (a!2 (ite (= ((_ extract 1 1) ((_ zero_extend 4) O_2_0)) #b1)
@@ -208,7 +214,9 @@ s[2] = (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_2_0)) #b1)
          (bvand a!15 #xf)
          (bvand a!20 #xf))))
 
-s[3] = (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_3_0)) #b1)
+Expressions for s[3] => 
+
+ (let ((a!1 (ite (= ((_ extract 0 0) ((_ zero_extend 4) O_3_0)) #b1)
                 (bvshl ((_ zero_extend 4) x_0) #x00)
                 #x00))
       (a!2 (ite (= ((_ extract 1 1) ((_ zero_extend 4) O_3_0)) #b1)
