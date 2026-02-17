@@ -23,7 +23,7 @@ if(NOT Z3_FOUND)
   endif()
 endif()
 
-add_executable(v_Ox_add_expr v_Ox_add_expr3.cpp)
+add_executable(v_Ox_add_expr v_Ox_add_expr2.cpp)
 
 # Map needed LLVM components to library names
 llvm_map_components_to_libnames(LLVM_LIBS

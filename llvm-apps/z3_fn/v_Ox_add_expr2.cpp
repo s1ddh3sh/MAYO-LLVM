@@ -14,7 +14,7 @@
 #include "llvm/IRReader/IRReader.h"
 
 #include <map>
-
+#include <stdio.h>
 using namespace llvm;
 
 static const int O_COLS = 4;
@@ -249,6 +249,16 @@ int main()
         }
     }
 
+    z3::solver solver(ctx);
+    // solver.add(Ox);
+
+    for (auto &ent : mem)
+    {
+        if (ent.second.is_bool())
+            solver.add(ent.second);
+    }
+
+    std::cout << solver;
     std::cout << "\nSymbolic expressions for s = v + O*x\n\n";
 
     for (int r = 0; r < 10; r++)
