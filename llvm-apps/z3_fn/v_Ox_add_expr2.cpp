@@ -105,21 +105,21 @@ int main()
     std::map<Value *, z3::expr> mem;
 
     // Vdec symbolic
-    for (int i = 0; i < 1704; i++)
+    for (int i = 0; i < 10; i++)
     {
         mem.insert_or_assign((Value *)(uintptr_t)(0x100000 + i),
                              ctx.bv_const(("Vdec_" + std::to_string(i)).c_str(), 4));
     }
 
     // O symbolic
-    for (int i = 0; i < 2414; i++)
+    for (int i = 0; i < 10; i++)
     {
         mem.insert_or_assign((Value *)(uintptr_t)(0x200000 + i),
                              ctx.bv_const(("O_" + std::to_string(i)).c_str(), 4));
     }
 
     // x symbolic
-    for (int i = 0; i < 1848; i++)
+    for (int i = 0; i < 10; i++)
     {
         mem.insert_or_assign((Value *)(uintptr_t)(0x300000 + i),
                              ctx.bv_const(("x_" + std::to_string(i)).c_str(), 4));
@@ -192,8 +192,8 @@ int main()
                 Value *x_ptr = call->getArgOperand(1);
                 Value *Ox_ptr = call->getArgOperand(2);
 
-                int param_o = 4;
-                int rows = 4;
+                int param_o = 8;
+                int rows = 10;
 
                 for (int r = 0; r < rows; r++)
                 {
@@ -223,7 +223,7 @@ int main()
                 Value *Ox_ptr = call->getArgOperand(1);
                 Value *s_ptr = call->getArgOperand(2);
 
-                int rows = 4;
+                int rows = 10;
 
                 for (int r = 0; r < rows; r++)
                 {
@@ -251,7 +251,7 @@ int main()
 
     std::cout << "\nSymbolic expressions for s = v + O*x\n\n";
 
-    for (int r = 0; r < 4; r++)
+    for (int r = 0; r < 10; r++)
     {
 
         z3::expr e = safe_get(mem, (Value *)(uintptr_t)(0x500000 + r), ctx, 4);

@@ -110,21 +110,21 @@ int main()
     std::map<Value *, z3::expr> mem;
 
     // Vdec symbolic
-    for (int i = 0; i < 1704; i++)
+    for (int i = 0; i < 10; i++)
     {
         mem.insert_or_assign((Value *)(uintptr_t)(0x100000 + i),
                              ctx.bv_const(("Vdec_" + std::to_string(i)).c_str(), 4));
     }
 
     // O symbolic
-    for (int i = 0; i < 2414; i++)
+    for (int i = 0; i < 10; i++)
     {
         mem.insert_or_assign((Value *)(uintptr_t)(0x200000 + i),
                              ctx.bv_const(("O_" + std::to_string(i)).c_str(), 4));
     }
 
     // x symbolic
-    for (int i = 0; i < 1848; i++)
+    for (int i = 0; i < 10; i++)
     {
         mem.insert_or_assign((Value *)(uintptr_t)(0x300000 + i),
                              ctx.bv_const(("x_" + std::to_string(i)).c_str(), 4));
@@ -205,7 +205,7 @@ int main()
                         ctx.bv_const(("O_row_" + std::to_string(r)).c_str(), 4);
 
                     z3::expr x_sym =
-                        ctx.bv_const(("x_row_" + std::to_string(r)).c_str(), 4);
+                        ctx.bv_const(("x_" + std::to_string(r)).c_str(), 4);
 
                     z3::expr result = MAT_MUL(O_sym, x_sym);
 
@@ -264,7 +264,7 @@ int main()
     }
 
     std::cout << "\nSymbolic expressions for s = v + O*x\n\n";
-    std::cout << "\n One s vector:\n\n";
+    std::cout << "\n One block sig :\n\n";
 
     for (int r = 0; r < 8; r++)
     {

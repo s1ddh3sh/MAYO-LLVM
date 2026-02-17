@@ -2,16 +2,16 @@
 Symbolic expressions for s = v + O*x
 
 
- One s vector:
+ One block sig :
 
-s[0] = (MAT_ADD Vdec_0 (MAT_MUL O_row_0 x_row_0))
-s[1] = (MAT_ADD Vdec_1 (MAT_MUL O_row_1 x_row_1))
-s[2] = (MAT_ADD Vdec_2 (MAT_MUL O_row_2 x_row_2))
-s[3] = (MAT_ADD Vdec_3 (MAT_MUL O_row_3 x_row_3))
-s[4] = (MAT_ADD Vdec_4 (MAT_MUL O_row_4 x_row_4))
-s[5] = (MAT_ADD Vdec_5 (MAT_MUL O_row_5 x_row_5))
-s[6] = (MAT_ADD Vdec_6 (MAT_MUL O_row_6 x_row_6))
-s[7] = (MAT_ADD Vdec_7 (MAT_MUL O_row_7 x_row_7))
+s[0] = (MAT_ADD Vdec_0 (MAT_MUL O_row_0 x_0))
+s[1] = (MAT_ADD Vdec_1 (MAT_MUL O_row_1 x_1))
+s[2] = (MAT_ADD Vdec_2 (MAT_MUL O_row_2 x_2))
+s[3] = (MAT_ADD Vdec_3 (MAT_MUL O_row_3 x_3))
+s[4] = (MAT_ADD Vdec_4 (MAT_MUL O_row_4 x_4))
+s[5] = (MAT_ADD Vdec_5 (MAT_MUL O_row_5 x_5))
+s[6] = (MAT_ADD Vdec_6 (MAT_MUL O_row_6 x_6))
+s[7] = (MAT_ADD Vdec_7 (MAT_MUL O_row_7 x_7))
 s[4] = x_tail_0
 s[5] = x_tail_1
 s[6] = x_tail_2
