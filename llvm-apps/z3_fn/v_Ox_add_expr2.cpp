@@ -266,7 +266,7 @@ int main()
 
         z3::expr e = safe_get(mem, (Value *)(uintptr_t)(0x500000 + r), ctx, 4);
 
-        std::cout << "Expressions for s[" << r << "] => \n\n " << e << "\n\n";
+        std::cout << "Expressions for s[" << r << "] => \n\n " << e.simplify() << "\n\n";
     }
 
     return 0;

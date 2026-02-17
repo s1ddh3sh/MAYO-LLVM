@@ -1,22 +1,487 @@
 
-Symbolic expressions for s = v + O*x
+One signature block symbolic expression:
 
+s[0] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_0_0 x_0)) (MUL_F O_0_1 x_1))
+                  (MUL_F O_0_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_0_3 x_3)) (MUL_F O_0_4 x_4))
+                  (MUL_F O_0_5 x_5))))
+  (ADD_F Vdec_0 (ADD_F (ADD_F a!2 (MUL_F O_0_6 x_6)) (MUL_F O_0_7 x_7)))))
 
- One block sig :
+s[1] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_1_0 x_0)) (MUL_F O_1_1 x_1))
+                  (MUL_F O_1_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_1_3 x_3)) (MUL_F O_1_4 x_4))
+                  (MUL_F O_1_5 x_5))))
+  (ADD_F Vdec_1 (ADD_F (ADD_F a!2 (MUL_F O_1_6 x_6)) (MUL_F O_1_7 x_7)))))
 
-s[0] = (MAT_ADD Vdec_0 (MAT_MUL O_row_0 x_0))
-s[1] = (MAT_ADD Vdec_1 (MAT_MUL O_row_1 x_1))
-s[2] = (MAT_ADD Vdec_2 (MAT_MUL O_row_2 x_2))
-s[3] = (MAT_ADD Vdec_3 (MAT_MUL O_row_3 x_3))
-s[4] = (MAT_ADD Vdec_4 (MAT_MUL O_row_4 x_4))
-s[5] = (MAT_ADD Vdec_5 (MAT_MUL O_row_5 x_5))
-s[6] = (MAT_ADD Vdec_6 (MAT_MUL O_row_6 x_6))
-s[7] = (MAT_ADD Vdec_7 (MAT_MUL O_row_7 x_7))
-s[4] = x_tail_0
-s[5] = x_tail_1
-s[6] = x_tail_2
-s[7] = x_tail_3
-s[8] = x_tail_4
-s[9] = x_tail_5
-s[10] = x_tail_6
-s[11] = x_tail_7
+s[2] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_2_0 x_0)) (MUL_F O_2_1 x_1))
+                  (MUL_F O_2_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_2_3 x_3)) (MUL_F O_2_4 x_4))
+                  (MUL_F O_2_5 x_5))))
+  (ADD_F Vdec_2 (ADD_F (ADD_F a!2 (MUL_F O_2_6 x_6)) (MUL_F O_2_7 x_7)))))
+
+s[3] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_3_0 x_0)) (MUL_F O_3_1 x_1))
+                  (MUL_F O_3_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_3_3 x_3)) (MUL_F O_3_4 x_4))
+                  (MUL_F O_3_5 x_5))))
+  (ADD_F Vdec_3 (ADD_F (ADD_F a!2 (MUL_F O_3_6 x_6)) (MUL_F O_3_7 x_7)))))
+
+s[4] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_4_0 x_0)) (MUL_F O_4_1 x_1))
+                  (MUL_F O_4_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_4_3 x_3)) (MUL_F O_4_4 x_4))
+                  (MUL_F O_4_5 x_5))))
+  (ADD_F Vdec_4 (ADD_F (ADD_F a!2 (MUL_F O_4_6 x_6)) (MUL_F O_4_7 x_7)))))
+
+s[5] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_5_0 x_0)) (MUL_F O_5_1 x_1))
+                  (MUL_F O_5_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_5_3 x_3)) (MUL_F O_5_4 x_4))
+                  (MUL_F O_5_5 x_5))))
+  (ADD_F Vdec_5 (ADD_F (ADD_F a!2 (MUL_F O_5_6 x_6)) (MUL_F O_5_7 x_7)))))
+
+s[6] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_6_0 x_0)) (MUL_F O_6_1 x_1))
+                  (MUL_F O_6_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_6_3 x_3)) (MUL_F O_6_4 x_4))
+                  (MUL_F O_6_5 x_5))))
+  (ADD_F Vdec_6 (ADD_F (ADD_F a!2 (MUL_F O_6_6 x_6)) (MUL_F O_6_7 x_7)))))
+
+s[7] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_7_0 x_0)) (MUL_F O_7_1 x_1))
+                  (MUL_F O_7_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_7_3 x_3)) (MUL_F O_7_4 x_4))
+                  (MUL_F O_7_5 x_5))))
+  (ADD_F Vdec_7 (ADD_F (ADD_F a!2 (MUL_F O_7_6 x_6)) (MUL_F O_7_7 x_7)))))
+
+s[8] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_8_0 x_0)) (MUL_F O_8_1 x_1))
+                  (MUL_F O_8_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_8_3 x_3)) (MUL_F O_8_4 x_4))
+                  (MUL_F O_8_5 x_5))))
+  (ADD_F Vdec_8 (ADD_F (ADD_F a!2 (MUL_F O_8_6 x_6)) (MUL_F O_8_7 x_7)))))
+
+s[9] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_9_0 x_0)) (MUL_F O_9_1 x_1))
+                  (MUL_F O_9_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_9_3 x_3)) (MUL_F O_9_4 x_4))
+                  (MUL_F O_9_5 x_5))))
+  (ADD_F Vdec_9 (ADD_F (ADD_F a!2 (MUL_F O_9_6 x_6)) (MUL_F O_9_7 x_7)))))
+
+s[10] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_10_0 x_0)) (MUL_F O_10_1 x_1))
+                  (MUL_F O_10_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_10_3 x_3)) (MUL_F O_10_4 x_4))
+                  (MUL_F O_10_5 x_5))))
+  (ADD_F Vdec_10 (ADD_F (ADD_F a!2 (MUL_F O_10_6 x_6)) (MUL_F O_10_7 x_7)))))
+
+s[11] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_11_0 x_0)) (MUL_F O_11_1 x_1))
+                  (MUL_F O_11_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_11_3 x_3)) (MUL_F O_11_4 x_4))
+                  (MUL_F O_11_5 x_5))))
+  (ADD_F Vdec_11 (ADD_F (ADD_F a!2 (MUL_F O_11_6 x_6)) (MUL_F O_11_7 x_7)))))
+
+s[12] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_12_0 x_0)) (MUL_F O_12_1 x_1))
+                  (MUL_F O_12_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_12_3 x_3)) (MUL_F O_12_4 x_4))
+                  (MUL_F O_12_5 x_5))))
+  (ADD_F Vdec_12 (ADD_F (ADD_F a!2 (MUL_F O_12_6 x_6)) (MUL_F O_12_7 x_7)))))
+
+s[13] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_13_0 x_0)) (MUL_F O_13_1 x_1))
+                  (MUL_F O_13_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_13_3 x_3)) (MUL_F O_13_4 x_4))
+                  (MUL_F O_13_5 x_5))))
+  (ADD_F Vdec_13 (ADD_F (ADD_F a!2 (MUL_F O_13_6 x_6)) (MUL_F O_13_7 x_7)))))
+
+s[14] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_14_0 x_0)) (MUL_F O_14_1 x_1))
+                  (MUL_F O_14_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_14_3 x_3)) (MUL_F O_14_4 x_4))
+                  (MUL_F O_14_5 x_5))))
+  (ADD_F Vdec_14 (ADD_F (ADD_F a!2 (MUL_F O_14_6 x_6)) (MUL_F O_14_7 x_7)))))
+
+s[15] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_15_0 x_0)) (MUL_F O_15_1 x_1))
+                  (MUL_F O_15_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_15_3 x_3)) (MUL_F O_15_4 x_4))
+                  (MUL_F O_15_5 x_5))))
+  (ADD_F Vdec_15 (ADD_F (ADD_F a!2 (MUL_F O_15_6 x_6)) (MUL_F O_15_7 x_7)))))
+
+s[16] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_16_0 x_0)) (MUL_F O_16_1 x_1))
+                  (MUL_F O_16_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_16_3 x_3)) (MUL_F O_16_4 x_4))
+                  (MUL_F O_16_5 x_5))))
+  (ADD_F Vdec_16 (ADD_F (ADD_F a!2 (MUL_F O_16_6 x_6)) (MUL_F O_16_7 x_7)))))
+
+s[17] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_17_0 x_0)) (MUL_F O_17_1 x_1))
+                  (MUL_F O_17_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_17_3 x_3)) (MUL_F O_17_4 x_4))
+                  (MUL_F O_17_5 x_5))))
+  (ADD_F Vdec_17 (ADD_F (ADD_F a!2 (MUL_F O_17_6 x_6)) (MUL_F O_17_7 x_7)))))
+
+s[18] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_18_0 x_0)) (MUL_F O_18_1 x_1))
+                  (MUL_F O_18_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_18_3 x_3)) (MUL_F O_18_4 x_4))
+                  (MUL_F O_18_5 x_5))))
+  (ADD_F Vdec_18 (ADD_F (ADD_F a!2 (MUL_F O_18_6 x_6)) (MUL_F O_18_7 x_7)))))
+
+s[19] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_19_0 x_0)) (MUL_F O_19_1 x_1))
+                  (MUL_F O_19_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_19_3 x_3)) (MUL_F O_19_4 x_4))
+                  (MUL_F O_19_5 x_5))))
+  (ADD_F Vdec_19 (ADD_F (ADD_F a!2 (MUL_F O_19_6 x_6)) (MUL_F O_19_7 x_7)))))
+
+s[20] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_20_0 x_0)) (MUL_F O_20_1 x_1))
+                  (MUL_F O_20_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_20_3 x_3)) (MUL_F O_20_4 x_4))
+                  (MUL_F O_20_5 x_5))))
+  (ADD_F Vdec_20 (ADD_F (ADD_F a!2 (MUL_F O_20_6 x_6)) (MUL_F O_20_7 x_7)))))
+
+s[21] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_21_0 x_0)) (MUL_F O_21_1 x_1))
+                  (MUL_F O_21_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_21_3 x_3)) (MUL_F O_21_4 x_4))
+                  (MUL_F O_21_5 x_5))))
+  (ADD_F Vdec_21 (ADD_F (ADD_F a!2 (MUL_F O_21_6 x_6)) (MUL_F O_21_7 x_7)))))
+
+s[22] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_22_0 x_0)) (MUL_F O_22_1 x_1))
+                  (MUL_F O_22_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_22_3 x_3)) (MUL_F O_22_4 x_4))
+                  (MUL_F O_22_5 x_5))))
+  (ADD_F Vdec_22 (ADD_F (ADD_F a!2 (MUL_F O_22_6 x_6)) (MUL_F O_22_7 x_7)))))
+
+s[23] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_23_0 x_0)) (MUL_F O_23_1 x_1))
+                  (MUL_F O_23_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_23_3 x_3)) (MUL_F O_23_4 x_4))
+                  (MUL_F O_23_5 x_5))))
+  (ADD_F Vdec_23 (ADD_F (ADD_F a!2 (MUL_F O_23_6 x_6)) (MUL_F O_23_7 x_7)))))
+
+s[24] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_24_0 x_0)) (MUL_F O_24_1 x_1))
+                  (MUL_F O_24_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_24_3 x_3)) (MUL_F O_24_4 x_4))
+                  (MUL_F O_24_5 x_5))))
+  (ADD_F Vdec_24 (ADD_F (ADD_F a!2 (MUL_F O_24_6 x_6)) (MUL_F O_24_7 x_7)))))
+
+s[25] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_25_0 x_0)) (MUL_F O_25_1 x_1))
+                  (MUL_F O_25_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_25_3 x_3)) (MUL_F O_25_4 x_4))
+                  (MUL_F O_25_5 x_5))))
+  (ADD_F Vdec_25 (ADD_F (ADD_F a!2 (MUL_F O_25_6 x_6)) (MUL_F O_25_7 x_7)))))
+
+s[26] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_26_0 x_0)) (MUL_F O_26_1 x_1))
+                  (MUL_F O_26_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_26_3 x_3)) (MUL_F O_26_4 x_4))
+                  (MUL_F O_26_5 x_5))))
+  (ADD_F Vdec_26 (ADD_F (ADD_F a!2 (MUL_F O_26_6 x_6)) (MUL_F O_26_7 x_7)))))
+
+s[27] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_27_0 x_0)) (MUL_F O_27_1 x_1))
+                  (MUL_F O_27_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_27_3 x_3)) (MUL_F O_27_4 x_4))
+                  (MUL_F O_27_5 x_5))))
+  (ADD_F Vdec_27 (ADD_F (ADD_F a!2 (MUL_F O_27_6 x_6)) (MUL_F O_27_7 x_7)))))
+
+s[28] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_28_0 x_0)) (MUL_F O_28_1 x_1))
+                  (MUL_F O_28_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_28_3 x_3)) (MUL_F O_28_4 x_4))
+                  (MUL_F O_28_5 x_5))))
+  (ADD_F Vdec_28 (ADD_F (ADD_F a!2 (MUL_F O_28_6 x_6)) (MUL_F O_28_7 x_7)))))
+
+s[29] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_29_0 x_0)) (MUL_F O_29_1 x_1))
+                  (MUL_F O_29_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_29_3 x_3)) (MUL_F O_29_4 x_4))
+                  (MUL_F O_29_5 x_5))))
+  (ADD_F Vdec_29 (ADD_F (ADD_F a!2 (MUL_F O_29_6 x_6)) (MUL_F O_29_7 x_7)))))
+
+s[30] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_30_0 x_0)) (MUL_F O_30_1 x_1))
+                  (MUL_F O_30_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_30_3 x_3)) (MUL_F O_30_4 x_4))
+                  (MUL_F O_30_5 x_5))))
+  (ADD_F Vdec_30 (ADD_F (ADD_F a!2 (MUL_F O_30_6 x_6)) (MUL_F O_30_7 x_7)))))
+
+s[31] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_31_0 x_0)) (MUL_F O_31_1 x_1))
+                  (MUL_F O_31_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_31_3 x_3)) (MUL_F O_31_4 x_4))
+                  (MUL_F O_31_5 x_5))))
+  (ADD_F Vdec_31 (ADD_F (ADD_F a!2 (MUL_F O_31_6 x_6)) (MUL_F O_31_7 x_7)))))
+
+s[32] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_32_0 x_0)) (MUL_F O_32_1 x_1))
+                  (MUL_F O_32_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_32_3 x_3)) (MUL_F O_32_4 x_4))
+                  (MUL_F O_32_5 x_5))))
+  (ADD_F Vdec_32 (ADD_F (ADD_F a!2 (MUL_F O_32_6 x_6)) (MUL_F O_32_7 x_7)))))
+
+s[33] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_33_0 x_0)) (MUL_F O_33_1 x_1))
+                  (MUL_F O_33_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_33_3 x_3)) (MUL_F O_33_4 x_4))
+                  (MUL_F O_33_5 x_5))))
+  (ADD_F Vdec_33 (ADD_F (ADD_F a!2 (MUL_F O_33_6 x_6)) (MUL_F O_33_7 x_7)))))
+
+s[34] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_34_0 x_0)) (MUL_F O_34_1 x_1))
+                  (MUL_F O_34_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_34_3 x_3)) (MUL_F O_34_4 x_4))
+                  (MUL_F O_34_5 x_5))))
+  (ADD_F Vdec_34 (ADD_F (ADD_F a!2 (MUL_F O_34_6 x_6)) (MUL_F O_34_7 x_7)))))
+
+s[35] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_35_0 x_0)) (MUL_F O_35_1 x_1))
+                  (MUL_F O_35_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_35_3 x_3)) (MUL_F O_35_4 x_4))
+                  (MUL_F O_35_5 x_5))))
+  (ADD_F Vdec_35 (ADD_F (ADD_F a!2 (MUL_F O_35_6 x_6)) (MUL_F O_35_7 x_7)))))
+
+s[36] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_36_0 x_0)) (MUL_F O_36_1 x_1))
+                  (MUL_F O_36_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_36_3 x_3)) (MUL_F O_36_4 x_4))
+                  (MUL_F O_36_5 x_5))))
+  (ADD_F Vdec_36 (ADD_F (ADD_F a!2 (MUL_F O_36_6 x_6)) (MUL_F O_36_7 x_7)))))
+
+s[37] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_37_0 x_0)) (MUL_F O_37_1 x_1))
+                  (MUL_F O_37_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_37_3 x_3)) (MUL_F O_37_4 x_4))
+                  (MUL_F O_37_5 x_5))))
+  (ADD_F Vdec_37 (ADD_F (ADD_F a!2 (MUL_F O_37_6 x_6)) (MUL_F O_37_7 x_7)))))
+
+s[38] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_38_0 x_0)) (MUL_F O_38_1 x_1))
+                  (MUL_F O_38_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_38_3 x_3)) (MUL_F O_38_4 x_4))
+                  (MUL_F O_38_5 x_5))))
+  (ADD_F Vdec_38 (ADD_F (ADD_F a!2 (MUL_F O_38_6 x_6)) (MUL_F O_38_7 x_7)))))
+
+s[39] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_39_0 x_0)) (MUL_F O_39_1 x_1))
+                  (MUL_F O_39_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_39_3 x_3)) (MUL_F O_39_4 x_4))
+                  (MUL_F O_39_5 x_5))))
+  (ADD_F Vdec_39 (ADD_F (ADD_F a!2 (MUL_F O_39_6 x_6)) (MUL_F O_39_7 x_7)))))
+
+s[40] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_40_0 x_0)) (MUL_F O_40_1 x_1))
+                  (MUL_F O_40_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_40_3 x_3)) (MUL_F O_40_4 x_4))
+                  (MUL_F O_40_5 x_5))))
+  (ADD_F Vdec_40 (ADD_F (ADD_F a!2 (MUL_F O_40_6 x_6)) (MUL_F O_40_7 x_7)))))
+
+s[41] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_41_0 x_0)) (MUL_F O_41_1 x_1))
+                  (MUL_F O_41_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_41_3 x_3)) (MUL_F O_41_4 x_4))
+                  (MUL_F O_41_5 x_5))))
+  (ADD_F Vdec_41 (ADD_F (ADD_F a!2 (MUL_F O_41_6 x_6)) (MUL_F O_41_7 x_7)))))
+
+s[42] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_42_0 x_0)) (MUL_F O_42_1 x_1))
+                  (MUL_F O_42_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_42_3 x_3)) (MUL_F O_42_4 x_4))
+                  (MUL_F O_42_5 x_5))))
+  (ADD_F Vdec_42 (ADD_F (ADD_F a!2 (MUL_F O_42_6 x_6)) (MUL_F O_42_7 x_7)))))
+
+s[43] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_43_0 x_0)) (MUL_F O_43_1 x_1))
+                  (MUL_F O_43_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_43_3 x_3)) (MUL_F O_43_4 x_4))
+                  (MUL_F O_43_5 x_5))))
+  (ADD_F Vdec_43 (ADD_F (ADD_F a!2 (MUL_F O_43_6 x_6)) (MUL_F O_43_7 x_7)))))
+
+s[44] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_44_0 x_0)) (MUL_F O_44_1 x_1))
+                  (MUL_F O_44_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_44_3 x_3)) (MUL_F O_44_4 x_4))
+                  (MUL_F O_44_5 x_5))))
+  (ADD_F Vdec_44 (ADD_F (ADD_F a!2 (MUL_F O_44_6 x_6)) (MUL_F O_44_7 x_7)))))
+
+s[45] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_45_0 x_0)) (MUL_F O_45_1 x_1))
+                  (MUL_F O_45_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_45_3 x_3)) (MUL_F O_45_4 x_4))
+                  (MUL_F O_45_5 x_5))))
+  (ADD_F Vdec_45 (ADD_F (ADD_F a!2 (MUL_F O_45_6 x_6)) (MUL_F O_45_7 x_7)))))
+
+s[46] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_46_0 x_0)) (MUL_F O_46_1 x_1))
+                  (MUL_F O_46_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_46_3 x_3)) (MUL_F O_46_4 x_4))
+                  (MUL_F O_46_5 x_5))))
+  (ADD_F Vdec_46 (ADD_F (ADD_F a!2 (MUL_F O_46_6 x_6)) (MUL_F O_46_7 x_7)))))
+
+s[47] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_47_0 x_0)) (MUL_F O_47_1 x_1))
+                  (MUL_F O_47_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_47_3 x_3)) (MUL_F O_47_4 x_4))
+                  (MUL_F O_47_5 x_5))))
+  (ADD_F Vdec_47 (ADD_F (ADD_F a!2 (MUL_F O_47_6 x_6)) (MUL_F O_47_7 x_7)))))
+
+s[48] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_48_0 x_0)) (MUL_F O_48_1 x_1))
+                  (MUL_F O_48_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_48_3 x_3)) (MUL_F O_48_4 x_4))
+                  (MUL_F O_48_5 x_5))))
+  (ADD_F Vdec_48 (ADD_F (ADD_F a!2 (MUL_F O_48_6 x_6)) (MUL_F O_48_7 x_7)))))
+
+s[49] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_49_0 x_0)) (MUL_F O_49_1 x_1))
+                  (MUL_F O_49_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_49_3 x_3)) (MUL_F O_49_4 x_4))
+                  (MUL_F O_49_5 x_5))))
+  (ADD_F Vdec_49 (ADD_F (ADD_F a!2 (MUL_F O_49_6 x_6)) (MUL_F O_49_7 x_7)))))
+
+s[50] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_50_0 x_0)) (MUL_F O_50_1 x_1))
+                  (MUL_F O_50_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_50_3 x_3)) (MUL_F O_50_4 x_4))
+                  (MUL_F O_50_5 x_5))))
+  (ADD_F Vdec_50 (ADD_F (ADD_F a!2 (MUL_F O_50_6 x_6)) (MUL_F O_50_7 x_7)))))
+
+s[51] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_51_0 x_0)) (MUL_F O_51_1 x_1))
+                  (MUL_F O_51_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_51_3 x_3)) (MUL_F O_51_4 x_4))
+                  (MUL_F O_51_5 x_5))))
+  (ADD_F Vdec_51 (ADD_F (ADD_F a!2 (MUL_F O_51_6 x_6)) (MUL_F O_51_7 x_7)))))
+
+s[52] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_52_0 x_0)) (MUL_F O_52_1 x_1))
+                  (MUL_F O_52_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_52_3 x_3)) (MUL_F O_52_4 x_4))
+                  (MUL_F O_52_5 x_5))))
+  (ADD_F Vdec_52 (ADD_F (ADD_F a!2 (MUL_F O_52_6 x_6)) (MUL_F O_52_7 x_7)))))
+
+s[53] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_53_0 x_0)) (MUL_F O_53_1 x_1))
+                  (MUL_F O_53_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_53_3 x_3)) (MUL_F O_53_4 x_4))
+                  (MUL_F O_53_5 x_5))))
+  (ADD_F Vdec_53 (ADD_F (ADD_F a!2 (MUL_F O_53_6 x_6)) (MUL_F O_53_7 x_7)))))
+
+s[54] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_54_0 x_0)) (MUL_F O_54_1 x_1))
+                  (MUL_F O_54_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_54_3 x_3)) (MUL_F O_54_4 x_4))
+                  (MUL_F O_54_5 x_5))))
+  (ADD_F Vdec_54 (ADD_F (ADD_F a!2 (MUL_F O_54_6 x_6)) (MUL_F O_54_7 x_7)))))
+
+s[55] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_55_0 x_0)) (MUL_F O_55_1 x_1))
+                  (MUL_F O_55_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_55_3 x_3)) (MUL_F O_55_4 x_4))
+                  (MUL_F O_55_5 x_5))))
+  (ADD_F Vdec_55 (ADD_F (ADD_F a!2 (MUL_F O_55_6 x_6)) (MUL_F O_55_7 x_7)))))
+
+s[56] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_56_0 x_0)) (MUL_F O_56_1 x_1))
+                  (MUL_F O_56_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_56_3 x_3)) (MUL_F O_56_4 x_4))
+                  (MUL_F O_56_5 x_5))))
+  (ADD_F Vdec_56 (ADD_F (ADD_F a!2 (MUL_F O_56_6 x_6)) (MUL_F O_56_7 x_7)))))
+
+s[57] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_57_0 x_0)) (MUL_F O_57_1 x_1))
+                  (MUL_F O_57_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_57_3 x_3)) (MUL_F O_57_4 x_4))
+                  (MUL_F O_57_5 x_5))))
+  (ADD_F Vdec_57 (ADD_F (ADD_F a!2 (MUL_F O_57_6 x_6)) (MUL_F O_57_7 x_7)))))
+
+s[58] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_58_0 x_0)) (MUL_F O_58_1 x_1))
+                  (MUL_F O_58_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_58_3 x_3)) (MUL_F O_58_4 x_4))
+                  (MUL_F O_58_5 x_5))))
+  (ADD_F Vdec_58 (ADD_F (ADD_F a!2 (MUL_F O_58_6 x_6)) (MUL_F O_58_7 x_7)))))
+
+s[59] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_59_0 x_0)) (MUL_F O_59_1 x_1))
+                  (MUL_F O_59_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_59_3 x_3)) (MUL_F O_59_4 x_4))
+                  (MUL_F O_59_5 x_5))))
+  (ADD_F Vdec_59 (ADD_F (ADD_F a!2 (MUL_F O_59_6 x_6)) (MUL_F O_59_7 x_7)))))
+
+s[60] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_60_0 x_0)) (MUL_F O_60_1 x_1))
+                  (MUL_F O_60_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_60_3 x_3)) (MUL_F O_60_4 x_4))
+                  (MUL_F O_60_5 x_5))))
+  (ADD_F Vdec_60 (ADD_F (ADD_F a!2 (MUL_F O_60_6 x_6)) (MUL_F O_60_7 x_7)))))
+
+s[61] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_61_0 x_0)) (MUL_F O_61_1 x_1))
+                  (MUL_F O_61_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_61_3 x_3)) (MUL_F O_61_4 x_4))
+                  (MUL_F O_61_5 x_5))))
+  (ADD_F Vdec_61 (ADD_F (ADD_F a!2 (MUL_F O_61_6 x_6)) (MUL_F O_61_7 x_7)))))
+
+s[62] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_62_0 x_0)) (MUL_F O_62_1 x_1))
+                  (MUL_F O_62_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_62_3 x_3)) (MUL_F O_62_4 x_4))
+                  (MUL_F O_62_5 x_5))))
+  (ADD_F Vdec_62 (ADD_F (ADD_F a!2 (MUL_F O_62_6 x_6)) (MUL_F O_62_7 x_7)))))
+
+s[63] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_63_0 x_0)) (MUL_F O_63_1 x_1))
+                  (MUL_F O_63_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_63_3 x_3)) (MUL_F O_63_4 x_4))
+                  (MUL_F O_63_5 x_5))))
+  (ADD_F Vdec_63 (ADD_F (ADD_F a!2 (MUL_F O_63_6 x_6)) (MUL_F O_63_7 x_7)))))
+
+s[64] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_64_0 x_0)) (MUL_F O_64_1 x_1))
+                  (MUL_F O_64_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_64_3 x_3)) (MUL_F O_64_4 x_4))
+                  (MUL_F O_64_5 x_5))))
+  (ADD_F Vdec_64 (ADD_F (ADD_F a!2 (MUL_F O_64_6 x_6)) (MUL_F O_64_7 x_7)))))
+
+s[65] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_65_0 x_0)) (MUL_F O_65_1 x_1))
+                  (MUL_F O_65_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_65_3 x_3)) (MUL_F O_65_4 x_4))
+                  (MUL_F O_65_5 x_5))))
+  (ADD_F Vdec_65 (ADD_F (ADD_F a!2 (MUL_F O_65_6 x_6)) (MUL_F O_65_7 x_7)))))
+
+s[66] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_66_0 x_0)) (MUL_F O_66_1 x_1))
+                  (MUL_F O_66_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_66_3 x_3)) (MUL_F O_66_4 x_4))
+                  (MUL_F O_66_5 x_5))))
+  (ADD_F Vdec_66 (ADD_F (ADD_F a!2 (MUL_F O_66_6 x_6)) (MUL_F O_66_7 x_7)))))
+
+s[67] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_67_0 x_0)) (MUL_F O_67_1 x_1))
+                  (MUL_F O_67_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_67_3 x_3)) (MUL_F O_67_4 x_4))
+                  (MUL_F O_67_5 x_5))))
+  (ADD_F Vdec_67 (ADD_F (ADD_F a!2 (MUL_F O_67_6 x_6)) (MUL_F O_67_7 x_7)))))
+
+s[68] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_68_0 x_0)) (MUL_F O_68_1 x_1))
+                  (MUL_F O_68_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_68_3 x_3)) (MUL_F O_68_4 x_4))
+                  (MUL_F O_68_5 x_5))))
+  (ADD_F Vdec_68 (ADD_F (ADD_F a!2 (MUL_F O_68_6 x_6)) (MUL_F O_68_7 x_7)))))
+
+s[69] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_69_0 x_0)) (MUL_F O_69_1 x_1))
+                  (MUL_F O_69_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_69_3 x_3)) (MUL_F O_69_4 x_4))
+                  (MUL_F O_69_5 x_5))))
+  (ADD_F Vdec_69 (ADD_F (ADD_F a!2 (MUL_F O_69_6 x_6)) (MUL_F O_69_7 x_7)))))
+
+s[70] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_70_0 x_0)) (MUL_F O_70_1 x_1))
+                  (MUL_F O_70_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_70_3 x_3)) (MUL_F O_70_4 x_4))
+                  (MUL_F O_70_5 x_5))))
+  (ADD_F Vdec_70 (ADD_F (ADD_F a!2 (MUL_F O_70_6 x_6)) (MUL_F O_70_7 x_7)))))
+
+s[71] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_71_0 x_0)) (MUL_F O_71_1 x_1))
+                  (MUL_F O_71_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_71_3 x_3)) (MUL_F O_71_4 x_4))
+                  (MUL_F O_71_5 x_5))))
+  (ADD_F Vdec_71 (ADD_F (ADD_F a!2 (MUL_F O_71_6 x_6)) (MUL_F O_71_7 x_7)))))
+
+s[72] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_72_0 x_0)) (MUL_F O_72_1 x_1))
+                  (MUL_F O_72_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_72_3 x_3)) (MUL_F O_72_4 x_4))
+                  (MUL_F O_72_5 x_5))))
+  (ADD_F Vdec_72 (ADD_F (ADD_F a!2 (MUL_F O_72_6 x_6)) (MUL_F O_72_7 x_7)))))
+
+s[73] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_73_0 x_0)) (MUL_F O_73_1 x_1))
+                  (MUL_F O_73_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_73_3 x_3)) (MUL_F O_73_4 x_4))
+                  (MUL_F O_73_5 x_5))))
+  (ADD_F Vdec_73 (ADD_F (ADD_F a!2 (MUL_F O_73_6 x_6)) (MUL_F O_73_7 x_7)))))
+
+s[74] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_74_0 x_0)) (MUL_F O_74_1 x_1))
+                  (MUL_F O_74_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_74_3 x_3)) (MUL_F O_74_4 x_4))
+                  (MUL_F O_74_5 x_5))))
+  (ADD_F Vdec_74 (ADD_F (ADD_F a!2 (MUL_F O_74_6 x_6)) (MUL_F O_74_7 x_7)))))
+
+s[75] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_75_0 x_0)) (MUL_F O_75_1 x_1))
+                  (MUL_F O_75_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_75_3 x_3)) (MUL_F O_75_4 x_4))
+                  (MUL_F O_75_5 x_5))))
+  (ADD_F Vdec_75 (ADD_F (ADD_F a!2 (MUL_F O_75_6 x_6)) (MUL_F O_75_7 x_7)))))
+
+s[76] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_76_0 x_0)) (MUL_F O_76_1 x_1))
+                  (MUL_F O_76_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_76_3 x_3)) (MUL_F O_76_4 x_4))
+                  (MUL_F O_76_5 x_5))))
+  (ADD_F Vdec_76 (ADD_F (ADD_F a!2 (MUL_F O_76_6 x_6)) (MUL_F O_76_7 x_7)))))
+
+s[77] = (let ((a!1 (ADD_F (ADD_F (ADD_F #x00 (MUL_F O_77_0 x_0)) (MUL_F O_77_1 x_1))
+                  (MUL_F O_77_2 x_2))))
+(let ((a!2 (ADD_F (ADD_F (ADD_F a!1 (MUL_F O_77_3 x_3)) (MUL_F O_77_4 x_4))
+                  (MUL_F O_77_5 x_5))))
+  (ADD_F Vdec_77 (ADD_F (ADD_F a!2 (MUL_F O_77_6 x_6)) (MUL_F O_77_7 x_7)))))
+
+s[78] = x_0
+
+s[79] = x_1
+
+s[80] = x_2
+
+s[81] = x_3
+
+s[82] = x_4
+
+s[83] = x_5
+
+s[84] = x_6
+
+s[85] = x_7
+

@@ -14,56 +14,63 @@
 #include "llvm/IRReader/IRReader.h"
 
 #include <map>
-
+// #include "mayo.h"
 using namespace llvm;
 
-static const int O_COLS = 4;
+// const mayo_params_t *p = &MAYO_1;
 
-// Helper function to safely get or default init z3::expr from map
-z3::expr safe_get(std::map<Value *, z3::expr> &m, Value *k, z3::context &ctx, int width = 4)
+static const int param_o = 8;
+static const int param_k = 1;
+static const int param_v = 78;
+static const int param_n = 86;
+
+// std::map<Value *, z3::expr> reg;
+z3::context ctx;
+
+std::vector<z3::expr> Vdec;
+std::vector<z3::expr> x;
+std::vector<std::vector<z3::expr>> O;
+std::vector<z3::expr> Ox;
+std::vector<z3::expr> s;
+
+void compute_Ox(z3::func_decl MUL_F, z3::func_decl ADD_F)
 {
-    auto it = m.find(k);
-    if (it != m.end())
-        return it->second;
-    return ctx.bv_val(0, width);
-}
-
-z3::expr gf_add(const z3::expr &a, const z3::expr &b)
-{
-    return a ^ b;
-}
-
-z3::expr gf_mul(z3::context &ctx, const z3::expr &a, const z3::expr &b)
-{
-
-    z3::expr p = ctx.bv_val(0, 8);
-
-    z3::expr a_ext = z3::zext(a, 4);
-    z3::expr b_ext = z3::zext(b, 4);
-
-    for (int i = 0; i < 4; i++)
+    for (int r = 0; r < param_v; r++)
     {
-        z3::expr bit = a_ext.extract(i, i); // <-- correct API
+        z3::expr acc = ctx.bv_val(0, 8);
 
-        z3::expr shifted = z3::shl(b_ext, ctx.bv_val(i, 8));
+        for (int c = 0; c < param_o; c++)
+        {
+            z3::expr prod = MUL_F(O[r][c], x[c]);
+            acc = ADD_F(acc, prod);
+        }
 
-        p = p ^ z3::ite(bit == ctx.bv_val(1, 1),
-                        shifted,
-                        ctx.bv_val(0, 8));
+        Ox[r] = acc;
     }
+}
 
-    // reduction mod x^4 + x + 1
+void compute_s_head(z3::func_decl ADD_F)
+{
+    for (int r = 0; r < param_v; r++)
+    {
+        s[r] = ADD_F(Vdec[r], Ox[r]);
+    }
+}
 
-    z3::expr top = p.extract(7, 4);
-    z3::expr low = p.extract(3, 0);
-
-    z3::expr reduced = low ^ top ^ z3::shl(top, ctx.bv_val(1, 4));
-
-    return reduced & ctx.bv_val(0xF, 4);
+void append_tail()
+{
+    for (int j = 0; j < param_o; j++)
+    {
+        s[param_v + j] = x[j];
+    }
 }
 
 int main()
 {
+
+    Ox.resize(param_v, ctx.bv_val(0, 8));
+    s.resize(param_n, ctx.bv_val(0, 8));
+
 
     LLVMContext llvm_ctx;
 
@@ -100,86 +107,30 @@ int main()
         return 1;
     }
 
-    z3::context ctx;
-    z3::sort bv4 = ctx.bv_sort(4);
+    z3::sort bv8 = ctx.bv_sort(8);
 
-    z3::func_decl MAT_MUL = ctx.function("MAT_MUL", bv4, bv4, bv4);
-    z3::func_decl MAT_ADD = ctx.function("MAT_ADD", bv4, bv4, bv4);
+    // Uninterpreted field operations
+    z3::func_decl MUL_F = ctx.function("MUL_F", bv8, bv8, bv8);
+    z3::func_decl ADD_F = ctx.function("ADD_F", bv8, bv8, bv8);
 
-    std::map<Value *, z3::expr> val;
-    std::map<Value *, z3::expr> mem;
-
-    // Vdec symbolic
-    for (int i = 0; i < 10; i++)
-    {
-        mem.insert_or_assign((Value *)(uintptr_t)(0x100000 + i),
-                             ctx.bv_const(("Vdec_" + std::to_string(i)).c_str(), 4));
-    }
-
-    // O symbolic
-    for (int i = 0; i < 10; i++)
-    {
-        mem.insert_or_assign((Value *)(uintptr_t)(0x200000 + i),
-                             ctx.bv_const(("O_" + std::to_string(i)).c_str(), 4));
-    }
+    for (int i = 0; i < param_v; i++)
+        Vdec.push_back(ctx.bv_const(("Vdec_" + std::to_string(i)).c_str(), 8));
 
     // x symbolic
-    for (int i = 0; i < 10; i++)
-    {
-        mem.insert_or_assign((Value *)(uintptr_t)(0x300000 + i),
-                             ctx.bv_const(("x_" + std::to_string(i)).c_str(), 4));
-    }
+    for (int i = 0; i < param_o; i++)
+        x.push_back(ctx.bv_const(("x_" + std::to_string(i)).c_str(), 8));
+
+    // O symbolic
+    O.resize(param_v);
+    for (int r = 0; r < param_v; r++)
+        for (int c = 0; c < param_o; c++)
+            O[r].push_back(
+                ctx.bv_const(("O_" + std::to_string(r) + "_" + std::to_string(c)).c_str(), 8));
 
     for (auto &I : *target)
     {
 
-        if (auto *load = dyn_cast<LoadInst>(&I))
-        {
-
-            Value *src = load->getPointerOperand();
-            val.insert_or_assign(&I, safe_get(mem, src, ctx, 4));
-        }
-
-        else if (auto *store = dyn_cast<StoreInst>(&I))
-        {
-
-            z3::expr v = safe_get(val, store->getValueOperand(), ctx, 4);
-            Value *dst = store->getPointerOperand();
-            mem.insert_or_assign(dst, v);
-        }
-
-        else if (auto *bin = dyn_cast<BinaryOperator>(&I))
-        {
-
-            z3::expr a = safe_get(val, bin->getOperand(0), ctx, 4);
-            z3::expr b = safe_get(val, bin->getOperand(1), ctx, 4);
-
-            z3::expr result = ctx.bv_val(0, 4);
-            switch (bin->getOpcode())
-            {
-
-            case Instruction::Add:
-                result = a + b;
-                break;
-
-            case Instruction::Sub:
-                result = a - b;
-                break;
-
-            case Instruction::Mul:
-                result = a * b;
-                break;
-            }
-            val.insert_or_assign(&I, result);
-        }
-
-        else if (auto *gep = dyn_cast<GetElementPtrInst>(&I))
-        {
-
-            continue;
-        }
-
-        else if (auto *call = dyn_cast<CallInst>(&I))
+        if (auto *call = dyn_cast<CallInst>(&I))
         {
 
             Function *callee = call->getCalledFunction();
@@ -188,94 +139,29 @@ int main()
 
             std::string name = callee->getName().str();
 
-            /* ===== mat_mul ===== */
-
             if (name == "mat_mul")
             {
 
-                Value *O_ptr = call->getArgOperand(0);
-                Value *x_ptr = call->getArgOperand(1);
-                Value *Ox_ptr = call->getArgOperand(2);
-
-                int rows = 8;
-
-                for (int r = 0; r < rows; r++)
-                {
-                    z3::expr O_sym =
-                        ctx.bv_const(("O_row_" + std::to_string(r)).c_str(), 4);
-
-                    z3::expr x_sym =
-                        ctx.bv_const(("x_" + std::to_string(r)).c_str(), 4);
-
-                    z3::expr result = MAT_MUL(O_sym, x_sym);
-
-                    mem.insert_or_assign(
-                        (Value *)(uintptr_t)(0x400000 + r),
-                        result);
-                }
+                compute_Ox(MUL_F, ADD_F);
             }
 
             else if (name == "mat_add")
             {
 
-                Value *vi_ptr = call->getArgOperand(0);
-                Value *Ox_ptr = call->getArgOperand(1);
-                Value *s_ptr = call->getArgOperand(2);
-
-                int rows = 8;
-
-                for (int r = 0; r < rows; r++)
-                {
-
-                    z3::expr v_sym =
-                        ctx.bv_const(("Vdec_" + std::to_string(r)).c_str(), 4);
-
-                    z3::expr Ox_sym =
-                        safe_get(mem,
-                                 (Value *)(uintptr_t)(0x400000 + r),
-                                 ctx, 4);
-
-                    z3::expr result = MAT_ADD(v_sym, Ox_sym);
-
-                    mem.insert_or_assign(
-                        (Value *)(uintptr_t)(0x500000 + r),
-                        result);
-                }
+                compute_s_head(ADD_F);
             }
             else if (name == "memcpy")
             {
-
-                Value *dst = call->getArgOperand(0);
-                Value *src = call->getArgOperand(1);
-
-                int param_o = 8; // symbolic width
-
-                for (int j = 0; j < param_o; j++)
-                {
-                    z3::expr x_sym =
-                        ctx.bv_const(("x_tail_" + std::to_string(j)).c_str(), 4);
-
-                    mem.insert_or_assign(
-                        (Value *)(uintptr_t)(0x600000 + j),
-                        x_sym);
-                }
+                append_tail();
             }
         }
     }
 
-    std::cout << "\nSymbolic expressions for s = v + O*x\n\n";
-    std::cout << "\n One block sig :\n\n";
+    std::cout << "\nOne signature block symbolic expression:\n\n";
 
-    for (int r = 0; r < 8; r++)
+    for (int i = 0; i < param_n; i++)
     {
-        z3::expr head = safe_get(mem, (Value *)(uintptr_t)(0x500000 + r), ctx, 4);
-        std::cout << "s[" << r << "] = " << head << "\n";
-    }
-
-    for (int j = 0; j < 8; j++)
-    {
-        z3::expr tail = safe_get(mem, (Value *)(uintptr_t)(0x600000 + j), ctx, 4);
-        std::cout << "s[" << (4 + j) << "] = " << tail << "\n";
+        std::cout << "s[" << i << "] = " << s[i].simplify() << "\n\n";
     }
 
     return 0;
