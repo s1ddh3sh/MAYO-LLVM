@@ -224,14 +224,14 @@ int main(int argc, char **argv)
 
     std::vector<std::string> files = {
         "../example.c",
-        "../../src/mayo.c"};
+        "../../../src/mayo.c"};
 
     // 2. Define your include paths (replaces -I)
     std::vector<std::string> includes = {
-        "../../include",
-        "../../src",
-        "../../src/common",
-        "../../src/generic"};
+        "../../../include",
+        "../../../src",
+        "../../../src/common",
+        "../../../src/generic"};
 
     llvm::LLVMContext llvm_ctx;
     std::unique_ptr<llvm::Module> module = c2ir(files, includes, llvm_ctx);
@@ -246,17 +246,17 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // std::error_code EC;
-    // llvm::raw_fd_ostream outFile("../mayo.ll", EC);
+    std::error_code EC;
+    llvm::raw_fd_ostream outFile("mayo.ll", EC);
 
-    // if (EC)
-    // {
-    //     llvm::errs() << "Cannot open mayo.ll: " << EC.message() << "\n";
-    // }
-    // else
-    // {
-    //     module->print(outFile, nullptr);
-    //     llvm::outs() << "Successfully wrote mayo.ll\n";
-    // }
+    if (EC)
+    {
+        llvm::errs() << "Cannot open mayo.ll: " << EC.message() << "\n";
+    }
+    else
+    {
+        module->print(outFile, nullptr);
+        llvm::outs() << "Successfully wrote mayo.ll\n";
+    }
     prepare(module);
 }
