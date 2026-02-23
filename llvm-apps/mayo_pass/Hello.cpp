@@ -247,7 +247,7 @@ int main(int argc, char **argv)
     }
 
     std::error_code EC;
-    llvm::raw_fd_ostream outFile("mayo.ll", EC);
+    llvm::raw_fd_ostream outFile("../mayo.ll", EC);
 
     if (EC)
     {
