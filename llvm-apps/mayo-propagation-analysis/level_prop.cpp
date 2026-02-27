@@ -139,12 +139,23 @@ private:
             Value *sk = C.getArgOperand(2);
             memLevels[sk].level = Level::Secret;
         }
-        else if(name == "mayo_expand_sk") {
+        else if (name == "mayo_expand_sk")
+        {
             Value *esk = C.getArgOperand(2);
             memLevels[esk].level = Level::Secret;
         }
 
-        
+        else if (callee.getName() == "shake256")
+        {
+
+            Value *dst = C.getArgOperand(0);
+            Value *src = C.getArgOperand(2); // input buffer
+
+            Level inLevel = memLevels[getBase(src)].level;
+
+            memLevels[getBase(dst)].level =
+                join(memLevels[getBase(dst)].level, inLevel);
+        }
     }
 };
 
