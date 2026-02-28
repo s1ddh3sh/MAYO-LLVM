@@ -15,8 +15,12 @@
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/InstIterator.h"
 
+#include "llvm/Analysis/MemoryBuiltins.h"
+#include "llvm/Analysis/ValueTracking.h"
+
 #include <iostream>
 #include <map>
+#include <set>
 
 using namespace llvm;
 using namespace std;
@@ -42,8 +46,9 @@ class LevelPropPass : public PassInfoMixin<LevelPropPass>
 {
     map<Value *, Taint> regLevels;
     map<Value *, Taint> memLevels;
-
     map<Function *, Level> funcLevel;
+
+    static bool printed;
 
 public:
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &)
@@ -69,9 +74,40 @@ public:
                 outs() << "FUnction : " << it.first->getName() << "\n";
             }
         }
+        if (!printed)
+        {
+            printed = true;
+            outs() << "\n=== Register Levels ===\n";
+            for (auto &it : regLevels)
+            {
+                outs() << "Value: ";
+                it.first->print(outs());
+                outs() << "  -> Level: " << (int)it.second.level << "\n";
+            }
+
+            outs() << "\n=== Memory Levels ===\n";
+            for (auto &it : memLevels)
+            {
+                outs() << "Pointer: ";
+                it.first->print(outs());
+                outs() << "  -> Level: " << (int)it.second.level << "\n";
+            }
+
+            outs() << "\n=== Function Levels ===\n";
+            for (auto &it : funcLevel)
+            {
+                outs() << "Function: " << it.first->getName()
+                       << "  -> Level: " << (int)it.second << "\n";
+            }
+        }
+        return PreservedAnalyses::all();
     }
 
 private:
+    Value *getBase(Value *ptr)
+    {
+        return getUnderlyingObject(ptr);
+    }
     bool analyzeFunc(Function &F)
     {
         bool changed = false;
@@ -156,8 +192,22 @@ private:
             memLevels[getBase(dst)].level =
                 join(memLevels[getBase(dst)].level, inLevel);
         }
+
+        for (int i = 0; i < C.arg_size(); i++)
+        {
+            Value *arg = C.getArgOperand(i);
+            Level arglevel = regLevels[arg].level;
+
+            if (!callee.isDeclaration() && i < callee.arg_size())
+            {
+                auto calleeArg = callee.getArg(i);
+                regLevels[calleeArg].level = join(regLevels[calleeArg].level, arglevel);
+            }
+        }
     }
 };
+
+bool LevelPropPass::printed = false;
 
 int main()
 {
