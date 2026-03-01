@@ -124,7 +124,7 @@ private:
                         env.mem[A] = Level::Secret;
                     }
 
-                    else if (name.find("Vdec") != string::npos)
+                    else if (name.find("Vdec") != string::npos || name.find("V") != string::npos)
                     {
                         env.mem[A] = Level::EphSecret;
                     }
@@ -179,6 +179,14 @@ private:
                 funcLvl = join(funcLvl, env.reg[&I]);
             }
         }
+        Level memLvl = Level::Public;
+
+        for (auto &it : env.mem)
+        {
+            memLvl = join(memLvl, it.second);
+        }
+
+        funcLvl = join(funcLvl, memLvl);
         funcLevel[F] = join(funcLevel[F], funcLvl);
         callStack.erase(F);
 
