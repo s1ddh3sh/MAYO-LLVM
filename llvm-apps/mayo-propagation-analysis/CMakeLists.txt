@@ -23,7 +23,7 @@ if(NOT Z3_FOUND)
   endif()
 endif()
 
-add_executable(level_prop level_prop.cpp)
+add_executable(level_prop level_prop2.cpp)
 
 # Map needed LLVM components to library names
 llvm_map_components_to_libnames(LLVM_LIBS
