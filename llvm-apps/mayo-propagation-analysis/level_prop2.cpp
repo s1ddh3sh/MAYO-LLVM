@@ -229,21 +229,21 @@ private:
         calleeEnv = analyzeFunc(callee, calleeEnv);
 
         // merge back
-        // for (auto &it : calleeEnv.mem)
-        // {
-        //     callerEnv.mem[it.first] = join(callerEnv.mem[it.first], it.second);
-        // }
-
-        for (int i = 0; i < C.arg_size(); i++)
+        for (auto &it : calleeEnv.mem)
         {
-            Value *callerArg = C.getArgOperand(i);
-            Argument &calleeArg = *callee->getArg(i);
-
-            Value *callerBase = getBase(callerArg);
-            Value *calleeBase = getBase(&calleeArg);
-
-            callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
+            callerEnv.mem[it.first] = join(callerEnv.mem[it.first], it.second);
         }
+
+        // for (int i = 0; i < C.arg_size(); i++)
+        // {
+        //     Value *callerArg = C.getArgOperand(i);
+        //     Argument &calleeArg = *callee->getArg(i);
+
+        //     Value *callerBase = getBase(callerArg);
+        //     Value *calleeBase = getBase(&calleeArg);
+
+        //     callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
+        // }
 
         callerEnv.reg[&C] = calleeEnv.returnlevel;
     }

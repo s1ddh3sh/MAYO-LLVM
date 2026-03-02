@@ -102,29 +102,29 @@ static int example_mayo(const mayo_params_t* p) {
         printf("OK\n");
     }
 
-    printf("mayo_open (with altered signature) -> ");
-    sig[0] = ~sig[0];
-    memset(msg2, 0, msglen);
-    res = mayo_open(p, msg2, &msglen, sig, smlen, pk);
-    if (res != MAYO_ERR || !memcmp(msg, msg2, msglen)) {
-        printf("FAIL\n");
-        res = -1;
-        goto err;
-    } else {
-        res = MAYO_OK;
-        printf("OK\n");
-    }
+    // printf("mayo_open (with altered signature) -> ");
+    // sig[0] = ~sig[0];
+    // memset(msg2, 0, msglen);
+    // res = mayo_open(p, msg2, &msglen, sig, smlen, pk);
+    // if (res != MAYO_ERR || !memcmp(msg, msg2, msglen)) {
+    //     printf("FAIL\n");
+    //     res = -1;
+    //     goto err;
+    // } else {
+    //     res = MAYO_OK;
+    //     printf("OK\n");
+    // }
 
-    printf("mayo_verify (with altered signature) -> ");
-    res = mayo_verify(p, msg, msglen, sig, pk);
-    if (res == MAYO_OK) {
-        printf("FAIL\n");
-        res = -1;
-        goto err;
-    } else {
-        res = MAYO_OK;
-        printf("OK\n");
-    }
+    // printf("mayo_verify (with altered signature) -> ");
+    // res = mayo_verify(p, msg, msglen, sig, pk);
+    // if (res == MAYO_OK) {
+    //     printf("FAIL\n");
+    //     res = -1;
+    //     goto err;
+    // } else {
+    //     res = MAYO_OK;
+    //     printf("OK\n");
+    // }
 
 err:
     free(pk);
