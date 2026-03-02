@@ -1,22 +1,11 @@
-#include "z3++.h"
+// #include "z3++.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/TargetParser/Host.h"
-#include "llvm/IR/Module.h"
 #include "llvm/IR/LLVMContext.h"
-#include "llvm/Analysis/CFGPrinter.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/PassManager.h"
-#include "llvm/IR/Verifier.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/IRReader/IRReader.h"
-#include "llvm/IR/CFG.h"
-#include "llvm/IR/InstIterator.h"
-
-#include "llvm/Analysis/MemoryBuiltins.h"
-#include "llvm/Analysis/ValueTracking.h"
 
 #include <iostream>
 #include <map>
@@ -190,22 +179,22 @@ private:
         funcLevel[F] = join(funcLevel[F], funcLvl);
         callStack.erase(F);
 
-        // outs() << "\n--- Function: " << F->getName() << " ---\n";
+        outs() << "\n--- Function: " << F->getName() << " ---\n";
 
-        // for (auto &r : env.reg)
-        // {
-        //     outs() << "REG: ";
-        //     r.first->print(outs());
-        //     outs() << " -> Level : " << (int)r.second << "\n";
-        // }
+        for (auto &r : env.reg)
+        {
+            outs() << "REG: ";
+            r.first->print(outs());
+            outs() << " -> Level : " << (int)r.second << "\n";
+        }
 
-        // for (auto &m : env.mem)
-        // {
-        //     outs() << "MEM: ";
-        //     m.first->print(outs());
-        //     outs() << " -> Level : " << (int)m.second << "\n";
-        // }
-
+        for (auto &m : env.mem)
+        {
+            outs() << "MEM: ";
+            m.first->print(outs());
+            outs() << " -> Level : " << (int)m.second << "\n";
+        }
+        outs() << "\n\n";
         return env;
     }
 
@@ -241,9 +230,20 @@ private:
         calleeEnv = analyzeFunc(callee, calleeEnv);
 
         // merge back
-        for (auto &it : calleeEnv.mem)
+        // for (auto &it : calleeEnv.mem)
+        // {
+        //     callerEnv.mem[it.first] = join(callerEnv.mem[it.first], it.second);
+        // }
+
+        for (int i = 0; i < C.arg_size(); i++)
         {
-            callerEnv.mem[it.first] = join(callerEnv.mem[it.first], it.second);
+            Value *callerArg = C.getArgOperand(i);
+            Argument &calleeArg = *callee->getArg(i);
+
+            Value *callerBase = getBase(callerArg);
+            Value *calleeBase = getBase(&calleeArg);
+
+            callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
         }
 
         callerEnv.reg[&C] = calleeEnv.returnlevel;
