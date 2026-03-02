@@ -7,7 +7,6 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/IRReader/IRReader.h"
 
-#include <iostream>
 #include <map>
 #include <set>
 
@@ -269,9 +268,7 @@ int main()
     PB.registerLoopAnalyses(LAM);
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
-    // -------------------------------
     // Module Pass Manager
-    // -------------------------------
     ModulePassManager MPM;
     MPM.addPass(LevelPropPass());
 
