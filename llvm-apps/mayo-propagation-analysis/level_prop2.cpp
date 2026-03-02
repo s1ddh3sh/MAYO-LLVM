@@ -105,19 +105,22 @@ private:
 
                 if (auto *A = dyn_cast<AllocaInst>(&I))
                 {
+                    Level L = Level::Public;
                     string name = A->getName().str();
 
                     if (name.find("sk") != string::npos || name.find("esk") != string::npos)
                     {
-                        env.mem[A] = Level::Secret;
+                        L = Level::Secret;
                     }
 
                     else if (name.find("Vdec") != string::npos || name.find("V") != string::npos)
                     {
-                        env.mem[A] = Level::EphSecret;
+                        L = Level::EphSecret;
                     }
-                    else
-                        env.mem[A] = Level::Public;
+                    // else
+                    //     env.mem[A] = Level::Public;
+                    env.mem[A] = L;
+                    env.reg[A] = L;
                 }
 
                 // gep
@@ -128,6 +131,7 @@ private:
                     env.reg[&I] = env.reg[base];
 
                     env.mem[&I] = env.mem[base];
+                    // env.mem[getBase(&I)] = env.mem[base];
                 }
 
                 // load
@@ -176,6 +180,18 @@ private:
 
         funcLvl = join(funcLvl, memLvl);
         funcLevel[F] = join(funcLevel[F], funcLvl);
+
+        // Level outLvl = env.returnlevel;
+
+        // for (auto &arg : F->args())
+        // {
+        //     outLvl = join(outLvl, env.reg[&arg]);
+
+        //     if (arg.getType()->isPointerTy())
+        //         outLvl = join(outLvl, env.mem[&arg]);
+        // }
+
+        // funcLevel[F] = outLvl;
         callStack.erase(F);
 
         outs() << "\n--- Function: " << F->getName() << " ---\n";
