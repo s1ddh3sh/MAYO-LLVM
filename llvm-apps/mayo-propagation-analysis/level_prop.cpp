@@ -111,7 +111,7 @@ private:
                     string name = A->getName().str();
 
                     if (name == "sk" || name == "esk" ||
-                        name == "O" || name == "L" ||
+                        name == "O" || name == "L" || name == "Ox" ||
                         name == "seed_sk" ||
                         name.find("csk") != string::npos ||
                         name.find("seed_sk") != string::npos ||
@@ -201,7 +201,6 @@ private:
         // funcLvl = join(funcLvl, outLvl);
         funcLevel[F] = join(funcLevel[F], outLvl);
 
-
         callStack.erase(F);
 
         outs() << "\n--- Function: " << F->getName() << " ---\n";
@@ -240,6 +239,15 @@ private:
             }
 
             callerEnv.reg[&C] = ret;
+            for (int i = 0; i < (int)C.arg_size(); i++)
+            {
+                Value *arg = C.getArgOperand(i);
+                if (arg->getType()->isPointerTy())
+                {
+                    Value *base = getBase(arg);
+                    callerEnv.mem[base] = join(callerEnv.mem[base], ret);
+                }
+            }
             return;
         }
 
@@ -253,7 +261,6 @@ private:
         }
 
         calleeEnv = analyzeFunc(callee, calleeEnv);
-
 
         for (int i = 0; i < (int)C.arg_size(); i++)
         {
