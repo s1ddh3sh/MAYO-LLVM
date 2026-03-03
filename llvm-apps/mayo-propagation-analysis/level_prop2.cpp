@@ -98,6 +98,7 @@ private:
             funcLvl = join(funcLvl, env.reg[&arg]);
         }
 
+        set<Value*> local;
         for (auto &BB : *F)
         {
             for (auto &I : BB)
@@ -105,6 +106,7 @@ private:
 
                 if (auto *A = dyn_cast<AllocaInst>(&I))
                 {
+                    local.insert(A);
                     Level L = Level::Public;
                     string name = A->getName().str();
 
@@ -173,9 +175,9 @@ private:
         }
         Level memLvl = Level::Public;
 
-        for (auto &it : env.mem)
+        for (Value* v : local)
         {
-            memLvl = join(memLvl, it.second);
+            memLvl = join(memLvl, env.mem[v]);
         }
 
         funcLvl = join(funcLvl, memLvl);
@@ -245,21 +247,26 @@ private:
         calleeEnv = analyzeFunc(callee, calleeEnv);
 
         // merge back
-        for (auto &it : calleeEnv.mem)
-        {
-            callerEnv.mem[it.first] = join(callerEnv.mem[it.first], it.second);
-        }
-
-        // for (int i = 0; i < C.arg_size(); i++)
+        // for (auto &it : calleeEnv.mem)
         // {
-        //     Value *callerArg = C.getArgOperand(i);
-        //     Argument &calleeArg = *callee->getArg(i);
-
-        //     Value *callerBase = getBase(callerArg);
-        //     Value *calleeBase = getBase(&calleeArg);
-
-        //     callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
+        //     callerEnv.mem[it.first] = join(callerEnv.mem[it.first], it.second);
         // }
+
+        for (int i = 0; i < (int)C.arg_size(); i++)
+        {
+            Value *callerArg = C.getArgOperand(i);
+            Argument &calleeArg = *callee->getArg(i);
+
+            if(callerArg->getType()->isPointerTy()) {
+                
+                Value *callerBase = getBase(callerArg);
+                Value *calleeBase = getBase(&calleeArg);
+                callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
+
+            }
+            
+
+        }
 
         callerEnv.reg[&C] = calleeEnv.returnlevel;
     }

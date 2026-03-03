@@ -1,24 +1,12 @@
-#include "z3++.h"
+// #include "z3++.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Module.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/TargetParser/Host.h"
-#include "llvm/IR/Module.h"
 #include "llvm/IR/LLVMContext.h"
-#include "llvm/Analysis/CFGPrinter.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/PassManager.h"
-#include "llvm/IR/Verifier.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/IRReader/IRReader.h"
-#include "llvm/IR/CFG.h"
-#include "llvm/IR/InstIterator.h"
 
-#include "llvm/Analysis/MemoryBuiltins.h"
-#include "llvm/Analysis/ValueTracking.h"
-
-#include <iostream>
 #include <map>
 #include <set>
 
@@ -37,177 +25,253 @@ Level join(Level a, Level b)
     return (Level)max((int)a, (int)b);
 }
 
-struct Taint
+struct Env
 {
-    Level level = Level::Public;
+    map<Value *, Level> reg;
+    map<Value *, Level> mem;
+    Level returnlevel = Level::Public;
 };
 
 class LevelPropPass : public PassInfoMixin<LevelPropPass>
 {
-    map<Value *, Taint> regLevels;
-    map<Value *, Taint> memLevels;
     map<Function *, Level> funcLevel;
-
-    static bool printed;
+    set<Function *> callStack;
 
 public:
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &)
     {
-        bool changed = true;
+        Function *main = M.getFunction("main");
 
-        while (changed)
-        {
-            changed = false;
-
-            for (Function &F : M)
-            {
-                if (F.isDeclaration())
-                    continue;
-                changed |= analyzeFunc(F);
-            }
-        }
-        errs() << "\n Secret fn \n";
-        for (auto &it : funcLevel)
-        {
-            if (it.second != Level::Public)
-            {
-                outs() << "FUnction : " << it.first->getName() << "\n";
-            }
-        }
-        if (!printed)
-        {
-            printed = true;
-            outs() << "\n=== Register Levels ===\n";
-            for (auto &it : regLevels)
-            {
-                outs() << "Value: ";
-                it.first->print(outs());
-                outs() << "  -> Level: " << (int)it.second.level << "\n";
-            }
-
-            outs() << "\n=== Memory Levels ===\n";
-            for (auto &it : memLevels)
-            {
-                outs() << "Pointer: ";
-                it.first->print(outs());
-                outs() << "  -> Level: " << (int)it.second.level << "\n";
-            }
-
-            outs() << "\n=== Function Levels ===\n";
-            for (auto &it : funcLevel)
-            {
-                outs() << "Function: " << it.first->getName()
-                       << "  -> Level: " << (int)it.second << "\n";
-            }
-        }
+        Env global;
+        analyzeFunc(main, global);
+        printMaps();
         return PreservedAnalyses::all();
     }
 
 private:
-    Value *getBase(Value *ptr)
+    void printMaps()
     {
-        return getUnderlyingObject(ptr);
+        outs() << "\n=== Function Sensitivity ===\n";
+
+        for (auto &it : funcLevel)
+        {
+            outs() << it.first->getName() << " -> ";
+
+            if (it.second == Level::Public)
+                outs() << "Public";
+            else if (it.second == Level::EphSecret)
+                outs() << "EphSecret";
+            else
+                outs() << "Secret";
+
+            outs() << "\n";
+        }
+
+        outs() << "\n";
     }
-    bool analyzeFunc(Function &F)
+
+    Value *getBase(Value *V)
     {
-        bool changed = false;
+        while (true)
+        {
+            if (auto *G = dyn_cast<GetElementPtrInst>(V))
+                V = G->getPointerOperand();
+            else if (auto *B = dyn_cast<BitCastInst>(V))
+                V = B->getOperand(0);
+            else
+                break;
+        }
+        return V;
+    }
+
+    Env analyzeFunc(Function *F, Env env)
+    {
+        if (callStack.count(F))
+            return env;
+
+        callStack.insert(F);
 
         Level funcLvl = Level::Public;
 
-        for (Argument &arg : F.args())
+        for (auto &arg : F->args())
         {
-            Level lvl = regLevels[&arg].level;
-            funcLvl = join(funcLvl, lvl);
+            funcLvl = join(funcLvl, env.reg[&arg]);
         }
 
-        if (funcLevel[&F] != funcLvl)
+        set<Value *> local;
+        for (auto &BB : *F)
         {
-            funcLevel[&F] = funcLvl;
-            changed = true;
+            for (auto &I : BB)
+            {
+
+                if (auto *A = dyn_cast<AllocaInst>(&I))
+                {
+                    local.insert(A);
+                    Level L = Level::Public;
+                    string name = A->getName().str();
+
+                    if (name == "sk" || name == "esk" ||
+                        name == "O" || name == "L" ||
+                        name == "seed_sk" ||
+                        name.find("csk") != string::npos ||
+                        name.find("seed_sk") != string::npos ||
+                        name == "param_sk_seed_bytes")
+                    {
+                        L = Level::Secret;
+                    }
+                    else if (name == "V" || name == "Vdec" || name == "VP1V" ||
+                             name.find("Vdec") != string::npos)
+                    {
+                        L = Level::EphSecret;
+                    }
+                    else if (name == "P1" || name == "P2")
+                    {
+                        L = Level::Public;
+                    }
+
+                    env.mem[A] = L;
+                    env.reg[A] = L;
+                }
+
+                // gep
+                else if (auto *G = dyn_cast<GetElementPtrInst>(&I))
+                {
+                    Value *base = getBase(G->getPointerOperand());
+
+                    env.reg[&I] = env.reg[base];
+
+                    env.mem[&I] = env.mem[base];
+                    // env.mem[getBase(&I)] = env.mem[base];
+                }
+
+                // load
+                else if (auto *L = dyn_cast<LoadInst>(&I))
+                {
+                    Value *ptr = L->getPointerOperand();
+                    env.reg[&I] = env.mem[getBase(ptr)];
+                }
+
+                // store
+                else if (auto *S = dyn_cast<StoreInst>(&I))
+                {
+                    Value *src = S->getValueOperand();
+                    Value *dst = getBase(S->getPointerOperand());
+
+                    bool skipStore = false;
+                    if (S->getValueOperand()->getType()->isPointerTy() &&
+                        isa<AllocaInst>(dst))
+                    {
+                        string name = cast<AllocaInst>(dst)->getName().str();
+                        skipStore = (name == "P1" || name == "P2");
+                    }
+
+                    if (!skipStore)
+                    {
+                        env.mem[dst] = join(env.mem[dst], env.reg[src]);
+                    }
+                }
+                // binop
+                else if (auto *B = dyn_cast<BinaryOperator>(&I))
+                {
+                    env.reg[&I] = join(env.reg[B->getOperand(0)], env.reg[B->getOperand(1)]);
+                }
+
+                else if (auto *C = dyn_cast<CallInst>(&I))
+                {
+                    handleCall(*C, env);
+                }
+
+                else if (auto *R = dyn_cast<ReturnInst>(&I))
+                {
+                    if (R->getReturnValue())
+                    {
+                        env.returnlevel = env.reg[R->getReturnValue()];
+                    }
+                }
+                // funcLvl = join(funcLvl, env.reg[&I]);
+            }
+        }
+        Level outLvl = env.returnlevel;
+
+        for (Value *v : local)
+        {
+            outLvl = join(outLvl, env.mem[v]);
         }
 
-        for (Instruction &I : instructions(F))
+        // funcLvl = join(funcLvl, outLvl);
+        funcLevel[F] = join(funcLevel[F], outLvl);
+
+
+        callStack.erase(F);
+
+        outs() << "\n--- Function: " << F->getName() << " ---\n";
+
+        for (auto &r : env.reg)
         {
-
-            // load
-            if (auto *L = dyn_cast<LoadInst>(&I))
-            {
-                Value *ptr = L->getPointerOperand();
-                regLevels[&I].level = memLevels[ptr].level;
-            }
-
-            // store
-            else if (auto *S = dyn_cast<StoreInst>(&I))
-            {
-                Value *val = S->getValueOperand();
-                Value *ptr = S->getPointerOperand();
-
-                memLevels[ptr].level = join(memLevels[ptr].level, regLevels[val].level);
-            }
-            // binOp
-            else if (auto *B = dyn_cast<BinaryOperator>(&I))
-            {
-                regLevels[&I].level = join(regLevels[B->getOperand(0)].level, regLevels[B->getOperand(1)].level);
-            }
-
-            // fn call
-            else if (auto *C = dyn_cast<CallInst>(&I))
-            {
-                Function *callee = C->getCalledFunction();
-                if (!callee)
-                    continue;
-
-                handlefnCall(*C, *callee);
-
-                regLevels[&I].level = funcLevel[callee];
-            }
+            outs() << "REG: ";
+            r.first->print(outs());
+            outs() << " -> Level : " << (int)r.second << "\n";
         }
 
-        return changed;
+        for (auto &m : env.mem)
+        {
+            outs() << "MEM: ";
+            m.first->print(outs());
+            outs() << " -> Level : " << (int)m.second << "\n";
+        }
+        outs() << "\n\n";
+        return env;
     }
 
-    void handlefnCall(CallInst &C, Function &callee)
+    void handleCall(CallInst &C, Env &callerEnv)
     {
-        string name = callee.getName().str();
+        Function *callee = C.getCalledFunction();
+        if (!callee)
+            return;
+        Env calleeEnv;
 
-        if (name == "mayo_keypair")
+        if (callee->isDeclaration())
         {
-            Value *sk = C.getArgOperand(2);
-            memLevels[sk].level = Level::Secret;
-        }
-        else if (name == "mayo_expand_sk")
-        {
-            Value *esk = C.getArgOperand(2);
-            memLevels[esk].level = Level::Secret;
-        }
+            Level ret = Level::Public;
 
-        else if (callee.getName() == "shake256")
-        {
+            for (int i = 0; i < C.arg_size(); i++)
+            {
+                ret = join(ret, callerEnv.reg[C.getArgOperand(i)]);
+            }
 
-            Value *dst = C.getArgOperand(0);
-            Value *src = C.getArgOperand(2); // input buffer
-
-            Level inLevel = memLevels[getBase(src)].level;
-
-            memLevels[getBase(dst)].level =
-                join(memLevels[getBase(dst)].level, inLevel);
+            callerEnv.reg[&C] = ret;
+            return;
         }
 
         for (int i = 0; i < C.arg_size(); i++)
         {
-            Value *arg = C.getArgOperand(i);
-            Level arglevel = regLevels[arg].level;
+            Value *caller_arg = C.getArgOperand(i);
+            Argument &callee_arg = *callee->getArg(i);
 
-            if (!callee.isDeclaration() && i < callee.arg_size())
+            calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
+            calleeEnv.mem[&callee_arg] = callerEnv.mem[getBase(caller_arg)];
+        }
+
+        calleeEnv = analyzeFunc(callee, calleeEnv);
+
+
+        for (int i = 0; i < (int)C.arg_size(); i++)
+        {
+            Value *callerArg = C.getArgOperand(i);
+            Argument &calleeArg = *callee->getArg(i);
+
+            if (callerArg->getType()->isPointerTy())
             {
-                auto calleeArg = callee.getArg(i);
-                regLevels[calleeArg].level = join(regLevels[calleeArg].level, arglevel);
+
+                Value *callerBase = getBase(callerArg);
+                Value *calleeBase = getBase(&calleeArg);
+                callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
             }
         }
+
+        callerEnv.reg[&C] = calleeEnv.returnlevel;
     }
 };
-
-bool LevelPropPass::printed = false;
 
 int main()
 {
@@ -228,12 +292,11 @@ int main()
     PB.registerLoopAnalyses(LAM);
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
-    // -------------------------------
     // Module Pass Manager
-    // -------------------------------
     ModulePassManager MPM;
     MPM.addPass(LevelPropPass());
 
     // Run
     MPM.run(*module, MAM);
+    return 0;
 }
