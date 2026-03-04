@@ -224,7 +224,8 @@ int main(int argc, char **argv)
 
     std::vector<std::string> files = {
         "../example.c",
-        "../../../src/mayo.c"};
+        "../../../src/mayo.c",
+        "../../../src/arithmetic.c"};
 
     // 2. Define your include paths (replaces -I)
     std::vector<std::string> includes = {

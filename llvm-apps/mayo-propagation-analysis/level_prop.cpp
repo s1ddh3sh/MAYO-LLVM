@@ -51,7 +51,7 @@ public:
 private:
     void printMaps()
     {
-        outs() << "\n=== Function Sensitivity ===\n";
+        outs() << "\n Function Sensitivity \n";
 
         for (auto &it : funcLevel)
         {
