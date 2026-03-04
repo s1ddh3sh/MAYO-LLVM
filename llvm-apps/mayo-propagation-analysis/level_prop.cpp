@@ -119,7 +119,7 @@ private:
                     {
                         L = Level::Secret;
                     }
-                    else if (name == "V" || name == "Vdec" || name == "VP1V" ||
+                    else if (name == "V" || name == "Vdec" ||
                              name.find("Vdec") != string::npos)
                     {
                         L = Level::EphSecret;
@@ -276,7 +276,8 @@ private:
                 calleeEnv.mem[&callee_arg] = memLvl;
                 calleeEnv.reg[&callee_arg] = join(callerEnv.reg[caller_arg], memLvl);
             }
-            else {
+            else
+            {
                 calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
             }
             // calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
@@ -297,10 +298,12 @@ private:
                 Value *calleeBase = getBase(&calleeArg);
                 Level memLvl = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
 
-                if(isa<AllocaInst>(callerBase) || isa<Argument>(callerBase)) {
+                if (isa<AllocaInst>(callerBase) || isa<Argument>(callerBase))
+                {
                     callerEnv.mem[callerBase] = memLvl;
                 }
-                else {
+                else
+                {
                     callerEnv.reg[callerBase] = join(callerEnv.reg[callerBase], memLvl);
                     callerEnv.reg[callerArg] = join(callerEnv.reg[callerArg], memLvl);
                 }
