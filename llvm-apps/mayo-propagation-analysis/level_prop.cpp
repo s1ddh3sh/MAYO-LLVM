@@ -140,7 +140,7 @@ private:
 
                     env.reg[&I] = env.reg[base];
 
-                    env.mem[&I] = env.mem[base];
+                    // env.mem[&I] = env.mem[base];
                     // env.mem[getBase(&I)] = env.mem[base];
                 }
 
@@ -148,7 +148,15 @@ private:
                 else if (auto *L = dyn_cast<LoadInst>(&I))
                 {
                     Value *ptr = L->getPointerOperand();
-                    env.reg[&I] = env.mem[getBase(ptr)];
+                    Value *base = getBase(ptr);
+
+                    Level memL = env.mem[base];
+
+                    if (!isa<AllocaInst>(base) && !isa<Argument>(base))
+                    {
+                        memL = join(memL, env.reg[base]);
+                    }
+                    env.reg[&I] = memL;
                 }
 
                 // store
@@ -256,8 +264,23 @@ private:
             Value *caller_arg = C.getArgOperand(i);
             Argument &callee_arg = *callee->getArg(i);
 
-            calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
-            calleeEnv.mem[&callee_arg] = callerEnv.mem[getBase(caller_arg)];
+            if (caller_arg->getType()->isPointerTy())
+            {
+                Value *base = getBase(caller_arg);
+                Level memLvl = callerEnv.mem[base];
+
+                if (!isa<AllocaInst>(base) && !isa<Argument>(base))
+                {
+                    memLvl = join(memLvl, callerEnv.reg[base]);
+                }
+                calleeEnv.mem[&callee_arg] = memLvl;
+                calleeEnv.reg[&callee_arg] = join(callerEnv.reg[caller_arg], memLvl);
+            }
+            else {
+                calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
+            }
+            // calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
+            // calleeEnv.mem[&callee_arg] = callerEnv.mem[getBase(caller_arg)];
         }
 
         calleeEnv = analyzeFunc(callee, calleeEnv);
@@ -272,7 +295,15 @@ private:
 
                 Value *callerBase = getBase(callerArg);
                 Value *calleeBase = getBase(&calleeArg);
-                callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
+                Level memLvl = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
+
+                if(isa<AllocaInst>(callerBase) || isa<Argument>(callerBase)) {
+                    callerEnv.mem[callerBase] = memLvl;
+                }
+                else {
+                    callerEnv.reg[callerBase] = join(callerEnv.reg[callerBase], memLvl);
+                    callerEnv.reg[callerArg] = join(callerEnv.reg[callerArg], memLvl);
+                }
             }
         }
 
