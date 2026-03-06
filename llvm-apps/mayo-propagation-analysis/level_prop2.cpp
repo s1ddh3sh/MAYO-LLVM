@@ -51,7 +51,7 @@ public:
 private:
     void printMaps()
     {
-        outs() << "\n=== Function Sensitivity ===\n";
+        outs() << "\n Function Sensitivity \n";
 
         for (auto &it : funcLevel)
         {
@@ -98,7 +98,7 @@ private:
             funcLvl = join(funcLvl, env.reg[&arg]);
         }
 
-        set<Value*> local;
+        set<Value *> local;
         for (auto &BB : *F)
         {
             for (auto &I : BB)
@@ -110,17 +110,25 @@ private:
                     Level L = Level::Public;
                     string name = A->getName().str();
 
-                    if (name.find("sk") != string::npos || name.find("esk") != string::npos)
+                    if (name == "sk" || name == "esk" ||
+                        name == "O" || name == "L" || name == "Ox" ||
+                        name == "seed_sk" ||
+                        name.find("csk") != string::npos ||
+                        name.find("seed_sk") != string::npos ||
+                        name == "param_sk_seed_bytes")
                     {
                         L = Level::Secret;
                     }
-
-                    else if (name.find("Vdec") != string::npos || name.find("V") != string::npos)
+                    else if (name == "V" || name == "Vdec" ||
+                             name.find("Vdec") != string::npos)
                     {
                         L = Level::EphSecret;
                     }
-                    // else
-                    //     env.mem[A] = Level::Public;
+                    else if (name == "P1" || name == "P2")
+                    {
+                        L = Level::Public;
+                    }
+
                     env.mem[A] = L;
                     env.reg[A] = L;
                 }
@@ -132,7 +140,7 @@ private:
 
                     env.reg[&I] = env.reg[base];
 
-                    env.mem[&I] = env.mem[base];
+                    // env.mem[&I] = env.mem[base];
                     // env.mem[getBase(&I)] = env.mem[base];
                 }
 
@@ -140,18 +148,36 @@ private:
                 else if (auto *L = dyn_cast<LoadInst>(&I))
                 {
                     Value *ptr = L->getPointerOperand();
-                    env.reg[&I] = env.mem[getBase(ptr)];
+                    Value *base = getBase(ptr);
+
+                    Level memL = env.mem[base];
+
+                    if (!isa<AllocaInst>(base) && !isa<Argument>(base))
+                    {
+                        memL = join(memL, env.reg[base]);
+                    }
+                    env.reg[&I] = memL;
                 }
 
                 // store
                 else if (auto *S = dyn_cast<StoreInst>(&I))
                 {
                     Value *src = S->getValueOperand();
-                    Value *dst = S->getPointerOperand();
+                    Value *dst = getBase(S->getPointerOperand());
 
-                    env.mem[getBase(dst)] = join(env.mem[getBase(dst)], env.reg[src]);
+                    bool skipStore = false;
+                    if (S->getValueOperand()->getType()->isPointerTy() &&
+                        isa<AllocaInst>(dst))
+                    {
+                        string name = cast<AllocaInst>(dst)->getName().str();
+                        skipStore = (name == "P1" || name == "P2");
+                    }
+
+                    if (!skipStore)
+                    {
+                        env.mem[dst] = join(env.mem[dst], env.reg[src]);
+                    }
                 }
-
                 // binop
                 else if (auto *B = dyn_cast<BinaryOperator>(&I))
                 {
@@ -170,30 +196,19 @@ private:
                         env.returnlevel = env.reg[R->getReturnValue()];
                     }
                 }
-                funcLvl = join(funcLvl, env.reg[&I]);
+                // funcLvl = join(funcLvl, env.reg[&I]);
             }
         }
-        Level memLvl = Level::Public;
+        Level outLvl = env.returnlevel;
 
-        for (Value* v : local)
+        for (Value *v : local)
         {
-            memLvl = join(memLvl, env.mem[v]);
+            outLvl = join(outLvl, env.mem[v]);
         }
 
-        funcLvl = join(funcLvl, memLvl);
-        funcLevel[F] = join(funcLevel[F], funcLvl);
+        // funcLvl = join(funcLvl, outLvl);
+        funcLevel[F] = join(funcLevel[F], outLvl);
 
-        // Level outLvl = env.returnlevel;
-
-        // for (auto &arg : F->args())
-        // {
-        //     outLvl = join(outLvl, env.reg[&arg]);
-
-        //     if (arg.getType()->isPointerTy())
-        //         outLvl = join(outLvl, env.mem[&arg]);
-        // }
-
-        // funcLevel[F] = outLvl;
         callStack.erase(F);
 
         outs() << "\n--- Function: " << F->getName() << " ---\n";
@@ -232,6 +247,15 @@ private:
             }
 
             callerEnv.reg[&C] = ret;
+            for (int i = 0; i < (int)C.arg_size(); i++)
+            {
+                Value *arg = C.getArgOperand(i);
+                if (arg->getType()->isPointerTy())
+                {
+                    Value *base = getBase(arg);
+                    callerEnv.mem[base] = join(callerEnv.mem[base], ret);
+                }
+            }
             return;
         }
 
@@ -240,32 +264,50 @@ private:
             Value *caller_arg = C.getArgOperand(i);
             Argument &callee_arg = *callee->getArg(i);
 
-            calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
-            calleeEnv.mem[&callee_arg] = callerEnv.mem[getBase(caller_arg)];
+            if (caller_arg->getType()->isPointerTy())
+            {
+                Value *base = getBase(caller_arg);
+                Level memLvl = callerEnv.mem[base];
+
+                if (!isa<AllocaInst>(base) && !isa<Argument>(base))
+                {
+                    memLvl = join(memLvl, callerEnv.reg[base]);
+                }
+                calleeEnv.mem[&callee_arg] = memLvl;
+                calleeEnv.reg[&callee_arg] = join(callerEnv.reg[caller_arg], memLvl);
+            }
+            else
+            {
+                calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
+            }
+            // calleeEnv.reg[&callee_arg] = callerEnv.reg[caller_arg];
+            // calleeEnv.mem[&callee_arg] = callerEnv.mem[getBase(caller_arg)];
         }
 
         calleeEnv = analyzeFunc(callee, calleeEnv);
-
-        // merge back
-        // for (auto &it : calleeEnv.mem)
-        // {
-        //     callerEnv.mem[it.first] = join(callerEnv.mem[it.first], it.second);
-        // }
 
         for (int i = 0; i < (int)C.arg_size(); i++)
         {
             Value *callerArg = C.getArgOperand(i);
             Argument &calleeArg = *callee->getArg(i);
 
-            if(callerArg->getType()->isPointerTy()) {
-                
+            if (callerArg->getType()->isPointerTy())
+            {
+
                 Value *callerBase = getBase(callerArg);
                 Value *calleeBase = getBase(&calleeArg);
-                callerEnv.mem[callerBase] = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
+                Level memLvl = join(callerEnv.mem[callerBase], calleeEnv.mem[calleeBase]);
 
+                if (isa<AllocaInst>(callerBase) || isa<Argument>(callerBase))
+                {
+                    callerEnv.mem[callerBase] = memLvl;
+                }
+                else
+                {
+                    callerEnv.reg[callerBase] = join(callerEnv.reg[callerBase], memLvl);
+                    callerEnv.reg[callerArg] = join(callerEnv.reg[callerArg], memLvl);
+                }
             }
-            
-
         }
 
         callerEnv.reg[&C] = calleeEnv.returnlevel;
