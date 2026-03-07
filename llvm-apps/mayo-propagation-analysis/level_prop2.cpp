@@ -65,7 +65,6 @@ Level initialLvl(StringRef n)
     {
         return Level::EphSecret;
     }
-
     return Level::Public;
 }
 
@@ -148,6 +147,12 @@ private:
         if (env.pts.count(V))
             return env.pts[V];
 
+        if (auto *G = dyn_cast<GetElementPtrInst>(V))
+            return lookupRoot(G->getPointerOperand(), env);
+
+        if (auto *C = dyn_cast<CastInst>(V))
+            return lookupRoot(C->getOperand(0), env);
+
         if (isa<AllocaInst>(V) || isa<Argument>(V))
         {
             env.pts[V] = V;
@@ -163,9 +168,12 @@ private:
             return env;
 
         onStack.insert(F);
-
         for (auto &arg : F->args())
         {
+            if (!env.reg.count(&arg))
+            {
+                env.reg[&arg] = Level::Public;
+            }
             if (!env.mem.count(&arg))
             {
                 env.pts[&arg] = &arg;
@@ -213,7 +221,14 @@ private:
             env.reg[A] = Level::Public;
             if (!env.mem.count(A))
             {
-                env.mem[A] = initialLvl(A->getName());
+                StringRef name = A->getName();
+                bool isAddrSlot = name.ends_with(".addr");
+                bool isPtrAlloca = A->getAllocatedType()->isPointerTy();
+
+                if (isAddrSlot || isPtrAlloca)
+                    env.mem[A] = Level::Public;
+                else
+                    env.mem[A] = initialLvl(name);
             }
             return false;
         }
@@ -248,19 +263,11 @@ private:
             Value *val = S->getValueOperand();
             Value *ptr = S->getPointerOperand();
             Root r = lookupRoot(ptr, env);
-            bool skipStore = false;
-            if (S->getValueOperand()->getType()->isPointerTy() &&
-                isa<AllocaInst>(r))
-            {
-                string name = cast<AllocaInst>(r)->getName().str();
-                skipStore = (name == "P1" || name == "P2");
-            }
-
+            if (!r)
+                return false;
             Level old = env.mem[r];
-            if (!skipStore)
-            {
-                env.mem[r] = join(old, env.reg[val]);
-            }
+            env.mem[r] = join(old, env.reg[val]);
+
             return (env.mem[r] != old);
         }
 
@@ -401,26 +408,28 @@ private:
         Level argsLvl = Level::Public;
         for (auto &arg : C.args())
         {
-            argsLvl = join(argsLvl, env.reg[arg.get()]);
-        }
-
-        bool changed = false;
-        for (auto &arg : C.args())
-        {
-            if (arg.get()->getType()->isPointerTy())
+            if (!arg.get()->getType()->isPointerTy())
             {
-                Root r = lookupRoot(arg.get(), env);
-                Level old = env.mem[r];
-                env.mem[r] = join(old, argsLvl);
-                if (env.mem[r] != old)
-                    changed = true;
+                argsLvl = join(argsLvl, env.reg[arg.get()]);
             }
         }
 
+        // bool changed = false;
+        // for (auto &arg : C.args())
+        // {
+        //     if (arg.get()->getType()->isPointerTy())
+        //     {
+        //         Root r = lookupRoot(arg.get(), env);
+        //         Level old = env.mem[r];
+        //         env.mem[r] = join(old, argsLvl);
+        //         if (env.mem[r] != old)
+        //             changed = true;
+        //     }
+        // }
+
         Level oldReturn = env.reg[&C];
         env.reg[&C] = join(oldReturn, argsLvl);
-        changed |= (env.reg[&C] != oldReturn);
-        return changed;
+        return env.reg[&C] != oldReturn;
     }
 };
 

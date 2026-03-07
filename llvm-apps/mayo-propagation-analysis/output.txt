@@ -26,20 +26,11 @@ main  [Public]
   MEM    %paramslen = alloca i32, align 4  ->  Public
   MEM    %i = alloca i32, align 4  ->  Public
 
-example_mayo  [Secret] 
-  REG    %call42 = call i32 @memcmp(ptr noundef %arraydecay40, ptr noundef %arraydecay41, i32 noundef %34) #6, !dbg !275  ->  Secret
+example_mayo  [Public] 
+  REG    %call42 = call i32 @memcmp(ptr noundef %arraydecay40, ptr noundef %arraydecay41, i32 noundef %34) #6, !dbg !275  ->  Public
   REG    %call50 = call i32 @mayo_verify(ptr noundef %35, ptr noundef %arraydecay49, i32 noundef %36, ptr noundef %37, ptr noundef %38) #6, !dbg !289  ->  Public
   REG    %call21 = call i32 @mayo_expand_pk(ptr noundef %20, ptr noundef %21, ptr noundef %22) #6, !dbg !232  ->  Public
   REG  @__const.example_mayo.msg = private unnamed_addr constant <{ i8, [31 x i8] }> <{ i8 14, [31 x i8] zeroinitializer }>, align 1  ->  Public
-  REG  @.str = private unnamed_addr constant [17 x i8] c"Example with %s\0A\00", align 1, !dbg !0  ->  Public
-  REG  @.str.1 = private unnamed_addr constant [17 x i8] c"mayo_keypair -> \00", align 1, !dbg !7  ->  Public
-  REG  @.str.2 = private unnamed_addr constant [6 x i8] c"FAIL\0A\00", align 1, !dbg !9  ->  Public
-  REG  @.str.3 = private unnamed_addr constant [4 x i8] c"OK\0A\00", align 1, !dbg !14  ->  Public
-  REG  @.str.4 = private unnamed_addr constant [19 x i8] c"mayo_expand_sk -> \00", align 1, !dbg !19  ->  Public
-  REG  @.str.5 = private unnamed_addr constant [19 x i8] c"mayo_expand_pk -> \00", align 1, !dbg !24  ->  Public
-  REG  @.str.6 = private unnamed_addr constant [14 x i8] c"mayo_sign -> \00", align 1, !dbg !26  ->  Public
-  REG  @.str.7 = private unnamed_addr constant [39 x i8] c"mayo_open (with correct signature) -> \00", align 1, !dbg !31  ->  Public
-  REG  @.str.8 = private unnamed_addr constant [41 x i8] c"mayo_verify (with correct signature) -> \00", align 1, !dbg !36  ->  Public
   REG  i32 0  ->  Public
   REG    %call13 = call i32 @mayo_expand_sk(ptr noundef %16, ptr noundef %17, ptr noundef %18) #6, !dbg !217  ->  Public
   REG  i32 1  ->  Public
@@ -57,59 +48,59 @@ example_mayo  [Secret]
   REG    %msg = alloca [32 x i8], align 1  ->  Public
   REG    %call36 = call i32 (ptr, ...) @printf(ptr noundef @.str.7) #6, !dbg !260  ->  Public
   REG    %29 = load ptr, ptr %p.addr, align 4, !dbg !261  ->  Public
-  REG    %arraydecay37 = getelementptr inbounds [32 x i8], ptr %msg2, i32 0, i32 0, !dbg !262  ->  Secret
-  REG    %30 = load ptr, ptr %sig, align 4, !dbg !263  ->  Secret
+  REG    %arraydecay37 = getelementptr inbounds [32 x i8], ptr %msg2, i32 0, i32 0, !dbg !262  ->  Public
+  REG    %30 = load ptr, ptr %sig, align 4, !dbg !263  ->  Public
   REG    %msg2 = alloca [32 x i8], align 1  ->  Public
   REG    %res = alloca i32, align 4  ->  Public
   REG  i32 32  ->  Public
   REG    %0 = load ptr, ptr %p.addr, align 4, !dbg !146  ->  Public
-  REG    %sig_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %0, i32 0, i32 16, !dbg !147  ->  Secret
-  REG    %1 = load i32, ptr %sig_bytes, align 4, !dbg !147  ->  Secret
+  REG    %sig_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %0, i32 0, i32 16, !dbg !147  ->  Public
+  REG    %1 = load i32, ptr %sig_bytes, align 4, !dbg !147  ->  Public
   REG    %2 = load i32, ptr %msglen, align 4, !dbg !148  ->  Public
-  REG    %add = add i32 %1, %2, !dbg !149  ->  Secret
+  REG    %add = add i32 %1, %2, !dbg !149  ->  Public
   REG    %3 = load ptr, ptr %p.addr, align 4, !dbg !152  ->  Public
-  REG    %cpk_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %3, i32 0, i32 15, !dbg !153  ->  Secret
-  REG    %4 = load i32, ptr %cpk_bytes, align 4, !dbg !153  ->  Secret
-  REG    %call = call ptr @calloc(i32 noundef %4, i32 noundef 1) #5, !dbg !154  ->  Secret
+  REG    %cpk_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %3, i32 0, i32 15, !dbg !153  ->  Public
+  REG    %4 = load i32, ptr %cpk_bytes, align 4, !dbg !153  ->  Public
+  REG    %call = call ptr @calloc(i32 noundef %4, i32 noundef 1) #5, !dbg !154  ->  Public
   REG    %5 = load ptr, ptr %p.addr, align 4, !dbg !157  ->  Public
-  REG    %csk_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %5, i32 0, i32 14, !dbg !158  ->  Secret
-  REG    %6 = load i32, ptr %csk_bytes, align 4, !dbg !158  ->  Secret
-  REG    %call1 = call ptr @calloc(i32 noundef %6, i32 noundef 1) #5, !dbg !159  ->  Secret
+  REG    %csk_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %5, i32 0, i32 14, !dbg !158  ->  Public
+  REG    %6 = load i32, ptr %csk_bytes, align 4, !dbg !158  ->  Public
+  REG    %call1 = call ptr @calloc(i32 noundef %6, i32 noundef 1) #5, !dbg !159  ->  Public
   REG  i32 915840  ->  Public
   REG    %call2 = call ptr @calloc(i32 noundef 1, i32 noundef 915840) #5, !dbg !162  ->  Public
   REG  i32 907240  ->  Public
   REG    %call3 = call ptr @calloc(i32 noundef 1, i32 noundef 907240) #5, !dbg !179  ->  Public
   REG    %7 = load ptr, ptr %p.addr, align 4, !dbg !182  ->  Public
-  REG    %sig_bytes4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %7, i32 0, i32 16, !dbg !183  ->  Secret
-  REG    %8 = load i32, ptr %sig_bytes4, align 4, !dbg !183  ->  Secret
+  REG    %sig_bytes4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %7, i32 0, i32 16, !dbg !183  ->  Public
+  REG    %8 = load i32, ptr %sig_bytes4, align 4, !dbg !183  ->  Public
   REG    %9 = load i32, ptr %msglen, align 4, !dbg !184  ->  Public
-  REG    %add5 = add i32 %8, %9, !dbg !185  ->  Secret
-  REG    %call6 = call ptr @calloc(i32 noundef %add5, i32 noundef 1) #5, !dbg !186  ->  Secret
+  REG    %add5 = add i32 %8, %9, !dbg !185  ->  Public
+  REG    %call6 = call ptr @calloc(i32 noundef %add5, i32 noundef 1) #5, !dbg !186  ->  Public
   REG    call void @llvm.memcpy.p0.p0.i32(ptr align 1 %msg, ptr align 1 @__const.example_mayo.msg, i32 32, i1 false), !dbg !191  ->  Public
   REG    call void @llvm.memset.p0.i32(ptr align 1 %msg2, i8 0, i32 32, i1 false), !dbg !193  ->  Public
   REG    %10 = load ptr, ptr %p.addr, align 4, !dbg !194  ->  Public
-  REG    %name = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 22, !dbg !195  ->  Secret
-  REG    %11 = load ptr, ptr %name, align 4, !dbg !195  ->  Secret
-  REG    %call7 = call i32 (ptr, ...) @printf(ptr noundef @.str, ptr noundef %11) #6, !dbg !196  ->  Secret
+  REG    %name = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 22, !dbg !195  ->  Public
+  REG    %11 = load ptr, ptr %name, align 4, !dbg !195  ->  Public
+  REG    %call7 = call i32 (ptr, ...) @printf(ptr noundef @.str, ptr noundef %11) #6, !dbg !196  ->  Public
   REG    %call8 = call i32 (ptr, ...) @printf(ptr noundef @.str.1) #6, !dbg !197  ->  Public
   REG    %12 = load ptr, ptr %p.addr, align 4, !dbg !200  ->  Public
-  REG    %13 = load ptr, ptr %pk, align 4, !dbg !201  ->  Secret
-  REG    %14 = load ptr, ptr %sk, align 4, !dbg !202  ->  Secret
+  REG    %13 = load ptr, ptr %pk, align 4, !dbg !201  ->  Public
+  REG    %14 = load ptr, ptr %sk, align 4, !dbg !202  ->  Public
   REG    %15 = load i32, ptr %res, align 4, !dbg !204  ->  Public
   REG    %cmp = icmp ne i32 %15, 0, !dbg !206  ->  Public
   REG    %call10 = call i32 (ptr, ...) @printf(ptr noundef @.str.2) #6, !dbg !207  ->  Public
   REG    %call11 = call i32 (ptr, ...) @printf(ptr noundef @.str.3) #6, !dbg !211  ->  Public
   REG    %call12 = call i32 (ptr, ...) @printf(ptr noundef @.str.4) #6, !dbg !213  ->  Public
   REG    %16 = load ptr, ptr %p.addr, align 4, !dbg !214  ->  Public
-  REG    %17 = load ptr, ptr %sk, align 4, !dbg !215  ->  Secret
-  REG    %18 = load ptr, ptr %esk, align 4, !dbg !216  ->  Secret
+  REG    %17 = load ptr, ptr %sk, align 4, !dbg !215  ->  Public
+  REG    %18 = load ptr, ptr %esk, align 4, !dbg !216  ->  Public
   REG    %19 = load i32, ptr %res, align 4, !dbg !219  ->  Public
   REG    %cmp14 = icmp ne i32 %19, 0, !dbg !221  ->  Public
   REG    %call16 = call i32 (ptr, ...) @printf(ptr noundef @.str.2) #6, !dbg !222  ->  Public
   REG    %call18 = call i32 (ptr, ...) @printf(ptr noundef @.str.3) #6, !dbg !226  ->  Public
   REG    %call20 = call i32 (ptr, ...) @printf(ptr noundef @.str.5) #6, !dbg !228  ->  Public
   REG    %20 = load ptr, ptr %p.addr, align 4, !dbg !229  ->  Public
-  REG    %21 = load ptr, ptr %pk, align 4, !dbg !230  ->  Secret
+  REG    %21 = load ptr, ptr %pk, align 4, !dbg !230  ->  Public
   REG    %22 = load ptr, ptr %epk, align 4, !dbg !231  ->  Public
   REG    %23 = load i32, ptr %res, align 4, !dbg !234  ->  Public
   REG    %cmp22 = icmp ne i32 %23, 0, !dbg !236  ->  Public
@@ -117,64 +108,64 @@ example_mayo  [Secret]
   REG    %call26 = call i32 (ptr, ...) @printf(ptr noundef @.str.3) #6, !dbg !241  ->  Public
   REG    %call28 = call i32 (ptr, ...) @printf(ptr noundef @.str.6) #6, !dbg !243  ->  Public
   REG    %24 = load ptr, ptr %p.addr, align 4, !dbg !244  ->  Public
-  REG    %25 = load ptr, ptr %sig, align 4, !dbg !245  ->  Secret
-  REG    %arraydecay = getelementptr inbounds [32 x i8], ptr %msg, i32 0, i32 0, !dbg !246  ->  Secret
+  REG    %25 = load ptr, ptr %sig, align 4, !dbg !245  ->  Public
+  REG    %arraydecay = getelementptr inbounds [32 x i8], ptr %msg, i32 0, i32 0, !dbg !246  ->  Public
   REG    %26 = load i32, ptr %msglen, align 4, !dbg !247  ->  Public
-  REG    %27 = load ptr, ptr %sk, align 4, !dbg !248  ->  Secret
+  REG    %27 = load ptr, ptr %sk, align 4, !dbg !248  ->  Public
   REG    %call29 = call i32 @mayo_sign(ptr noundef %24, ptr noundef %25, ptr noundef %smlen, ptr noundef %arraydecay, i32 noundef %26, ptr noundef %27) #6, !dbg !249  ->  Public
   REG    %28 = load i32, ptr %res, align 4, !dbg !251  ->  Public
   REG    %cmp30 = icmp ne i32 %28, 0, !dbg !253  ->  Public
   REG    %call32 = call i32 (ptr, ...) @printf(ptr noundef @.str.2) #6, !dbg !254  ->  Public
   REG    %call34 = call i32 (ptr, ...) @printf(ptr noundef @.str.3) #6, !dbg !258  ->  Public
-  REG    %31 = load i32, ptr %smlen, align 4, !dbg !264  ->  Secret
-  REG    %32 = load ptr, ptr %pk, align 4, !dbg !265  ->  Secret
+  REG    %31 = load i32, ptr %smlen, align 4, !dbg !264  ->  Public
+  REG    %32 = load ptr, ptr %pk, align 4, !dbg !265  ->  Public
   REG    %call38 = call i32 @mayo_open(ptr noundef %29, ptr noundef %arraydecay37, ptr noundef %msglen, ptr noundef %30, i32 noundef %31, ptr noundef %32) #6, !dbg !266  ->  Public
   REG    %33 = load i32, ptr %res, align 4, !dbg !268  ->  Public
   REG    %cmp39 = icmp ne i32 %33, 0, !dbg !270  ->  Public
-  REG    %arraydecay40 = getelementptr inbounds [32 x i8], ptr %msg, i32 0, i32 0, !dbg !272  ->  Secret
-  REG    %arraydecay41 = getelementptr inbounds [32 x i8], ptr %msg2, i32 0, i32 0, !dbg !273  ->  Secret
+  REG    %arraydecay40 = getelementptr inbounds [32 x i8], ptr %msg, i32 0, i32 0, !dbg !272  ->  Public
+  REG    %arraydecay41 = getelementptr inbounds [32 x i8], ptr %msg2, i32 0, i32 0, !dbg !273  ->  Public
   REG    %34 = load i32, ptr %msglen, align 4, !dbg !274  ->  Public
-  REG    %tobool = icmp ne i32 %call42, 0, !dbg !275  ->  Secret
+  REG    %tobool = icmp ne i32 %call42, 0, !dbg !275  ->  Public
   REG    %call44 = call i32 (ptr, ...) @printf(ptr noundef @.str.2) #6, !dbg !276  ->  Public
   REG    %call46 = call i32 (ptr, ...) @printf(ptr noundef @.str.3) #6, !dbg !282  ->  Public
   REG    %call48 = call i32 (ptr, ...) @printf(ptr noundef @.str.8) #6, !dbg !283  ->  Public
   REG    %35 = load ptr, ptr %p.addr, align 4, !dbg !284  ->  Public
-  REG    %arraydecay49 = getelementptr inbounds [32 x i8], ptr %msg, i32 0, i32 0, !dbg !285  ->  Secret
+  REG    %arraydecay49 = getelementptr inbounds [32 x i8], ptr %msg, i32 0, i32 0, !dbg !285  ->  Public
   REG    %36 = load i32, ptr %msglen, align 4, !dbg !286  ->  Public
-  REG    %37 = load ptr, ptr %sig, align 4, !dbg !287  ->  Secret
-  REG    %38 = load ptr, ptr %pk, align 4, !dbg !288  ->  Secret
+  REG    %37 = load ptr, ptr %sig, align 4, !dbg !287  ->  Public
+  REG    %38 = load ptr, ptr %pk, align 4, !dbg !288  ->  Public
   REG    %39 = load i32, ptr %res, align 4, !dbg !291  ->  Public
   REG    %cmp51 = icmp ne i32 %39, 0, !dbg !293  ->  Public
   REG    %call53 = call i32 (ptr, ...) @printf(ptr noundef @.str.2) #6, !dbg !294  ->  Public
   REG    %call55 = call i32 (ptr, ...) @printf(ptr noundef @.str.3) #6, !dbg !300  ->  Public
-  REG    %40 = load ptr, ptr %pk, align 4, !dbg !304  ->  Secret
-  REG    call void @free(ptr noundef %40) #6, !dbg !305  ->  Secret
+  REG    %40 = load ptr, ptr %pk, align 4, !dbg !304  ->  Public
+  REG    call void @free(ptr noundef %40) #6, !dbg !305  ->  Public
   REG    %41 = load ptr, ptr %epk, align 4, !dbg !306  ->  Public
   REG    call void @free(ptr noundef %41) #6, !dbg !307  ->  Public
-  REG    %42 = load ptr, ptr %sk, align 4, !dbg !308  ->  Secret
+  REG    %42 = load ptr, ptr %sk, align 4, !dbg !308  ->  Public
   REG    %43 = load ptr, ptr %p.addr, align 4, !dbg !309  ->  Public
-  REG    %csk_bytes57 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %43, i32 0, i32 14, !dbg !310  ->  Secret
-  REG    %44 = load i32, ptr %csk_bytes57, align 4, !dbg !310  ->  Secret
-  REG    call void @mayo_secure_free(ptr noundef %42, i32 noundef %44) #6, !dbg !311  ->  Secret
-  REG    %45 = load ptr, ptr %esk, align 4, !dbg !312  ->  Secret
-  REG    call void @mayo_secure_free(ptr noundef %45, i32 noundef 907240) #6, !dbg !313  ->  Secret
-  REG    %46 = load ptr, ptr %sig, align 4, !dbg !314  ->  Secret
-  REG    call void @free(ptr noundef %46) #6, !dbg !315  ->  Secret
+  REG    %csk_bytes57 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %43, i32 0, i32 14, !dbg !310  ->  Public
+  REG    %44 = load i32, ptr %csk_bytes57, align 4, !dbg !310  ->  Public
+  REG    call void @mayo_secure_free(ptr noundef %42, i32 noundef %44) #6, !dbg !311  ->  Public
+  REG    %45 = load ptr, ptr %esk, align 4, !dbg !312  ->  Public
+  REG    call void @mayo_secure_free(ptr noundef %45, i32 noundef 907240) #6, !dbg !313  ->  Public
+  REG    %46 = load ptr, ptr %sig, align 4, !dbg !314  ->  Public
+  REG    call void @free(ptr noundef %46) #6, !dbg !315  ->  Public
   REG    %47 = load i32, ptr %res, align 4, !dbg !316  ->  Public
   MEM    %p.addr = alloca ptr, align 4  ->  Public
   MEM  ptr %p  ->  Public
   MEM    %msglen = alloca i32, align 4  ->  Public
-  MEM    %smlen = alloca i32, align 4  ->  Secret
-  MEM    %pk = alloca ptr, align 4  ->  Secret
-  MEM    %sk = alloca ptr, align 4  ->  Secret
+  MEM    %smlen = alloca i32, align 4  ->  Public
+  MEM    %pk = alloca ptr, align 4  ->  Public
+  MEM    %sk = alloca ptr, align 4  ->  Public
   MEM    %epk = alloca ptr, align 4  ->  Public
-  MEM    %esk = alloca ptr, align 4  ->  Secret
-  MEM    %sig = alloca ptr, align 4  ->  Secret
-  MEM    %msg = alloca [32 x i8], align 1  ->  Secret
-  MEM    %msg2 = alloca [32 x i8], align 1  ->  Secret
+  MEM    %esk = alloca ptr, align 4  ->  Public
+  MEM    %sig = alloca ptr, align 4  ->  Public
+  MEM    %msg = alloca [32 x i8], align 1  ->  Public
+  MEM    %msg2 = alloca [32 x i8], align 1  ->  Public
   MEM    %res = alloca i32, align 4  ->  Public
 
-mayo_keypair  [Secret] 
+mayo_keypair  [Public] 
   REG  i32 0  ->  Public
   REG    %ret = alloca i32, align 4  ->  Public
   REG    %sk.addr = alloca ptr, align 4  ->  Public
@@ -182,16 +173,16 @@ mayo_keypair  [Secret]
   REG    %p.addr = alloca ptr, align 4  ->  Public
   REG  ptr %p  ->  Public
   REG  ptr %pk  ->  Public
-  REG  ptr %sk  ->  Secret
+  REG  ptr %sk  ->  Public
   REG    %0 = load ptr, ptr %p.addr, align 4, !dbg !148  ->  Public
   REG    %1 = load ptr, ptr %pk.addr, align 4, !dbg !149  ->  Public
-  REG    %2 = load ptr, ptr %sk.addr, align 4, !dbg !150  ->  Secret
+  REG    %2 = load ptr, ptr %sk.addr, align 4, !dbg !150  ->  Public
   REG    %call = call i32 @mayo_keypair_compact(ptr noundef %0, ptr noundef %1, ptr noundef %2) #5, !dbg !151  ->  Public
   REG    %3 = load i32, ptr %ret, align 4, !dbg !153  ->  Public
   REG    %cmp = icmp ne i32 %3, 0, !dbg !155  ->  Public
   REG    %4 = load i32, ptr %ret, align 4, !dbg !161  ->  Public
   MEM    %ret = alloca i32, align 4  ->  Public
-  MEM    %sk.addr = alloca ptr, align 4  ->  Secret
+  MEM    %sk.addr = alloca ptr, align 4  ->  Public
   MEM    %pk.addr = alloca ptr, align 4  ->  Public
   MEM    %p.addr = alloca ptr, align 4  ->  Public
   MEM  ptr %p  ->  Public
@@ -201,14 +192,14 @@ mayo_keypair  [Secret]
 mayo_keypair_compact  [Secret] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
-  REG    %28 = load i32, ptr %m_vec_limbs16, align 4, !dbg !201  ->  Secret
-  REG    %mul17 = mul nsw i32 %div15, %28, !dbg !201  ->  Secret
+  REG    %28 = load i32, ptr %m_vec_limbs16, align 4, !dbg !201  ->  Public
+  REG    %mul17 = mul nsw i32 %div15, %28, !dbg !201  ->  Public
   REG    %29 = load ptr, ptr %p.addr, align 4, !dbg !204  ->  Public
-  REG    %pk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %29, i32 0, i32 20, !dbg !205  ->  Secret
+  REG    %pk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %29, i32 0, i32 20, !dbg !205  ->  Public
   REG    call void @expand_P1_P2(ptr noundef %43, ptr noundef %arraydecay27, ptr noundef %44) #5, !dbg !246  ->  Public
   REG  ptr %p  ->  Public
   REG  ptr %cpk  ->  Public
-  REG  ptr %csk  ->  Secret
+  REG  ptr %csk  ->  Public
   REG    call void @decode(ptr noundef %add.ptr24, ptr noundef %arraydecay25, i32 noundef %mul26) #5, !dbg !242  ->  Public
   REG    %p.addr = alloca ptr, align 4  ->  Public
   REG    %cpk.addr = alloca ptr, align 4  ->  Public
@@ -232,91 +223,91 @@ mayo_keypair_compact  [Secret]
   REG    %P1 = alloca ptr, align 4  ->  Public
   REG    %P2 = alloca ptr, align 4  ->  Public
   REG    %P3_upper = alloca [1377 x i64], align 8  ->  Public
-  REG    %0 = load ptr, ptr %csk.addr, align 4, !dbg !150  ->  Secret
+  REG    %0 = load ptr, ptr %csk.addr, align 4, !dbg !150  ->  Public
   REG  i32 20808  ->  Public
   REG    call void @llvm.memset.p0.i32(ptr align 8 %P3, i8 0, i32 20808, i1 false), !dbg !165  ->  Public
   REG    %1 = load ptr, ptr %p.addr, align 4, !dbg !176  ->  Public
-  REG    %m_vec_limbs1 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %1, i32 0, i32 21, !dbg !177  ->  Secret
-  REG    %2 = load i32, ptr %m_vec_limbs1, align 4, !dbg !177  ->  Secret
+  REG    %m_vec_limbs1 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %1, i32 0, i32 21, !dbg !177  ->  Public
+  REG    %2 = load i32, ptr %m_vec_limbs1, align 4, !dbg !177  ->  Public
   REG    %3 = load ptr, ptr %p.addr, align 4, !dbg !180  ->  Public
-  REG    %m = getelementptr inbounds nuw %struct.mayo_params_t, ptr %3, i32 0, i32 0, !dbg !181  ->  Secret
-  REG    %4 = load i32, ptr %m, align 4, !dbg !181  ->  Secret
+  REG    %m = getelementptr inbounds nuw %struct.mayo_params_t, ptr %3, i32 0, i32 0, !dbg !181  ->  Public
+  REG    %4 = load i32, ptr %m, align 4, !dbg !181  ->  Public
   REG    %5 = load ptr, ptr %p.addr, align 4, !dbg !184  ->  Public
-  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %5, i32 0, i32 1, !dbg !185  ->  Secret
-  REG    %6 = load i32, ptr %n, align 4, !dbg !185  ->  Secret
+  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %5, i32 0, i32 1, !dbg !185  ->  Public
+  REG    %6 = load i32, ptr %n, align 4, !dbg !185  ->  Public
   REG    %7 = load ptr, ptr %p.addr, align 4, !dbg !184  ->  Public
   REG  i32 2  ->  Public
-  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %7, i32 0, i32 2, !dbg !185  ->  Secret
-  REG    %8 = load i32, ptr %o, align 4, !dbg !185  ->  Secret
-  REG    %sub = sub nsw i32 %6, %8, !dbg !185  ->  Secret
+  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %7, i32 0, i32 2, !dbg !185  ->  Public
+  REG    %8 = load i32, ptr %o, align 4, !dbg !185  ->  Public
+  REG    %sub = sub nsw i32 %6, %8, !dbg !185  ->  Public
   REG    %9 = load ptr, ptr %p.addr, align 4, !dbg !188  ->  Public
-  REG    %o2 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %9, i32 0, i32 2, !dbg !189  ->  Secret
-  REG    %10 = load i32, ptr %o2, align 4, !dbg !189  ->  Secret
+  REG    %o2 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %9, i32 0, i32 2, !dbg !189  ->  Public
+  REG    %10 = load i32, ptr %o2, align 4, !dbg !189  ->  Public
   REG    %11 = load ptr, ptr %p.addr, align 4, !dbg !192  ->  Public
-  REG    %O_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %11, i32 0, i32 7, !dbg !193  ->  Secret
-  REG    %12 = load i32, ptr %O_bytes, align 4, !dbg !193  ->  Secret
+  REG    %O_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %11, i32 0, i32 7, !dbg !193  ->  Public
+  REG    %12 = load i32, ptr %O_bytes, align 4, !dbg !193  ->  Public
   REG    %13 = load ptr, ptr %p.addr, align 4, !dbg !196  ->  Public
-  REG    %n3 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %13, i32 0, i32 1, !dbg !197  ->  Secret
-  REG    %14 = load i32, ptr %n3, align 4, !dbg !197  ->  Secret
+  REG    %n3 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %13, i32 0, i32 1, !dbg !197  ->  Public
+  REG    %14 = load i32, ptr %n3, align 4, !dbg !197  ->  Public
   REG    %15 = load ptr, ptr %p.addr, align 4, !dbg !196  ->  Public
-  REG    %o4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %15, i32 0, i32 2, !dbg !197  ->  Secret
-  REG    %16 = load i32, ptr %o4, align 4, !dbg !197  ->  Secret
-  REG    %sub5 = sub nsw i32 %14, %16, !dbg !197  ->  Secret
+  REG    %o4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %15, i32 0, i32 2, !dbg !197  ->  Public
+  REG    %16 = load i32, ptr %o4, align 4, !dbg !197  ->  Public
+  REG    %sub5 = sub nsw i32 %14, %16, !dbg !197  ->  Public
   REG    %17 = load ptr, ptr %p.addr, align 4, !dbg !196  ->  Public
-  REG    %n6 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %17, i32 0, i32 1, !dbg !197  ->  Secret
-  REG    %18 = load i32, ptr %n6, align 4, !dbg !197  ->  Secret
+  REG    %n6 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %17, i32 0, i32 1, !dbg !197  ->  Public
+  REG    %18 = load i32, ptr %n6, align 4, !dbg !197  ->  Public
   REG    %19 = load ptr, ptr %p.addr, align 4, !dbg !196  ->  Public
-  REG    %o7 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %19, i32 0, i32 2, !dbg !197  ->  Secret
-  REG    %20 = load i32, ptr %o7, align 4, !dbg !197  ->  Secret
-  REG    %sub8 = sub nsw i32 %18, %20, !dbg !197  ->  Secret
-  REG    %add = add nsw i32 %sub8, 1, !dbg !197  ->  Secret
-  REG    %mul = mul nsw i32 %sub5, %add, !dbg !197  ->  Secret
-  REG    %div = sdiv i32 %mul, 2, !dbg !197  ->  Secret
+  REG    %o7 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %19, i32 0, i32 2, !dbg !197  ->  Public
+  REG    %20 = load i32, ptr %o7, align 4, !dbg !197  ->  Public
+  REG    %sub8 = sub nsw i32 %18, %20, !dbg !197  ->  Public
+  REG    %add = add nsw i32 %sub8, 1, !dbg !197  ->  Public
+  REG    %mul = mul nsw i32 %sub5, %add, !dbg !197  ->  Public
+  REG    %div = sdiv i32 %mul, 2, !dbg !197  ->  Public
   REG    %21 = load ptr, ptr %p.addr, align 4, !dbg !196  ->  Public
-  REG    %m_vec_limbs9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %21, i32 0, i32 21, !dbg !197  ->  Secret
-  REG    %22 = load i32, ptr %m_vec_limbs9, align 4, !dbg !197  ->  Secret
-  REG    %mul10 = mul nsw i32 %div, %22, !dbg !197  ->  Secret
+  REG    %m_vec_limbs9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %21, i32 0, i32 21, !dbg !197  ->  Public
+  REG    %22 = load i32, ptr %m_vec_limbs9, align 4, !dbg !197  ->  Public
+  REG    %mul10 = mul nsw i32 %div, %22, !dbg !197  ->  Public
   REG    %23 = load ptr, ptr %p.addr, align 4, !dbg !200  ->  Public
-  REG    %o11 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %23, i32 0, i32 2, !dbg !201  ->  Secret
-  REG    %24 = load i32, ptr %o11, align 4, !dbg !201  ->  Secret
+  REG    %o11 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %23, i32 0, i32 2, !dbg !201  ->  Public
+  REG    %24 = load i32, ptr %o11, align 4, !dbg !201  ->  Public
   REG    %25 = load ptr, ptr %p.addr, align 4, !dbg !200  ->  Public
-  REG    %o12 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %25, i32 0, i32 2, !dbg !201  ->  Secret
-  REG    %26 = load i32, ptr %o12, align 4, !dbg !201  ->  Secret
-  REG    %add13 = add nsw i32 %26, 1, !dbg !201  ->  Secret
-  REG    %mul14 = mul nsw i32 %24, %add13, !dbg !201  ->  Secret
-  REG    %div15 = sdiv i32 %mul14, 2, !dbg !201  ->  Secret
+  REG    %o12 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %25, i32 0, i32 2, !dbg !201  ->  Public
+  REG    %26 = load i32, ptr %o12, align 4, !dbg !201  ->  Public
+  REG    %add13 = add nsw i32 %26, 1, !dbg !201  ->  Public
+  REG    %mul14 = mul nsw i32 %24, %add13, !dbg !201  ->  Public
+  REG    %div15 = sdiv i32 %mul14, 2, !dbg !201  ->  Public
   REG    %27 = load ptr, ptr %p.addr, align 4, !dbg !200  ->  Public
-  REG    %m_vec_limbs16 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %27, i32 0, i32 21, !dbg !201  ->  Secret
-  REG    %30 = load i32, ptr %pk_seed_bytes, align 4, !dbg !205  ->  Secret
+  REG    %m_vec_limbs16 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %27, i32 0, i32 21, !dbg !201  ->  Public
+  REG    %30 = load i32, ptr %pk_seed_bytes, align 4, !dbg !205  ->  Public
   REG    %31 = load ptr, ptr %p.addr, align 4, !dbg !208  ->  Public
-  REG    %sk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %31, i32 0, i32 18, !dbg !209  ->  Secret
-  REG    %32 = load i32, ptr %sk_seed_bytes, align 4, !dbg !209  ->  Secret
+  REG    %sk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %31, i32 0, i32 18, !dbg !209  ->  Public
+  REG    %32 = load i32, ptr %sk_seed_bytes, align 4, !dbg !209  ->  Public
   REG    %arraydecay = getelementptr inbounds [113103 x i64], ptr %P, i32 0, i32 0, !dbg !212  ->  Public
   REG    %arraydecay18 = getelementptr inbounds [113103 x i64], ptr %P, i32 0, i32 0, !dbg !215  ->  Public
-  REG    %33 = load i32, ptr %param_P1_limbs, align 4, !dbg !216  ->  Secret
+  REG    %33 = load i32, ptr %param_P1_limbs, align 4, !dbg !216  ->  Public
   REG    %add.ptr = getelementptr inbounds i64, ptr %arraydecay18, i32 %33, !dbg !217  ->  Public
-  REG    %34 = load ptr, ptr %seed_sk, align 4, !dbg !218  ->  Secret
+  REG    %34 = load ptr, ptr %seed_sk, align 4, !dbg !218  ->  Public
   REG    %35 = load i32, ptr %param_sk_seed_bytes, align 4, !dbg !220  ->  Secret
   REG    %call = call i32 @randombytes(ptr noundef %34, i32 noundef %35) #5, !dbg !221  ->  Secret
   REG    %cmp = icmp ne i32 %call, 0, !dbg !222  ->  Secret
-  REG    %arraydecay19 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !226  ->  Secret
-  REG    %36 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !227  ->  Secret
-  REG    %37 = load i32, ptr %param_O_bytes, align 4, !dbg !228  ->  Secret
-  REG    %add20 = add nsw i32 %36, %37, !dbg !229  ->  Secret
-  REG    %38 = load ptr, ptr %seed_sk, align 4, !dbg !230  ->  Secret
+  REG    %arraydecay19 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !226  ->  Public
+  REG    %36 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !227  ->  Public
+  REG    %37 = load i32, ptr %param_O_bytes, align 4, !dbg !228  ->  Public
+  REG    %add20 = add nsw i32 %36, %37, !dbg !229  ->  Public
+  REG    %38 = load ptr, ptr %seed_sk, align 4, !dbg !230  ->  Public
   REG    %39 = load i32, ptr %param_sk_seed_bytes, align 4, !dbg !231  ->  Secret
   REG    %call21 = call i32 @shake256(ptr noundef %arraydecay19, i32 noundef %add20, ptr noundef %38, i32 noundef %39) #5, !dbg !232  ->  Secret
-  REG    %arraydecay22 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !233  ->  Secret
-  REG    %arraydecay23 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !235  ->  Secret
-  REG    %40 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !236  ->  Secret
-  REG    %add.ptr24 = getelementptr inbounds i8, ptr %arraydecay23, i32 %40, !dbg !237  ->  Secret
+  REG    %arraydecay22 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !233  ->  Public
+  REG    %arraydecay23 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !235  ->  Public
+  REG    %40 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !236  ->  Public
+  REG    %add.ptr24 = getelementptr inbounds i8, ptr %arraydecay23, i32 %40, !dbg !237  ->  Public
   REG    %arraydecay25 = getelementptr inbounds [2414 x i8], ptr %O, i32 0, i32 0, !dbg !238  ->  Secret
-  REG    %41 = load i32, ptr %param_v, align 4, !dbg !239  ->  Secret
-  REG    %42 = load i32, ptr %param_o, align 4, !dbg !240  ->  Secret
-  REG    %mul26 = mul nsw i32 %41, %42, !dbg !241  ->  Secret
+  REG    %41 = load i32, ptr %param_v, align 4, !dbg !239  ->  Public
+  REG    %42 = load i32, ptr %param_o, align 4, !dbg !240  ->  Public
+  REG    %mul26 = mul nsw i32 %41, %42, !dbg !241  ->  Public
   REG    %43 = load ptr, ptr %p.addr, align 4, !dbg !243  ->  Public
   REG    %arraydecay27 = getelementptr inbounds [113103 x i64], ptr %P, i32 0, i32 0, !dbg !244  ->  Public
-  REG    %44 = load ptr, ptr %seed_pk, align 4, !dbg !245  ->  Secret
+  REG    %44 = load ptr, ptr %seed_pk, align 4, !dbg !245  ->  Public
   REG    %45 = load ptr, ptr %p.addr, align 4, !dbg !247  ->  Public
   REG    %46 = load ptr, ptr %P1, align 4, !dbg !248  ->  Public
   REG    %47 = load ptr, ptr %P2, align 4, !dbg !249  ->  Public
@@ -324,45 +315,45 @@ mayo_keypair_compact  [Secret]
   REG    %arraydecay29 = getelementptr inbounds [2601 x i64], ptr %P3, i32 0, i32 0, !dbg !251  ->  Public
   REG    call void @compute_P3(ptr noundef %45, ptr noundef %46, ptr noundef %47, ptr noundef %arraydecay28, ptr noundef %arraydecay29) #5, !dbg !252  ->  Public
   REG    %48 = load ptr, ptr %cpk.addr, align 4, !dbg !253  ->  Public
-  REG    %49 = load ptr, ptr %seed_pk, align 4, !dbg !254  ->  Secret
-  REG    %50 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !255  ->  Secret
+  REG    %49 = load ptr, ptr %seed_pk, align 4, !dbg !254  ->  Public
+  REG    %50 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !255  ->  Public
   REG    %call30 = call ptr @memcpy(ptr noundef %48, ptr noundef %49, i32 noundef %50) #5, !dbg !256  ->  Public
   REG    %51 = load ptr, ptr %p.addr, align 4, !dbg !262  ->  Public
   REG    %arraydecay31 = getelementptr inbounds [2601 x i64], ptr %P3, i32 0, i32 0, !dbg !263  ->  Public
   REG    %arraydecay32 = getelementptr inbounds [1377 x i64], ptr %P3_upper, i32 0, i32 0, !dbg !264  ->  Public
-  REG    %52 = load i32, ptr %param_o, align 4, !dbg !265  ->  Secret
+  REG    %52 = load i32, ptr %param_o, align 4, !dbg !265  ->  Public
   REG    call void @m_upper(ptr noundef %51, ptr noundef %arraydecay31, ptr noundef %arraydecay32, i32 noundef %52) #5, !dbg !266  ->  Public
   REG    %arraydecay33 = getelementptr inbounds [1377 x i64], ptr %P3_upper, i32 0, i32 0, !dbg !267  ->  Public
   REG    %53 = load ptr, ptr %cpk.addr, align 4, !dbg !268  ->  Public
-  REG    %54 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !269  ->  Secret
-  REG    %add.ptr34 = getelementptr inbounds i8, ptr %53, i32 %54, !dbg !270  ->  Secret
-  REG    %55 = load i32, ptr %param_P3_limbs, align 4, !dbg !271  ->  Secret
-  REG    %56 = load i32, ptr %m_vec_limbs, align 4, !dbg !272  ->  Secret
-  REG    %div35 = sdiv i32 %55, %56, !dbg !273  ->  Secret
-  REG    %57 = load i32, ptr %param_m, align 4, !dbg !274  ->  Secret
+  REG    %54 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !269  ->  Public
+  REG    %add.ptr34 = getelementptr inbounds i8, ptr %53, i32 %54, !dbg !270  ->  Public
+  REG    %55 = load i32, ptr %param_P3_limbs, align 4, !dbg !271  ->  Public
+  REG    %56 = load i32, ptr %m_vec_limbs, align 4, !dbg !272  ->  Public
+  REG    %div35 = sdiv i32 %55, %56, !dbg !273  ->  Public
+  REG    %57 = load i32, ptr %param_m, align 4, !dbg !274  ->  Public
   REG    call void @pack_m_vecs(ptr noundef %arraydecay33, ptr noundef %add.ptr34, i32 noundef %div35, i32 noundef %57) #5, !dbg !275  ->  Public
   REG    %arraydecay36 = getelementptr inbounds [2414 x i8], ptr %O, i32 0, i32 0, !dbg !278  ->  Secret
   REG  i32 2414  ->  Public
-  REG    call void @mayo_secure_clear(ptr noundef %arraydecay36, i32 noundef 2414) #5, !dbg !279  ->  Secret
+  REG    call void @mayo_secure_clear(ptr noundef %arraydecay36, i32 noundef 2414) #5, !dbg !279  ->  Public
   REG    %58 = load ptr, ptr %P2, align 4, !dbg !280  ->  Public
   REG    %59 = load ptr, ptr %p.addr, align 4, !dbg !281  ->  Public
-  REG    %n37 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %59, i32 0, i32 1, !dbg !282  ->  Secret
-  REG    %60 = load i32, ptr %n37, align 4, !dbg !282  ->  Secret
+  REG    %n37 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %59, i32 0, i32 1, !dbg !282  ->  Public
+  REG    %60 = load i32, ptr %n37, align 4, !dbg !282  ->  Public
   REG    %61 = load ptr, ptr %p.addr, align 4, !dbg !281  ->  Public
-  REG    %o38 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %61, i32 0, i32 2, !dbg !282  ->  Secret
-  REG    %62 = load i32, ptr %o38, align 4, !dbg !282  ->  Secret
-  REG    %sub39 = sub nsw i32 %60, %62, !dbg !282  ->  Secret
+  REG    %o38 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %61, i32 0, i32 2, !dbg !282  ->  Public
+  REG    %62 = load i32, ptr %o38, align 4, !dbg !282  ->  Public
+  REG    %sub39 = sub nsw i32 %60, %62, !dbg !282  ->  Public
   REG    %63 = load ptr, ptr %p.addr, align 4, !dbg !281  ->  Public
-  REG    %o40 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %63, i32 0, i32 2, !dbg !282  ->  Secret
-  REG    %64 = load i32, ptr %o40, align 4, !dbg !282  ->  Secret
-  REG    %mul41 = mul nsw i32 %sub39, %64, !dbg !282  ->  Secret
+  REG    %o40 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %63, i32 0, i32 2, !dbg !282  ->  Public
+  REG    %64 = load i32, ptr %o40, align 4, !dbg !282  ->  Public
+  REG    %mul41 = mul nsw i32 %sub39, %64, !dbg !282  ->  Public
   REG    %65 = load ptr, ptr %p.addr, align 4, !dbg !281  ->  Public
-  REG    %m_vec_limbs42 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %65, i32 0, i32 21, !dbg !282  ->  Secret
-  REG    %66 = load i32, ptr %m_vec_limbs42, align 4, !dbg !282  ->  Secret
-  REG    %mul43 = mul nsw i32 %mul41, %66, !dbg !282  ->  Secret
+  REG    %m_vec_limbs42 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %65, i32 0, i32 21, !dbg !282  ->  Public
+  REG    %66 = load i32, ptr %m_vec_limbs42, align 4, !dbg !282  ->  Public
+  REG    %mul43 = mul nsw i32 %mul41, %66, !dbg !282  ->  Public
   REG  i32 8  ->  Public
-  REG    %mul44 = mul i32 %mul43, 8, !dbg !283  ->  Secret
-  REG    call void @mayo_secure_clear(ptr noundef %58, i32 noundef %mul44) #5, !dbg !284  ->  Secret
+  REG    %mul44 = mul i32 %mul43, 8, !dbg !283  ->  Public
+  REG    call void @mayo_secure_clear(ptr noundef %58, i32 noundef %mul44) #5, !dbg !284  ->  Public
   REG    %arraydecay45 = getelementptr inbounds [2601 x i64], ptr %P3, i32 0, i32 0, !dbg !285  ->  Public
   REG    call void @mayo_secure_clear(ptr noundef %arraydecay45, i32 noundef 20808) #5, !dbg !286  ->  Public
   REG    %67 = load i32, ptr %ret, align 4, !dbg !287  ->  Public
@@ -371,22 +362,22 @@ mayo_keypair_compact  [Secret]
   MEM  ptr %csk  ->  Public
   MEM    %p.addr = alloca ptr, align 4  ->  Public
   MEM    %cpk.addr = alloca ptr, align 4  ->  Public
-  MEM    %csk.addr = alloca ptr, align 4  ->  Secret
+  MEM    %csk.addr = alloca ptr, align 4  ->  Public
   MEM    %ret = alloca i32, align 4  ->  Public
-  MEM    %seed_sk = alloca ptr, align 4  ->  Secret
-  MEM    %S = alloca [868 x i8], align 1  ->  Secret
+  MEM    %seed_sk = alloca ptr, align 4  ->  Public
+  MEM    %S = alloca [868 x i8], align 1  ->  Public
   MEM    %P = alloca [113103 x i64], align 8  ->  Public
   MEM    %P3 = alloca [2601 x i64], align 8  ->  Public
-  MEM    %seed_pk = alloca ptr, align 4  ->  Secret
+  MEM    %seed_pk = alloca ptr, align 4  ->  Public
   MEM    %O = alloca [2414 x i8], align 1  ->  Secret
-  MEM    %m_vec_limbs = alloca i32, align 4  ->  Secret
-  MEM    %param_m = alloca i32, align 4  ->  Secret
-  MEM    %param_v = alloca i32, align 4  ->  Secret
-  MEM    %param_o = alloca i32, align 4  ->  Secret
-  MEM    %param_O_bytes = alloca i32, align 4  ->  Secret
-  MEM    %param_P1_limbs = alloca i32, align 4  ->  Secret
-  MEM    %param_P3_limbs = alloca i32, align 4  ->  Secret
-  MEM    %param_pk_seed_bytes = alloca i32, align 4  ->  Secret
+  MEM    %m_vec_limbs = alloca i32, align 4  ->  Public
+  MEM    %param_m = alloca i32, align 4  ->  Public
+  MEM    %param_v = alloca i32, align 4  ->  Public
+  MEM    %param_o = alloca i32, align 4  ->  Public
+  MEM    %param_O_bytes = alloca i32, align 4  ->  Public
+  MEM    %param_P1_limbs = alloca i32, align 4  ->  Public
+  MEM    %param_P3_limbs = alloca i32, align 4  ->  Public
+  MEM    %param_pk_seed_bytes = alloca i32, align 4  ->  Public
   MEM    %param_sk_seed_bytes = alloca i32, align 4  ->  Secret
   MEM    %P1 = alloca ptr, align 4  ->  Public
   MEM    %P2 = alloca ptr, align 4  ->  Public
@@ -399,7 +390,7 @@ decode  [Secret]
   REG  i32 15  ->  Public
   REG  i32 2  ->  Public
   REG    %m.addr = alloca ptr, align 4  ->  Public
-  REG  ptr %m  ->  Secret
+  REG  ptr %m  ->  Public
   REG  ptr %mdec  ->  Secret
   REG  i32 %mdeclen  ->  Public
   REG    %mdec.addr = alloca ptr, align 4  ->  Public
@@ -409,22 +400,22 @@ decode  [Secret]
   REG    %1 = load i32, ptr %mdeclen.addr, align 4, !dbg !122  ->  Public
   REG    %div = sdiv i32 %1, 2, !dbg !123  ->  Public
   REG    %cmp = icmp slt i32 %0, %div, !dbg !124  ->  Public
-  REG    %2 = load ptr, ptr %m.addr, align 4, !dbg !126  ->  Secret
+  REG    %2 = load ptr, ptr %m.addr, align 4, !dbg !126  ->  Public
   REG    %3 = load i32, ptr %i, align 4, !dbg !128  ->  Public
-  REG    %arrayidx = getelementptr inbounds i8, ptr %2, i32 %3, !dbg !126  ->  Secret
-  REG    %4 = load i8, ptr %arrayidx, align 1, !dbg !126  ->  Secret
-  REG    %conv = zext i8 %4 to i32, !dbg !126  ->  Secret
-  REG    %and = and i32 %conv, 15, !dbg !129  ->  Secret
-  REG    %conv1 = trunc i32 %and to i8, !dbg !126  ->  Secret
+  REG    %arrayidx = getelementptr inbounds i8, ptr %2, i32 %3, !dbg !126  ->  Public
+  REG    %4 = load i8, ptr %arrayidx, align 1, !dbg !126  ->  Public
+  REG    %conv = zext i8 %4 to i32, !dbg !126  ->  Public
+  REG    %and = and i32 %conv, 15, !dbg !129  ->  Public
+  REG    %conv1 = trunc i32 %and to i8, !dbg !126  ->  Public
   REG    %5 = load ptr, ptr %mdec.addr, align 4, !dbg !130  ->  Secret
   REG    %incdec.ptr = getelementptr inbounds nuw i8, ptr %5, i32 1, !dbg !130  ->  Secret
-  REG    %6 = load ptr, ptr %m.addr, align 4, !dbg !132  ->  Secret
+  REG    %6 = load ptr, ptr %m.addr, align 4, !dbg !132  ->  Public
   REG    %7 = load i32, ptr %i, align 4, !dbg !133  ->  Public
-  REG    %arrayidx2 = getelementptr inbounds i8, ptr %6, i32 %7, !dbg !132  ->  Secret
-  REG    %8 = load i8, ptr %arrayidx2, align 1, !dbg !132  ->  Secret
-  REG    %conv3 = zext i8 %8 to i32, !dbg !132  ->  Secret
-  REG    %shr = ashr i32 %conv3, 4, !dbg !134  ->  Secret
-  REG    %conv4 = trunc i32 %shr to i8, !dbg !132  ->  Secret
+  REG    %arrayidx2 = getelementptr inbounds i8, ptr %6, i32 %7, !dbg !132  ->  Public
+  REG    %8 = load i8, ptr %arrayidx2, align 1, !dbg !132  ->  Public
+  REG    %conv3 = zext i8 %8 to i32, !dbg !132  ->  Public
+  REG    %shr = ashr i32 %conv3, 4, !dbg !134  ->  Public
+  REG    %conv4 = trunc i32 %shr to i8, !dbg !132  ->  Public
   REG    %9 = load ptr, ptr %mdec.addr, align 4, !dbg !135  ->  Secret
   REG    %incdec.ptr5 = getelementptr inbounds nuw i8, ptr %9, i32 1, !dbg !135  ->  Secret
   REG    %10 = load i32, ptr %i, align 4, !dbg !138  ->  Public
@@ -432,18 +423,18 @@ decode  [Secret]
   REG    %11 = load i32, ptr %mdeclen.addr, align 4, !dbg !143  ->  Public
   REG    %rem = srem i32 %11, 2, !dbg !145  ->  Public
   REG    %cmp6 = icmp eq i32 %rem, 1, !dbg !146  ->  Public
-  REG    %12 = load ptr, ptr %m.addr, align 4, !dbg !147  ->  Secret
+  REG    %12 = load ptr, ptr %m.addr, align 4, !dbg !147  ->  Public
   REG    %13 = load i32, ptr %i, align 4, !dbg !149  ->  Public
-  REG    %arrayidx8 = getelementptr inbounds i8, ptr %12, i32 %13, !dbg !147  ->  Secret
-  REG    %14 = load i8, ptr %arrayidx8, align 1, !dbg !147  ->  Secret
-  REG    %conv9 = zext i8 %14 to i32, !dbg !147  ->  Secret
-  REG    %and10 = and i32 %conv9, 15, !dbg !150  ->  Secret
-  REG    %conv11 = trunc i32 %and10 to i8, !dbg !147  ->  Secret
+  REG    %arrayidx8 = getelementptr inbounds i8, ptr %12, i32 %13, !dbg !147  ->  Public
+  REG    %14 = load i8, ptr %arrayidx8, align 1, !dbg !147  ->  Public
+  REG    %conv9 = zext i8 %14 to i32, !dbg !147  ->  Public
+  REG    %and10 = and i32 %conv9, 15, !dbg !150  ->  Public
+  REG    %conv11 = trunc i32 %and10 to i8, !dbg !147  ->  Public
   REG    %15 = load ptr, ptr %mdec.addr, align 4, !dbg !151  ->  Secret
   REG    %incdec.ptr12 = getelementptr inbounds nuw i8, ptr %15, i32 1, !dbg !151  ->  Secret
-  MEM    %S = alloca [868 x i8], align 1  ->  Secret
+  MEM    %S = alloca [868 x i8], align 1  ->  Public
   MEM    %O = alloca [2414 x i8], align 1  ->  Secret
-  MEM    %m.addr = alloca ptr, align 4  ->  Secret
+  MEM    %m.addr = alloca ptr, align 4  ->  Public
   MEM  ptr %m  ->  Public
   MEM  ptr %mdec  ->  Public
   MEM  i32 %mdeclen  ->  Public
@@ -451,74 +442,74 @@ decode  [Secret]
   MEM    %mdeclen.addr = alloca i32, align 4  ->  Public
   MEM    %i = alloca i32, align 4  ->  Public
 
-expand_P1_P2  [Secret] 
+expand_P1_P2  [Public] 
   REG  i32 1  ->  Public
   REG  i32 2  ->  Public
   REG  ptr %p  ->  Public
   REG  ptr %P  ->  Public
-  REG  ptr %seed_pk  ->  Secret
+  REG  ptr %seed_pk  ->  Public
   REG    %p.addr = alloca ptr, align 4  ->  Public
   REG    %P.addr = alloca ptr, align 4  ->  Public
   REG    %seed_pk.addr = alloca ptr, align 4  ->  Public
   REG    %0 = load ptr, ptr %P.addr, align 4, !dbg !146  ->  Public
   REG    %1 = load ptr, ptr %p.addr, align 4, !dbg !147  ->  Public
-  REG    %P1_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %1, i32 0, i32 11, !dbg !148  ->  Secret
-  REG    %2 = load i32, ptr %P1_bytes, align 4, !dbg !148  ->  Secret
+  REG    %P1_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %1, i32 0, i32 11, !dbg !148  ->  Public
+  REG    %2 = load i32, ptr %P1_bytes, align 4, !dbg !148  ->  Public
   REG    %3 = load ptr, ptr %p.addr, align 4, !dbg !149  ->  Public
-  REG    %P2_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %3, i32 0, i32 12, !dbg !150  ->  Secret
-  REG    %4 = load i32, ptr %P2_bytes, align 4, !dbg !150  ->  Secret
-  REG    %add = add nsw i32 %2, %4, !dbg !151  ->  Secret
-  REG    %5 = load ptr, ptr %seed_pk.addr, align 4, !dbg !152  ->  Secret
+  REG    %P2_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %3, i32 0, i32 12, !dbg !150  ->  Public
+  REG    %4 = load i32, ptr %P2_bytes, align 4, !dbg !150  ->  Public
+  REG    %add = add nsw i32 %2, %4, !dbg !151  ->  Public
+  REG    %5 = load ptr, ptr %seed_pk.addr, align 4, !dbg !152  ->  Public
   REG    %6 = load ptr, ptr %p.addr, align 4, !dbg !153  ->  Public
-  REG    %pk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %6, i32 0, i32 20, !dbg !154  ->  Secret
-  REG    %7 = load i32, ptr %pk_seed_bytes, align 4, !dbg !154  ->  Secret
-  REG    %call = call i32 @AES_128_CTR(ptr noundef %0, i32 noundef %add, ptr noundef %5, i32 noundef %7) #5, !dbg !155  ->  Secret
+  REG    %pk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %6, i32 0, i32 20, !dbg !154  ->  Public
+  REG    %7 = load i32, ptr %pk_seed_bytes, align 4, !dbg !154  ->  Public
+  REG    %call = call i32 @AES_128_CTR(ptr noundef %0, i32 noundef %add, ptr noundef %5, i32 noundef %7) #5, !dbg !155  ->  Public
   REG    %8 = load ptr, ptr %P.addr, align 4, !dbg !156  ->  Public
   REG    %9 = load ptr, ptr %P.addr, align 4, !dbg !157  ->  Public
   REG    %10 = load ptr, ptr %p.addr, align 4, !dbg !158  ->  Public
-  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 1, !dbg !159  ->  Secret
-  REG    %11 = load i32, ptr %n, align 4, !dbg !159  ->  Secret
+  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 1, !dbg !159  ->  Public
+  REG    %11 = load i32, ptr %n, align 4, !dbg !159  ->  Public
   REG    %12 = load ptr, ptr %p.addr, align 4, !dbg !158  ->  Public
-  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %12, i32 0, i32 2, !dbg !159  ->  Secret
-  REG    %13 = load i32, ptr %o, align 4, !dbg !159  ->  Secret
-  REG    %sub = sub nsw i32 %11, %13, !dbg !159  ->  Secret
+  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %12, i32 0, i32 2, !dbg !159  ->  Public
+  REG    %13 = load i32, ptr %o, align 4, !dbg !159  ->  Public
+  REG    %sub = sub nsw i32 %11, %13, !dbg !159  ->  Public
   REG    %14 = load ptr, ptr %p.addr, align 4, !dbg !158  ->  Public
-  REG    %n1 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %14, i32 0, i32 1, !dbg !159  ->  Secret
-  REG    %15 = load i32, ptr %n1, align 4, !dbg !159  ->  Secret
+  REG    %n1 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %14, i32 0, i32 1, !dbg !159  ->  Public
+  REG    %15 = load i32, ptr %n1, align 4, !dbg !159  ->  Public
   REG    %16 = load ptr, ptr %p.addr, align 4, !dbg !158  ->  Public
-  REG    %o2 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %16, i32 0, i32 2, !dbg !159  ->  Secret
-  REG    %17 = load i32, ptr %o2, align 4, !dbg !159  ->  Secret
-  REG    %sub3 = sub nsw i32 %15, %17, !dbg !159  ->  Secret
-  REG    %add4 = add nsw i32 %sub3, 1, !dbg !159  ->  Secret
-  REG    %mul = mul nsw i32 %sub, %add4, !dbg !159  ->  Secret
-  REG    %div = sdiv i32 %mul, 2, !dbg !159  ->  Secret
+  REG    %o2 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %16, i32 0, i32 2, !dbg !159  ->  Public
+  REG    %17 = load i32, ptr %o2, align 4, !dbg !159  ->  Public
+  REG    %sub3 = sub nsw i32 %15, %17, !dbg !159  ->  Public
+  REG    %add4 = add nsw i32 %sub3, 1, !dbg !159  ->  Public
+  REG    %mul = mul nsw i32 %sub, %add4, !dbg !159  ->  Public
+  REG    %div = sdiv i32 %mul, 2, !dbg !159  ->  Public
   REG    %18 = load ptr, ptr %p.addr, align 4, !dbg !158  ->  Public
-  REG    %m_vec_limbs = getelementptr inbounds nuw %struct.mayo_params_t, ptr %18, i32 0, i32 21, !dbg !159  ->  Secret
-  REG    %19 = load i32, ptr %m_vec_limbs, align 4, !dbg !159  ->  Secret
-  REG    %mul5 = mul nsw i32 %div, %19, !dbg !159  ->  Secret
+  REG    %m_vec_limbs = getelementptr inbounds nuw %struct.mayo_params_t, ptr %18, i32 0, i32 21, !dbg !159  ->  Public
+  REG    %19 = load i32, ptr %m_vec_limbs, align 4, !dbg !159  ->  Public
+  REG    %mul5 = mul nsw i32 %div, %19, !dbg !159  ->  Public
   REG    %20 = load ptr, ptr %p.addr, align 4, !dbg !160  ->  Public
-  REG    %n6 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %20, i32 0, i32 1, !dbg !161  ->  Secret
-  REG    %21 = load i32, ptr %n6, align 4, !dbg !161  ->  Secret
+  REG    %n6 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %20, i32 0, i32 1, !dbg !161  ->  Public
+  REG    %21 = load i32, ptr %n6, align 4, !dbg !161  ->  Public
   REG    %22 = load ptr, ptr %p.addr, align 4, !dbg !160  ->  Public
-  REG    %o7 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %22, i32 0, i32 2, !dbg !161  ->  Secret
-  REG    %23 = load i32, ptr %o7, align 4, !dbg !161  ->  Secret
-  REG    %sub8 = sub nsw i32 %21, %23, !dbg !161  ->  Secret
+  REG    %o7 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %22, i32 0, i32 2, !dbg !161  ->  Public
+  REG    %23 = load i32, ptr %o7, align 4, !dbg !161  ->  Public
+  REG    %sub8 = sub nsw i32 %21, %23, !dbg !161  ->  Public
   REG    %24 = load ptr, ptr %p.addr, align 4, !dbg !160  ->  Public
-  REG    %o9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %24, i32 0, i32 2, !dbg !161  ->  Secret
-  REG    %25 = load i32, ptr %o9, align 4, !dbg !161  ->  Secret
-  REG    %mul10 = mul nsw i32 %sub8, %25, !dbg !161  ->  Secret
+  REG    %o9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %24, i32 0, i32 2, !dbg !161  ->  Public
+  REG    %25 = load i32, ptr %o9, align 4, !dbg !161  ->  Public
+  REG    %mul10 = mul nsw i32 %sub8, %25, !dbg !161  ->  Public
   REG    %26 = load ptr, ptr %p.addr, align 4, !dbg !160  ->  Public
-  REG    %m_vec_limbs11 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %26, i32 0, i32 21, !dbg !161  ->  Secret
-  REG    %27 = load i32, ptr %m_vec_limbs11, align 4, !dbg !161  ->  Secret
-  REG    %mul12 = mul nsw i32 %mul10, %27, !dbg !161  ->  Secret
-  REG    %add13 = add nsw i32 %mul5, %mul12, !dbg !162  ->  Secret
+  REG    %m_vec_limbs11 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %26, i32 0, i32 21, !dbg !161  ->  Public
+  REG    %27 = load i32, ptr %m_vec_limbs11, align 4, !dbg !161  ->  Public
+  REG    %mul12 = mul nsw i32 %mul10, %27, !dbg !161  ->  Public
+  REG    %add13 = add nsw i32 %mul5, %mul12, !dbg !162  ->  Public
   REG    %28 = load ptr, ptr %p.addr, align 4, !dbg !163  ->  Public
-  REG    %m_vec_limbs14 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %28, i32 0, i32 21, !dbg !164  ->  Secret
-  REG    %29 = load i32, ptr %m_vec_limbs14, align 4, !dbg !164  ->  Secret
-  REG    %div15 = sdiv i32 %add13, %29, !dbg !165  ->  Secret
+  REG    %m_vec_limbs14 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %28, i32 0, i32 21, !dbg !164  ->  Public
+  REG    %29 = load i32, ptr %m_vec_limbs14, align 4, !dbg !164  ->  Public
+  REG    %div15 = sdiv i32 %add13, %29, !dbg !165  ->  Public
   REG    %30 = load ptr, ptr %p.addr, align 4, !dbg !166  ->  Public
-  REG    %m = getelementptr inbounds nuw %struct.mayo_params_t, ptr %30, i32 0, i32 0, !dbg !167  ->  Secret
-  REG    %31 = load i32, ptr %m, align 4, !dbg !167  ->  Secret
+  REG    %m = getelementptr inbounds nuw %struct.mayo_params_t, ptr %30, i32 0, i32 0, !dbg !167  ->  Public
+  REG    %31 = load i32, ptr %m, align 4, !dbg !167  ->  Public
   REG    call void @unpack_m_vecs(ptr noundef %8, ptr noundef %9, i32 noundef %div15, i32 noundef %31) #5, !dbg !168  ->  Public
   MEM    %P = alloca [113103 x i64], align 8  ->  Public
   MEM  ptr %p  ->  Public
@@ -526,7 +517,7 @@ expand_P1_P2  [Secret]
   MEM  ptr %seed_pk  ->  Public
   MEM    %p.addr = alloca ptr, align 4  ->  Public
   MEM    %P.addr = alloca ptr, align 4  ->  Public
-  MEM    %seed_pk.addr = alloca ptr, align 4  ->  Secret
+  MEM    %seed_pk.addr = alloca ptr, align 4  ->  Public
 
 compute_P3  [Secret] 
   REG  ptr %p  ->  Public
@@ -584,7 +575,7 @@ compute_P3  [Secret]
   MEM    %param_v = alloca i32, align 4  ->  Public
   MEM    %param_o = alloca i32, align 4  ->  Public
 
-pack_m_vecs  [Secret] 
+pack_m_vecs  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 16  ->  Public
@@ -593,7 +584,7 @@ pack_m_vecs  [Secret]
   REG    %in.addr = alloca ptr, align 4  ->  Public
   REG  i32 8  ->  Public
   REG  ptr %in  ->  Public
-  REG  ptr %out  ->  Secret
+  REG  ptr %out  ->  Public
   REG  i32 %vecs  ->  Public
   REG  i32 %m  ->  Public
   REG    %call = call ptr @memmove(ptr noundef %add.ptr, ptr noundef %add.ptr4, i32 noundef %div5) #5, !dbg !151  ->  Public
@@ -610,12 +601,12 @@ pack_m_vecs  [Secret]
   REG    %2 = load i32, ptr %i, align 4, !dbg !131  ->  Public
   REG    %3 = load i32, ptr %vecs.addr, align 4, !dbg !133  ->  Public
   REG    %cmp = icmp slt i32 %2, %3, !dbg !134  ->  Public
-  REG    %4 = load ptr, ptr %out.addr, align 4, !dbg !136  ->  Secret
+  REG    %4 = load ptr, ptr %out.addr, align 4, !dbg !136  ->  Public
   REG    %5 = load i32, ptr %i, align 4, !dbg !138  ->  Public
   REG    %6 = load i32, ptr %m.addr, align 4, !dbg !139  ->  Public
   REG    %mul = mul nsw i32 %5, %6, !dbg !140  ->  Public
   REG    %div1 = sdiv i32 %mul, 2, !dbg !141  ->  Public
-  REG    %add.ptr = getelementptr inbounds i8, ptr %4, i32 %div1, !dbg !142  ->  Secret
+  REG    %add.ptr = getelementptr inbounds i8, ptr %4, i32 %div1, !dbg !142  ->  Public
   REG    %7 = load ptr, ptr %_in, align 4, !dbg !143  ->  Public
   REG    %8 = load i32, ptr %i, align 4, !dbg !144  ->  Public
   REG    %9 = load i32, ptr %m_vec_limbs, align 4, !dbg !145  ->  Public
@@ -632,7 +623,7 @@ pack_m_vecs  [Secret]
   MEM  ptr %out  ->  Public
   MEM  i32 %vecs  ->  Public
   MEM  i32 %m  ->  Public
-  MEM    %out.addr = alloca ptr, align 4  ->  Secret
+  MEM    %out.addr = alloca ptr, align 4  ->  Public
   MEM    %vecs.addr = alloca i32, align 4  ->  Public
   MEM    %m.addr = alloca i32, align 4  ->  Public
   MEM    %m_vec_limbs = alloca i32, align 4  ->  Public
@@ -780,14 +771,14 @@ m_vec_mul_add  [Secret]
   REG    %cmp = icmp slt i32 %0, %1, !dbg !126  ->  Public
   REG    %2 = load ptr, ptr %in.addr, align 4, !dbg !128  ->  Public
   REG    %3 = load i32, ptr %i, align 4, !dbg !130  ->  Public
-  REG    %arrayidx = getelementptr inbounds i64, ptr %2, i32 %3, !dbg !128  ->  Secret
-  REG    %4 = load i64, ptr %arrayidx, align 8, !dbg !128  ->  Secret
+  REG    %arrayidx = getelementptr inbounds i64, ptr %2, i32 %3, !dbg !128  ->  Public
+  REG    %4 = load i64, ptr %arrayidx, align 8, !dbg !128  ->  Public
   REG    %5 = load i8, ptr %a.addr, align 1, !dbg !131  ->  Secret
   REG    %call = call i64 @gf16v_mul_u64(i64 noundef %4, i8 noundef zeroext %5) #5, !dbg !132  ->  Secret
   REG    %6 = load ptr, ptr %acc.addr, align 4, !dbg !133  ->  Public
   REG    %7 = load i32, ptr %i, align 4, !dbg !134  ->  Public
-  REG    %arrayidx1 = getelementptr inbounds i64, ptr %6, i32 %7, !dbg !133  ->  Secret
-  REG    %8 = load i64, ptr %arrayidx1, align 8, !dbg !135  ->  Secret
+  REG    %arrayidx1 = getelementptr inbounds i64, ptr %6, i32 %7, !dbg !133  ->  Public
+  REG    %8 = load i64, ptr %arrayidx1, align 8, !dbg !135  ->  Public
   REG    %xor = xor i64 %8, %call, !dbg !135  ->  Secret
   REG    %9 = load i32, ptr %i, align 4, !dbg !137  ->  Public
   REG    %inc = add nsw i32 %9, 1, !dbg !137  ->  Public
@@ -983,7 +974,7 @@ mul_add_m_upper_triangular_mat_x_mat  [Secret]
   MEM    %c = alloca i32, align 4  ->  Public
   MEM    %k = alloca i32, align 4  ->  Public
 
-unpack_m_vecs  [Secret] 
+unpack_m_vecs  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 16  ->  Public
@@ -996,8 +987,8 @@ unpack_m_vecs  [Secret]
   REG    %call = call ptr @memcpy(ptr noundef %arraydecay, ptr noundef %add.ptr, i32 noundef %div2) #5, !dbg !151  ->  Public
   REG  ptr %in  ->  Public
   REG  ptr %out  ->  Public
-  REG  i32 %vecs  ->  Secret
-  REG  i32 %m  ->  Secret
+  REG  i32 %vecs  ->  Public
+  REG  i32 %m  ->  Public
   REG    %out.addr = alloca ptr, align 4  ->  Public
   REG    %vecs.addr = alloca i32, align 4  ->  Public
   REG    %m.addr = alloca i32, align 4  ->  Public
@@ -1005,47 +996,47 @@ unpack_m_vecs  [Secret]
   REG    %_out = alloca ptr, align 4  ->  Public
   REG    %tmp = alloca [9 x i64], align 8  ->  Public
   REG    %i = alloca i32, align 4  ->  Public
-  REG    %0 = load i32, ptr %m.addr, align 4, !dbg !120  ->  Secret
-  REG    %add = add nsw i32 %0, 15, !dbg !121  ->  Secret
-  REG    %div = sdiv i32 %add, 16, !dbg !122  ->  Secret
+  REG    %0 = load i32, ptr %m.addr, align 4, !dbg !120  ->  Public
+  REG    %add = add nsw i32 %0, 15, !dbg !121  ->  Public
+  REG    %div = sdiv i32 %add, 16, !dbg !122  ->  Public
   REG    %1 = load ptr, ptr %out.addr, align 4, !dbg !125  ->  Public
   REG    call void @llvm.memset.p0.i32(ptr align 8 %tmp, i8 0, i32 72, i1 false), !dbg !130  ->  Public
-  REG    %2 = load i32, ptr %vecs.addr, align 4, !dbg !134  ->  Secret
-  REG    %sub = sub nsw i32 %2, 1, !dbg !135  ->  Secret
-  REG    %3 = load i32, ptr %i, align 4, !dbg !137  ->  Secret
-  REG    %cmp = icmp sge i32 %3, 0, !dbg !139  ->  Secret
+  REG    %2 = load i32, ptr %vecs.addr, align 4, !dbg !134  ->  Public
+  REG    %sub = sub nsw i32 %2, 1, !dbg !135  ->  Public
+  REG    %3 = load i32, ptr %i, align 4, !dbg !137  ->  Public
+  REG    %cmp = icmp sge i32 %3, 0, !dbg !139  ->  Public
   REG    %arraydecay = getelementptr inbounds [9 x i64], ptr %tmp, i32 0, i32 0, !dbg !141  ->  Public
   REG    %4 = load ptr, ptr %in.addr, align 4, !dbg !143  ->  Public
-  REG    %5 = load i32, ptr %i, align 4, !dbg !144  ->  Secret
-  REG    %6 = load i32, ptr %m.addr, align 4, !dbg !145  ->  Secret
-  REG    %mul = mul nsw i32 %5, %6, !dbg !146  ->  Secret
-  REG    %div1 = sdiv i32 %mul, 2, !dbg !147  ->  Secret
+  REG    %5 = load i32, ptr %i, align 4, !dbg !144  ->  Public
+  REG    %6 = load i32, ptr %m.addr, align 4, !dbg !145  ->  Public
+  REG    %mul = mul nsw i32 %5, %6, !dbg !146  ->  Public
+  REG    %div1 = sdiv i32 %mul, 2, !dbg !147  ->  Public
   REG    %add.ptr = getelementptr inbounds i8, ptr %4, i32 %div1, !dbg !148  ->  Public
-  REG    %7 = load i32, ptr %m.addr, align 4, !dbg !149  ->  Secret
-  REG    %div2 = sdiv i32 %7, 2, !dbg !150  ->  Secret
+  REG    %7 = load i32, ptr %m.addr, align 4, !dbg !149  ->  Public
+  REG    %div2 = sdiv i32 %7, 2, !dbg !150  ->  Public
   REG    %8 = load ptr, ptr %_out, align 4, !dbg !152  ->  Public
-  REG    %9 = load i32, ptr %i, align 4, !dbg !153  ->  Secret
-  REG    %10 = load i32, ptr %m_vec_limbs, align 4, !dbg !154  ->  Secret
-  REG    %mul3 = mul nsw i32 %9, %10, !dbg !155  ->  Secret
-  REG    %mul4 = mul i32 %mul3, 8, !dbg !156  ->  Secret
+  REG    %9 = load i32, ptr %i, align 4, !dbg !153  ->  Public
+  REG    %10 = load i32, ptr %m_vec_limbs, align 4, !dbg !154  ->  Public
+  REG    %mul3 = mul nsw i32 %9, %10, !dbg !155  ->  Public
+  REG    %mul4 = mul i32 %mul3, 8, !dbg !156  ->  Public
   REG    %add.ptr5 = getelementptr inbounds nuw i8, ptr %8, i32 %mul4, !dbg !157  ->  Public
   REG    %arraydecay6 = getelementptr inbounds [9 x i64], ptr %tmp, i32 0, i32 0, !dbg !158  ->  Public
-  REG    %11 = load i32, ptr %m_vec_limbs, align 4, !dbg !159  ->  Secret
-  REG    %mul7 = mul i32 %11, 8, !dbg !160  ->  Secret
-  REG    %12 = load i32, ptr %i, align 4, !dbg !163  ->  Secret
-  REG    %dec = add nsw i32 %12, -1, !dbg !163  ->  Secret
+  REG    %11 = load i32, ptr %m_vec_limbs, align 4, !dbg !159  ->  Public
+  REG    %mul7 = mul i32 %11, 8, !dbg !160  ->  Public
+  REG    %12 = load i32, ptr %i, align 4, !dbg !163  ->  Public
+  REG    %dec = add nsw i32 %12, -1, !dbg !163  ->  Public
   MEM    %in.addr = alloca ptr, align 4  ->  Public
   MEM  ptr %in  ->  Public
   MEM  ptr %out  ->  Public
   MEM  i32 %vecs  ->  Public
   MEM  i32 %m  ->  Public
   MEM    %out.addr = alloca ptr, align 4  ->  Public
-  MEM    %vecs.addr = alloca i32, align 4  ->  Secret
-  MEM    %m.addr = alloca i32, align 4  ->  Secret
-  MEM    %m_vec_limbs = alloca i32, align 4  ->  Secret
+  MEM    %vecs.addr = alloca i32, align 4  ->  Public
+  MEM    %m.addr = alloca i32, align 4  ->  Public
+  MEM    %m_vec_limbs = alloca i32, align 4  ->  Public
   MEM    %_out = alloca ptr, align 4  ->  Public
   MEM    %tmp = alloca [9 x i64], align 8  ->  Public
-  MEM    %i = alloca i32, align 4  ->  Secret
+  MEM    %i = alloca i32, align 4  ->  Public
 
 mayo_expand_sk  [Secret] 
   REG  i32 0  ->  Public
@@ -1053,8 +1044,8 @@ mayo_expand_sk  [Secret]
   REG  i32 2  ->  Public
   REG    call void @expand_P1_P2(ptr noundef %23, ptr noundef %24, ptr noundef %25) #5, !dbg !220  ->  Public
   REG  ptr %p  ->  Public
-  REG  ptr %csk  ->  Secret
-  REG  ptr %sk  ->  Secret
+  REG  ptr %csk  ->  Public
+  REG  ptr %sk  ->  Public
   REG    call void @decode(ptr noundef %add.ptr, ptr noundef %20, i32 noundef %mul) #5, !dbg !216  ->  Public
   REG    %p.addr = alloca ptr, align 4  ->  Public
   REG    %csk.addr = alloca ptr, align 4  ->  Public
@@ -1073,112 +1064,112 @@ mayo_expand_sk  [Secret]
   REG    %P2 = alloca ptr, align 4  ->  Public
   REG    %P1 = alloca ptr, align 4  ->  Public
   REG    %L = alloca ptr, align 4  ->  Public
-  REG    %0 = load ptr, ptr %sk.addr, align 4, !dbg !169  ->  Secret
-  REG    %p1 = getelementptr inbounds nuw %struct.sk_t, ptr %0, i32 0, i32 0, !dbg !170  ->  Secret
-  REG    %arraydecay = getelementptr inbounds [113103 x i64], ptr %p1, i32 0, i32 0, !dbg !169  ->  Secret
-  REG    %1 = load ptr, ptr %sk.addr, align 4, !dbg !173  ->  Secret
-  REG    %O2 = getelementptr inbounds nuw %struct.sk_t, ptr %1, i32 0, i32 1, !dbg !174  ->  Secret
-  REG    %arraydecay3 = getelementptr inbounds [2414 x i8], ptr %O2, i32 0, i32 0, !dbg !173  ->  Secret
+  REG    %0 = load ptr, ptr %sk.addr, align 4, !dbg !169  ->  Public
+  REG    %p1 = getelementptr inbounds nuw %struct.sk_t, ptr %0, i32 0, i32 0, !dbg !170  ->  Public
+  REG    %arraydecay = getelementptr inbounds [113103 x i64], ptr %p1, i32 0, i32 0, !dbg !169  ->  Public
+  REG    %1 = load ptr, ptr %sk.addr, align 4, !dbg !173  ->  Public
+  REG    %O2 = getelementptr inbounds nuw %struct.sk_t, ptr %1, i32 0, i32 1, !dbg !174  ->  Public
+  REG    %arraydecay3 = getelementptr inbounds [2414 x i8], ptr %O2, i32 0, i32 0, !dbg !173  ->  Public
   REG    %2 = load ptr, ptr %p.addr, align 4, !dbg !178  ->  Public
-  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %2, i32 0, i32 2, !dbg !179  ->  Secret
-  REG    %3 = load i32, ptr %o, align 4, !dbg !179  ->  Secret
+  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %2, i32 0, i32 2, !dbg !179  ->  Public
+  REG    %3 = load i32, ptr %o, align 4, !dbg !179  ->  Public
   REG    %4 = load ptr, ptr %p.addr, align 4, !dbg !182  ->  Public
-  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %4, i32 0, i32 1, !dbg !183  ->  Secret
-  REG    %5 = load i32, ptr %n, align 4, !dbg !183  ->  Secret
+  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %4, i32 0, i32 1, !dbg !183  ->  Public
+  REG    %5 = load i32, ptr %n, align 4, !dbg !183  ->  Public
   REG    %6 = load ptr, ptr %p.addr, align 4, !dbg !182  ->  Public
-  REG    %o4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %6, i32 0, i32 2, !dbg !183  ->  Secret
-  REG    %7 = load i32, ptr %o4, align 4, !dbg !183  ->  Secret
-  REG    %sub = sub nsw i32 %5, %7, !dbg !183  ->  Secret
+  REG    %o4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %6, i32 0, i32 2, !dbg !183  ->  Public
+  REG    %7 = load i32, ptr %o4, align 4, !dbg !183  ->  Public
+  REG    %sub = sub nsw i32 %5, %7, !dbg !183  ->  Public
   REG    %8 = load ptr, ptr %p.addr, align 4, !dbg !186  ->  Public
-  REG    %O_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %8, i32 0, i32 7, !dbg !187  ->  Secret
-  REG    %9 = load i32, ptr %O_bytes, align 4, !dbg !187  ->  Secret
+  REG    %O_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %8, i32 0, i32 7, !dbg !187  ->  Public
+  REG    %9 = load i32, ptr %O_bytes, align 4, !dbg !187  ->  Public
   REG    %10 = load ptr, ptr %p.addr, align 4, !dbg !190  ->  Public
-  REG    %pk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 20, !dbg !191  ->  Secret
-  REG    %11 = load i32, ptr %pk_seed_bytes, align 4, !dbg !191  ->  Secret
+  REG    %pk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 20, !dbg !191  ->  Public
+  REG    %11 = load i32, ptr %pk_seed_bytes, align 4, !dbg !191  ->  Public
   REG    %12 = load ptr, ptr %p.addr, align 4, !dbg !194  ->  Public
-  REG    %sk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %12, i32 0, i32 18, !dbg !195  ->  Secret
-  REG    %13 = load i32, ptr %sk_seed_bytes, align 4, !dbg !195  ->  Secret
-  REG    %14 = load ptr, ptr %csk.addr, align 4, !dbg !198  ->  Secret
-  REG    %arraydecay5 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !201  ->  Secret
-  REG    %arraydecay6 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !202  ->  Secret
-  REG    %15 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !203  ->  Secret
-  REG    %16 = load i32, ptr %param_O_bytes, align 4, !dbg !204  ->  Secret
-  REG    %add = add nsw i32 %15, %16, !dbg !205  ->  Secret
-  REG    %17 = load ptr, ptr %seed_sk, align 4, !dbg !206  ->  Secret
+  REG    %sk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %12, i32 0, i32 18, !dbg !195  ->  Public
+  REG    %13 = load i32, ptr %sk_seed_bytes, align 4, !dbg !195  ->  Public
+  REG    %14 = load ptr, ptr %csk.addr, align 4, !dbg !198  ->  Public
+  REG    %arraydecay5 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !201  ->  Public
+  REG    %arraydecay6 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !202  ->  Public
+  REG    %15 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !203  ->  Public
+  REG    %16 = load i32, ptr %param_O_bytes, align 4, !dbg !204  ->  Public
+  REG    %add = add nsw i32 %15, %16, !dbg !205  ->  Public
+  REG    %17 = load ptr, ptr %seed_sk, align 4, !dbg !206  ->  Public
   REG    %18 = load i32, ptr %param_sk_seed_bytes, align 4, !dbg !207  ->  Secret
   REG    %call = call i32 @shake256(ptr noundef %arraydecay6, i32 noundef %add, ptr noundef %17, i32 noundef %18) #5, !dbg !208  ->  Secret
-  REG    %arraydecay7 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !209  ->  Secret
-  REG    %19 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !210  ->  Secret
-  REG    %add.ptr = getelementptr inbounds i8, ptr %arraydecay7, i32 %19, !dbg !211  ->  Secret
-  REG    %20 = load ptr, ptr %O, align 4, !dbg !212  ->  Secret
-  REG    %21 = load i32, ptr %param_v, align 4, !dbg !213  ->  Secret
-  REG    %22 = load i32, ptr %param_o, align 4, !dbg !214  ->  Secret
-  REG    %mul = mul nsw i32 %21, %22, !dbg !215  ->  Secret
+  REG    %arraydecay7 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !209  ->  Public
+  REG    %19 = load i32, ptr %param_pk_seed_bytes, align 4, !dbg !210  ->  Public
+  REG    %add.ptr = getelementptr inbounds i8, ptr %arraydecay7, i32 %19, !dbg !211  ->  Public
+  REG    %20 = load ptr, ptr %O, align 4, !dbg !212  ->  Public
+  REG    %21 = load i32, ptr %param_v, align 4, !dbg !213  ->  Public
+  REG    %22 = load i32, ptr %param_o, align 4, !dbg !214  ->  Public
+  REG    %mul = mul nsw i32 %21, %22, !dbg !215  ->  Public
   REG    %23 = load ptr, ptr %p.addr, align 4, !dbg !217  ->  Public
-  REG    %24 = load ptr, ptr %P, align 4, !dbg !218  ->  Secret
-  REG    %25 = load ptr, ptr %seed_pk, align 4, !dbg !219  ->  Secret
-  REG    %26 = load ptr, ptr %P, align 4, !dbg !223  ->  Secret
+  REG    %24 = load ptr, ptr %P, align 4, !dbg !218  ->  Public
+  REG    %25 = load ptr, ptr %seed_pk, align 4, !dbg !219  ->  Public
+  REG    %26 = load ptr, ptr %P, align 4, !dbg !223  ->  Public
   REG    %27 = load ptr, ptr %p.addr, align 4, !dbg !224  ->  Public
-  REG    %n8 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %27, i32 0, i32 1, !dbg !225  ->  Secret
-  REG    %28 = load i32, ptr %n8, align 4, !dbg !225  ->  Secret
+  REG    %n8 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %27, i32 0, i32 1, !dbg !225  ->  Public
+  REG    %28 = load i32, ptr %n8, align 4, !dbg !225  ->  Public
   REG    %29 = load ptr, ptr %p.addr, align 4, !dbg !224  ->  Public
-  REG    %o9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %29, i32 0, i32 2, !dbg !225  ->  Secret
-  REG    %30 = load i32, ptr %o9, align 4, !dbg !225  ->  Secret
-  REG    %sub10 = sub nsw i32 %28, %30, !dbg !225  ->  Secret
+  REG    %o9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %29, i32 0, i32 2, !dbg !225  ->  Public
+  REG    %30 = load i32, ptr %o9, align 4, !dbg !225  ->  Public
+  REG    %sub10 = sub nsw i32 %28, %30, !dbg !225  ->  Public
   REG    %31 = load ptr, ptr %p.addr, align 4, !dbg !224  ->  Public
-  REG    %n11 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %31, i32 0, i32 1, !dbg !225  ->  Secret
-  REG    %32 = load i32, ptr %n11, align 4, !dbg !225  ->  Secret
+  REG    %n11 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %31, i32 0, i32 1, !dbg !225  ->  Public
+  REG    %32 = load i32, ptr %n11, align 4, !dbg !225  ->  Public
   REG    %33 = load ptr, ptr %p.addr, align 4, !dbg !224  ->  Public
-  REG    %o12 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %33, i32 0, i32 2, !dbg !225  ->  Secret
-  REG    %34 = load i32, ptr %o12, align 4, !dbg !225  ->  Secret
-  REG    %sub13 = sub nsw i32 %32, %34, !dbg !225  ->  Secret
-  REG    %add14 = add nsw i32 %sub13, 1, !dbg !225  ->  Secret
-  REG    %mul15 = mul nsw i32 %sub10, %add14, !dbg !225  ->  Secret
-  REG    %div = sdiv i32 %mul15, 2, !dbg !225  ->  Secret
+  REG    %o12 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %33, i32 0, i32 2, !dbg !225  ->  Public
+  REG    %34 = load i32, ptr %o12, align 4, !dbg !225  ->  Public
+  REG    %sub13 = sub nsw i32 %32, %34, !dbg !225  ->  Public
+  REG    %add14 = add nsw i32 %sub13, 1, !dbg !225  ->  Public
+  REG    %mul15 = mul nsw i32 %sub10, %add14, !dbg !225  ->  Public
+  REG    %div = sdiv i32 %mul15, 2, !dbg !225  ->  Public
   REG    %35 = load ptr, ptr %p.addr, align 4, !dbg !224  ->  Public
-  REG    %m_vec_limbs = getelementptr inbounds nuw %struct.mayo_params_t, ptr %35, i32 0, i32 21, !dbg !225  ->  Secret
-  REG    %36 = load i32, ptr %m_vec_limbs, align 4, !dbg !225  ->  Secret
-  REG    %mul16 = mul nsw i32 %div, %36, !dbg !225  ->  Secret
-  REG    %add.ptr17 = getelementptr inbounds i64, ptr %26, i32 %mul16, !dbg !226  ->  Secret
-  REG    %37 = load ptr, ptr %P, align 4, !dbg !229  ->  Secret
+  REG    %m_vec_limbs = getelementptr inbounds nuw %struct.mayo_params_t, ptr %35, i32 0, i32 21, !dbg !225  ->  Public
+  REG    %36 = load i32, ptr %m_vec_limbs, align 4, !dbg !225  ->  Public
+  REG    %mul16 = mul nsw i32 %div, %36, !dbg !225  ->  Public
+  REG    %add.ptr17 = getelementptr inbounds i64, ptr %26, i32 %mul16, !dbg !226  ->  Public
+  REG    %37 = load ptr, ptr %P, align 4, !dbg !229  ->  Public
   REG    %38 = load ptr, ptr %P2, align 4, !dbg !232  ->  Public
   REG    %39 = load ptr, ptr %p.addr, align 4, !dbg !233  ->  Public
   REG    %40 = load ptr, ptr %P1, align 4, !dbg !234  ->  Public
-  REG    %41 = load ptr, ptr %O, align 4, !dbg !235  ->  Secret
-  REG    %42 = load ptr, ptr %L, align 4, !dbg !236  ->  Secret
+  REG    %41 = load ptr, ptr %O, align 4, !dbg !235  ->  Public
+  REG    %42 = load ptr, ptr %L, align 4, !dbg !236  ->  Public
   REG    call void @P1P1t_times_O(ptr noundef %39, ptr noundef %40, ptr noundef %41, ptr noundef %42) #5, !dbg !237  ->  Public
-  REG    %arraydecay18 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !238  ->  Secret
+  REG    %arraydecay18 = getelementptr inbounds [868 x i8], ptr %S, i32 0, i32 0, !dbg !238  ->  Public
   REG  i32 868  ->  Public
-  REG    call void @mayo_secure_clear(ptr noundef %arraydecay18, i32 noundef 868) #5, !dbg !239  ->  Secret
+  REG    call void @mayo_secure_clear(ptr noundef %arraydecay18, i32 noundef 868) #5, !dbg !239  ->  Public
   REG    %43 = load i32, ptr %ret, align 4, !dbg !240  ->  Public
   MEM  ptr %p  ->  Public
   MEM  ptr %csk  ->  Public
   MEM  ptr %sk  ->  Public
   MEM    %p.addr = alloca ptr, align 4  ->  Public
-  MEM    %csk.addr = alloca ptr, align 4  ->  Secret
-  MEM    %sk.addr = alloca ptr, align 4  ->  Secret
+  MEM    %csk.addr = alloca ptr, align 4  ->  Public
+  MEM    %sk.addr = alloca ptr, align 4  ->  Public
   MEM    %ret = alloca i32, align 4  ->  Public
-  MEM    %S = alloca [868 x i8], align 1  ->  Secret
-  MEM    %P = alloca ptr, align 4  ->  Secret
-  MEM    %O = alloca ptr, align 4  ->  Secret
-  MEM    %param_o = alloca i32, align 4  ->  Secret
-  MEM    %param_v = alloca i32, align 4  ->  Secret
-  MEM    %param_O_bytes = alloca i32, align 4  ->  Secret
-  MEM    %param_pk_seed_bytes = alloca i32, align 4  ->  Secret
+  MEM    %S = alloca [868 x i8], align 1  ->  Public
+  MEM    %P = alloca ptr, align 4  ->  Public
+  MEM    %O = alloca ptr, align 4  ->  Public
+  MEM    %param_o = alloca i32, align 4  ->  Public
+  MEM    %param_v = alloca i32, align 4  ->  Public
+  MEM    %param_O_bytes = alloca i32, align 4  ->  Public
+  MEM    %param_pk_seed_bytes = alloca i32, align 4  ->  Public
   MEM    %param_sk_seed_bytes = alloca i32, align 4  ->  Secret
-  MEM    %seed_sk = alloca ptr, align 4  ->  Secret
-  MEM    %seed_pk = alloca ptr, align 4  ->  Secret
+  MEM    %seed_sk = alloca ptr, align 4  ->  Public
+  MEM    %seed_pk = alloca ptr, align 4  ->  Public
   MEM    %P2 = alloca ptr, align 4  ->  Public
   MEM    %P1 = alloca ptr, align 4  ->  Public
-  MEM    %L = alloca ptr, align 4  ->  Secret
+  MEM    %L = alloca ptr, align 4  ->  Public
 
-P1P1t_times_O  [Secret] 
+P1P1t_times_O  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  ptr %p  ->  Public
   REG  ptr %P1  ->  Public
-  REG  ptr %O  ->  Secret
-  REG  ptr %acc  ->  Secret
+  REG  ptr %O  ->  Public
+  REG  ptr %acc  ->  Public
   REG    %p.addr = alloca ptr, align 4  ->  Public
   REG    %P1.addr = alloca ptr, align 4  ->  Public
   REG    %O.addr = alloca ptr, align 4  ->  Public
@@ -1224,15 +1215,15 @@ P1P1t_times_O  [Secret]
   REG    %21 = load i32, ptr %bs_mat_entries_used, align 4, !dbg !206  ->  Public
   REG    %mul = mul nsw i32 %20, %21, !dbg !207  ->  Public
   REG    %add.ptr = getelementptr inbounds i64, ptr %19, i32 %mul, !dbg !208  ->  Public
-  REG    %22 = load ptr, ptr %O.addr, align 4, !dbg !209  ->  Secret
+  REG    %22 = load ptr, ptr %O.addr, align 4, !dbg !209  ->  Public
   REG    %23 = load i32, ptr %c, align 4, !dbg !210  ->  Public
   REG    %24 = load i32, ptr %param_o, align 4, !dbg !211  ->  Public
   REG    %mul10 = mul nsw i32 %23, %24, !dbg !212  ->  Public
   REG    %25 = load i32, ptr %k, align 4, !dbg !213  ->  Public
   REG    %add11 = add nsw i32 %mul10, %25, !dbg !214  ->  Public
-  REG    %arrayidx = getelementptr inbounds i8, ptr %22, i32 %add11, !dbg !209  ->  Secret
-  REG    %26 = load i8, ptr %arrayidx, align 1, !dbg !209  ->  Secret
-  REG    %27 = load ptr, ptr %acc.addr, align 4, !dbg !215  ->  Secret
+  REG    %arrayidx = getelementptr inbounds i8, ptr %22, i32 %add11, !dbg !209  ->  Public
+  REG    %26 = load i8, ptr %arrayidx, align 1, !dbg !209  ->  Public
+  REG    %27 = load ptr, ptr %acc.addr, align 4, !dbg !215  ->  Public
   REG    %28 = load i32, ptr %m_vec_limbs, align 4, !dbg !216  ->  Public
   REG    %29 = load i32, ptr %r, align 4, !dbg !217  ->  Public
   REG    %30 = load i32, ptr %param_o, align 4, !dbg !218  ->  Public
@@ -1240,7 +1231,7 @@ P1P1t_times_O  [Secret]
   REG    %31 = load i32, ptr %k, align 4, !dbg !220  ->  Public
   REG    %add13 = add nsw i32 %mul12, %31, !dbg !221  ->  Public
   REG    %mul14 = mul nsw i32 %28, %add13, !dbg !222  ->  Public
-  REG    %add.ptr15 = getelementptr inbounds i64, ptr %27, i32 %mul14, !dbg !223  ->  Secret
+  REG    %add.ptr15 = getelementptr inbounds i64, ptr %27, i32 %mul14, !dbg !223  ->  Public
   REG    call void @m_vec_mul_add(i32 noundef %18, ptr noundef %add.ptr, i8 noundef zeroext %26, ptr noundef %add.ptr15) #5, !dbg !224  ->  Public
   REG    %32 = load i32, ptr %m_vec_limbs, align 4, !dbg !225  ->  Public
   REG    %33 = load ptr, ptr %P1.addr, align 4, !dbg !226  ->  Public
@@ -1248,15 +1239,15 @@ P1P1t_times_O  [Secret]
   REG    %35 = load i32, ptr %bs_mat_entries_used, align 4, !dbg !228  ->  Public
   REG    %mul16 = mul nsw i32 %34, %35, !dbg !229  ->  Public
   REG    %add.ptr17 = getelementptr inbounds i64, ptr %33, i32 %mul16, !dbg !230  ->  Public
-  REG    %36 = load ptr, ptr %O.addr, align 4, !dbg !231  ->  Secret
+  REG    %36 = load ptr, ptr %O.addr, align 4, !dbg !231  ->  Public
   REG    %37 = load i32, ptr %r, align 4, !dbg !232  ->  Public
   REG    %38 = load i32, ptr %param_o, align 4, !dbg !233  ->  Public
   REG    %mul18 = mul nsw i32 %37, %38, !dbg !234  ->  Public
   REG    %39 = load i32, ptr %k, align 4, !dbg !235  ->  Public
   REG    %add19 = add nsw i32 %mul18, %39, !dbg !236  ->  Public
-  REG    %arrayidx20 = getelementptr inbounds i8, ptr %36, i32 %add19, !dbg !231  ->  Secret
-  REG    %40 = load i8, ptr %arrayidx20, align 1, !dbg !231  ->  Secret
-  REG    %41 = load ptr, ptr %acc.addr, align 4, !dbg !237  ->  Secret
+  REG    %arrayidx20 = getelementptr inbounds i8, ptr %36, i32 %add19, !dbg !231  ->  Public
+  REG    %40 = load i8, ptr %arrayidx20, align 1, !dbg !231  ->  Public
+  REG    %41 = load ptr, ptr %acc.addr, align 4, !dbg !237  ->  Public
   REG    %42 = load i32, ptr %m_vec_limbs, align 4, !dbg !238  ->  Public
   REG    %43 = load i32, ptr %c, align 4, !dbg !239  ->  Public
   REG    %44 = load i32, ptr %param_o, align 4, !dbg !240  ->  Public
@@ -1264,7 +1255,7 @@ P1P1t_times_O  [Secret]
   REG    %45 = load i32, ptr %k, align 4, !dbg !242  ->  Public
   REG    %add22 = add nsw i32 %mul21, %45, !dbg !243  ->  Public
   REG    %mul23 = mul nsw i32 %42, %add22, !dbg !244  ->  Public
-  REG    %add.ptr24 = getelementptr inbounds i64, ptr %41, i32 %mul23, !dbg !245  ->  Secret
+  REG    %add.ptr24 = getelementptr inbounds i64, ptr %41, i32 %mul23, !dbg !245  ->  Public
   REG    call void @m_vec_mul_add(i32 noundef %32, ptr noundef %add.ptr17, i8 noundef zeroext %40, ptr noundef %add.ptr24) #5, !dbg !246  ->  Public
   REG    %46 = load i32, ptr %k, align 4, !dbg !248  ->  Public
   REG    %add25 = add nsw i32 %46, 1, !dbg !248  ->  Public
@@ -1280,8 +1271,8 @@ P1P1t_times_O  [Secret]
   MEM  ptr %acc  ->  Public
   MEM    %p.addr = alloca ptr, align 4  ->  Public
   MEM    %P1.addr = alloca ptr, align 4  ->  Public
-  MEM    %O.addr = alloca ptr, align 4  ->  Secret
-  MEM    %acc.addr = alloca ptr, align 4  ->  Secret
+  MEM    %O.addr = alloca ptr, align 4  ->  Public
+  MEM    %acc.addr = alloca ptr, align 4  ->  Public
   MEM    %param_o = alloca i32, align 4  ->  Public
   MEM    %param_v = alloca i32, align 4  ->  Public
   MEM    %m_vec_limbs = alloca i32, align 4  ->  Public
@@ -1303,32 +1294,32 @@ mayo_sign_signature  [Secret]
   REG    %call97 = call i32 @sample_solution(ptr noundef %99, ptr noundef %arraydecay93, ptr noundef %arraydecay94, ptr noundef %arraydecay95, ptr noundef %arraydecay96, i32 noundef %100, i32 noundef %101, i32 noundef %102, i32 noundef %103) #5, !dbg !480  ->  Public
   REG    %call36 = call ptr @memcpy(ptr noundef %add.ptr34, ptr noundef %arraydecay35, i32 noundef %59) #5, !dbg !343  ->  Public
   REG    %arraydecay8 = getelementptr inbounds [113103 x i64], ptr %p7, i32 0, i32 0, !dbg !299  ->  Secret
-  REG    %37 = load ptr, ptr %P1, align 4, !dbg !302  ->  Public
+  REG    %37 = load ptr, ptr %P1, align 4, !dbg !302  ->  Secret
   REG    %38 = load ptr, ptr %p.addr, align 4, !dbg !303  ->  Public
-  REG    %n9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %38, i32 0, i32 1, !dbg !304  ->  Secret
-  REG    %39 = load i32, ptr %n9, align 4, !dbg !304  ->  Secret
+  REG    %n9 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %38, i32 0, i32 1, !dbg !304  ->  Public
+  REG    %39 = load i32, ptr %n9, align 4, !dbg !304  ->  Public
   REG    %40 = load ptr, ptr %p.addr, align 4, !dbg !303  ->  Public
-  REG    %o10 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %40, i32 0, i32 2, !dbg !304  ->  Secret
-  REG    %41 = load i32, ptr %o10, align 4, !dbg !304  ->  Secret
-  REG    %sub11 = sub nsw i32 %39, %41, !dbg !304  ->  Secret
+  REG    %o10 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %40, i32 0, i32 2, !dbg !304  ->  Public
+  REG    %41 = load i32, ptr %o10, align 4, !dbg !304  ->  Public
+  REG    %sub11 = sub nsw i32 %39, %41, !dbg !304  ->  Public
   REG    %42 = load ptr, ptr %p.addr, align 4, !dbg !303  ->  Public
-  REG    %n12 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %42, i32 0, i32 1, !dbg !304  ->  Secret
-  REG    %43 = load i32, ptr %n12, align 4, !dbg !304  ->  Secret
+  REG    %n12 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %42, i32 0, i32 1, !dbg !304  ->  Public
+  REG    %43 = load i32, ptr %n12, align 4, !dbg !304  ->  Public
   REG    %44 = load ptr, ptr %p.addr, align 4, !dbg !303  ->  Public
-  REG    %o13 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %44, i32 0, i32 2, !dbg !304  ->  Secret
-  REG    %45 = load i32, ptr %o13, align 4, !dbg !304  ->  Secret
-  REG    %sub14 = sub nsw i32 %43, %45, !dbg !304  ->  Secret
-  REG    %add15 = add nsw i32 %sub14, 1, !dbg !304  ->  Secret
-  REG    %mul16 = mul nsw i32 %sub11, %add15, !dbg !304  ->  Secret
-  REG    %div = sdiv i32 %mul16, 2, !dbg !304  ->  Secret
+  REG    %o13 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %44, i32 0, i32 2, !dbg !304  ->  Public
+  REG    %45 = load i32, ptr %o13, align 4, !dbg !304  ->  Public
+  REG    %sub14 = sub nsw i32 %43, %45, !dbg !304  ->  Public
+  REG    %add15 = add nsw i32 %sub14, 1, !dbg !304  ->  Public
+  REG    %mul16 = mul nsw i32 %sub11, %add15, !dbg !304  ->  Public
+  REG    %div = sdiv i32 %mul16, 2, !dbg !304  ->  Public
   REG    %46 = load ptr, ptr %p.addr, align 4, !dbg !303  ->  Public
-  REG    %m_vec_limbs = getelementptr inbounds nuw %struct.mayo_params_t, ptr %46, i32 0, i32 21, !dbg !304  ->  Secret
-  REG    %47 = load i32, ptr %m_vec_limbs, align 4, !dbg !304  ->  Secret
-  REG    %96 = load i32, ptr %param_v_bytes, align 4, !dbg !462  ->  Secret
-  REG    %mul89 = mul nsw i32 %95, %96, !dbg !463  ->  Secret
-  REG    %add.ptr90 = getelementptr inbounds i8, ptr %arraydecay88, i32 %mul89, !dbg !464  ->  Secret
+  REG    %m_vec_limbs = getelementptr inbounds nuw %struct.mayo_params_t, ptr %46, i32 0, i32 21, !dbg !304  ->  Public
+  REG    %47 = load i32, ptr %m_vec_limbs, align 4, !dbg !304  ->  Public
+  REG    %96 = load i32, ptr %param_v_bytes, align 4, !dbg !462  ->  Public
+  REG    %mul89 = mul nsw i32 %95, %96, !dbg !463  ->  Public
+  REG    %add.ptr90 = getelementptr inbounds i8, ptr %arraydecay88, i32 %mul89, !dbg !464  ->  EphSecret
   REG    %arraydecay91 = getelementptr inbounds [205 x i8], ptr %r, i32 0, i32 0, !dbg !465  ->  Public
-  REG    %mul17 = mul nsw i32 %div, %47, !dbg !304  ->  Secret
+  REG    %mul17 = mul nsw i32 %div, %47, !dbg !304  ->  Public
   REG    %add.ptr = getelementptr inbounds i64, ptr %37, i32 %mul17, !dbg !305  ->  Secret
   REG  i32 14688  ->  Public
   REG    call void @llvm.memset.p0.i32(ptr align 8 %Mtmp, i8 0, i32 14688, i1 false), !dbg !310  ->  Public
@@ -1338,7 +1329,7 @@ mayo_sign_signature  [Secret]
   REG  ptr %siglen  ->  Public
   REG  ptr %m  ->  Public
   REG  i32 %mlen  ->  Public
-  REG  ptr %csk  ->  Secret
+  REG  ptr %csk  ->  Public
   REG    %call = call i32 @mayo_expand_sk(ptr noundef %30, ptr noundef %31, ptr noundef %sk) #5, !dbg !282  ->  Public
   REG    %p.addr = alloca ptr, align 4  ->  Public
   REG    %sig.addr = alloca ptr, align 4  ->  Public
@@ -1382,160 +1373,160 @@ mayo_sign_signature  [Secret]
   REG    %ctr = alloca i32, align 4  ->  Public
   REG    %i = alloca i32, align 4  ->  Public
   REG    %i75 = alloca i32, align 4  ->  Public
-  REG    %51 = load i32, ptr %param_salt_bytes, align 4, !dbg !324  ->  Secret
-  REG    %add.ptr26 = getelementptr inbounds i8, ptr %add.ptr25, i32 %51, !dbg !325  ->  Secret
-  REG    %52 = load ptr, ptr %seed_sk, align 4, !dbg !326  ->  Secret
+  REG    %51 = load i32, ptr %param_salt_bytes, align 4, !dbg !324  ->  Public
+  REG    %add.ptr26 = getelementptr inbounds i8, ptr %add.ptr25, i32 %51, !dbg !325  ->  Public
+  REG    %52 = load ptr, ptr %seed_sk, align 4, !dbg !326  ->  Public
   REG    %i107 = alloca i32, align 4  ->  Public
   REG  i32 29520  ->  Public
   REG  i32 205  ->  Public
   REG    call void @llvm.memset.p0.i32(ptr align 1 %A, i8 0, i32 29520, i1 false), !dbg !186  ->  Public
   REG    call void @llvm.memset.p0.i32(ptr align 1 %r, i8 0, i32 205, i1 false), !dbg !196  ->  Public
   REG    %0 = load ptr, ptr %p.addr, align 4, !dbg !230  ->  Public
-  REG    %m1 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %0, i32 0, i32 0, !dbg !231  ->  Secret
-  REG    %1 = load i32, ptr %m1, align 4, !dbg !231  ->  Secret
+  REG    %m1 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %0, i32 0, i32 0, !dbg !231  ->  Public
+  REG    %1 = load i32, ptr %m1, align 4, !dbg !231  ->  Public
   REG    %2 = load ptr, ptr %p.addr, align 4, !dbg !234  ->  Public
-  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %2, i32 0, i32 1, !dbg !235  ->  Secret
-  REG    %3 = load i32, ptr %n, align 4, !dbg !235  ->  Secret
+  REG    %n = getelementptr inbounds nuw %struct.mayo_params_t, ptr %2, i32 0, i32 1, !dbg !235  ->  Public
+  REG    %3 = load i32, ptr %n, align 4, !dbg !235  ->  Public
   REG    %4 = load ptr, ptr %p.addr, align 4, !dbg !238  ->  Public
-  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %4, i32 0, i32 2, !dbg !239  ->  Secret
-  REG    %5 = load i32, ptr %o, align 4, !dbg !239  ->  Secret
+  REG    %o = getelementptr inbounds nuw %struct.mayo_params_t, ptr %4, i32 0, i32 2, !dbg !239  ->  Public
+  REG    %5 = load i32, ptr %o, align 4, !dbg !239  ->  Public
   REG    %6 = load ptr, ptr %p.addr, align 4, !dbg !242  ->  Public
-  REG    %k = getelementptr inbounds nuw %struct.mayo_params_t, ptr %6, i32 0, i32 3, !dbg !243  ->  Secret
-  REG    %7 = load i32, ptr %k, align 4, !dbg !243  ->  Secret
+  REG    %k = getelementptr inbounds nuw %struct.mayo_params_t, ptr %6, i32 0, i32 3, !dbg !243  ->  Public
+  REG    %7 = load i32, ptr %k, align 4, !dbg !243  ->  Public
   REG    %8 = load ptr, ptr %p.addr, align 4, !dbg !246  ->  Public
-  REG    %n2 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %8, i32 0, i32 1, !dbg !247  ->  Secret
-  REG    %9 = load i32, ptr %n2, align 4, !dbg !247  ->  Secret
+  REG    %n2 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %8, i32 0, i32 1, !dbg !247  ->  Public
+  REG    %9 = load i32, ptr %n2, align 4, !dbg !247  ->  Public
   REG    %10 = load ptr, ptr %p.addr, align 4, !dbg !246  ->  Public
-  REG    %o3 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 2, !dbg !247  ->  Secret
-  REG    %11 = load i32, ptr %o3, align 4, !dbg !247  ->  Secret
-  REG    %sub = sub nsw i32 %9, %11, !dbg !247  ->  Secret
+  REG    %o3 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %10, i32 0, i32 2, !dbg !247  ->  Public
+  REG    %11 = load i32, ptr %o3, align 4, !dbg !247  ->  Public
+  REG    %sub = sub nsw i32 %9, %11, !dbg !247  ->  Public
   REG    %12 = load ptr, ptr %p.addr, align 4, !dbg !250  ->  Public
-  REG    %m_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %12, i32 0, i32 6, !dbg !251  ->  Secret
-  REG    %13 = load i32, ptr %m_bytes, align 4, !dbg !251  ->  Secret
+  REG    %m_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %12, i32 0, i32 6, !dbg !251  ->  Public
+  REG    %13 = load i32, ptr %m_bytes, align 4, !dbg !251  ->  Public
   REG    %14 = load ptr, ptr %p.addr, align 4, !dbg !254  ->  Public
-  REG    %v_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %14, i32 0, i32 8, !dbg !255  ->  Secret
-  REG    %15 = load i32, ptr %v_bytes, align 4, !dbg !255  ->  Secret
+  REG    %v_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %14, i32 0, i32 8, !dbg !255  ->  Public
+  REG    %15 = load i32, ptr %v_bytes, align 4, !dbg !255  ->  Public
   REG    %16 = load ptr, ptr %p.addr, align 4, !dbg !258  ->  Public
-  REG    %r_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %16, i32 0, i32 9, !dbg !259  ->  Secret
-  REG    %17 = load i32, ptr %r_bytes, align 4, !dbg !259  ->  Secret
+  REG    %r_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %16, i32 0, i32 9, !dbg !259  ->  Public
+  REG    %17 = load i32, ptr %r_bytes, align 4, !dbg !259  ->  Public
   REG    %18 = load ptr, ptr %p.addr, align 4, !dbg !262  ->  Public
-  REG    %sig_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %18, i32 0, i32 16, !dbg !263  ->  Secret
-  REG    %19 = load i32, ptr %sig_bytes, align 4, !dbg !263  ->  Secret
+  REG    %sig_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %18, i32 0, i32 16, !dbg !263  ->  Public
+  REG    %19 = load i32, ptr %sig_bytes, align 4, !dbg !263  ->  Public
   REG    %20 = load ptr, ptr %p.addr, align 4, !dbg !266  ->  Public
-  REG    %k4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %20, i32 0, i32 3, !dbg !267  ->  Secret
-  REG    %21 = load i32, ptr %k4, align 4, !dbg !267  ->  Secret
+  REG    %k4 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %20, i32 0, i32 3, !dbg !267  ->  Public
+  REG    %21 = load i32, ptr %k4, align 4, !dbg !267  ->  Public
   REG    %22 = load ptr, ptr %p.addr, align 4, !dbg !266  ->  Public
-  REG    %o5 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %22, i32 0, i32 2, !dbg !267  ->  Secret
-  REG    %23 = load i32, ptr %o5, align 4, !dbg !267  ->  Secret
-  REG    %mul = mul nsw i32 %21, %23, !dbg !267  ->  Secret
-  REG    %add = add nsw i32 %mul, 1, !dbg !267  ->  Secret
+  REG    %o5 = getelementptr inbounds nuw %struct.mayo_params_t, ptr %22, i32 0, i32 2, !dbg !267  ->  Public
+  REG    %23 = load i32, ptr %o5, align 4, !dbg !267  ->  Public
+  REG    %mul = mul nsw i32 %21, %23, !dbg !267  ->  Public
+  REG    %add = add nsw i32 %mul, 1, !dbg !267  ->  Public
   REG    %24 = load ptr, ptr %p.addr, align 4, !dbg !270  ->  Public
-  REG    %digest_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %24, i32 0, i32 19, !dbg !271  ->  Secret
-  REG    %25 = load i32, ptr %digest_bytes, align 4, !dbg !271  ->  Secret
+  REG    %digest_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %24, i32 0, i32 19, !dbg !271  ->  Public
+  REG    %25 = load i32, ptr %digest_bytes, align 4, !dbg !271  ->  Public
   REG    %26 = load ptr, ptr %p.addr, align 4, !dbg !274  ->  Public
-  REG    %sk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %26, i32 0, i32 18, !dbg !275  ->  Secret
-  REG    %27 = load i32, ptr %sk_seed_bytes, align 4, !dbg !275  ->  Secret
+  REG    %sk_seed_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %26, i32 0, i32 18, !dbg !275  ->  Public
+  REG    %27 = load i32, ptr %sk_seed_bytes, align 4, !dbg !275  ->  Public
   REG    %28 = load ptr, ptr %p.addr, align 4, !dbg !278  ->  Public
-  REG    %salt_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %28, i32 0, i32 17, !dbg !279  ->  Secret
-  REG    %29 = load i32, ptr %salt_bytes, align 4, !dbg !279  ->  Secret
+  REG    %salt_bytes = getelementptr inbounds nuw %struct.mayo_params_t, ptr %28, i32 0, i32 17, !dbg !279  ->  Public
+  REG    %29 = load i32, ptr %salt_bytes, align 4, !dbg !279  ->  Public
   REG    %30 = load ptr, ptr %p.addr, align 4, !dbg !280  ->  Public
-  REG    %31 = load ptr, ptr %csk.addr, align 4, !dbg !281  ->  Secret
+  REG    %31 = load ptr, ptr %csk.addr, align 4, !dbg !281  ->  Public
   REG    %32 = load i32, ptr %ret, align 4, !dbg !284  ->  Public
   REG    %cmp = icmp ne i32 %32, 0, !dbg !286  ->  Public
-  REG    %33 = load ptr, ptr %csk.addr, align 4, !dbg !289  ->  Secret
-  REG    %arraydecay = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !291  ->  Secret
-  REG    %34 = load i32, ptr %param_digest_bytes, align 4, !dbg !292  ->  Secret
+  REG    %33 = load ptr, ptr %csk.addr, align 4, !dbg !289  ->  Public
+  REG    %arraydecay = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !291  ->  Public
+  REG    %34 = load i32, ptr %param_digest_bytes, align 4, !dbg !292  ->  Public
   REG    %35 = load ptr, ptr %m.addr, align 4, !dbg !293  ->  Public
   REG    %36 = load i32, ptr %mlen.addr, align 4, !dbg !294  ->  Public
-  REG    %call6 = call i32 @shake256(ptr noundef %arraydecay, i32 noundef %34, ptr noundef %35, i32 noundef %36) #5, !dbg !295  ->  Secret
+  REG    %call6 = call i32 @shake256(ptr noundef %arraydecay, i32 noundef %34, ptr noundef %35, i32 noundef %36) #5, !dbg !295  ->  Public
   REG    %p7 = getelementptr inbounds nuw %struct.sk_t, ptr %sk, i32 0, i32 0, !dbg !298  ->  Secret
-  REG    %arraydecay18 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !311  ->  Secret
-  REG    %48 = load i32, ptr %param_digest_bytes, align 4, !dbg !313  ->  Secret
-  REG    %add.ptr19 = getelementptr inbounds i8, ptr %arraydecay18, i32 %48, !dbg !314  ->  Secret
-  REG    %49 = load i32, ptr %param_salt_bytes, align 4, !dbg !315  ->  Secret
-  REG    %call20 = call i32 @randombytes(ptr noundef %add.ptr19, i32 noundef %49) #5, !dbg !316  ->  Secret
-  REG    %cmp21 = icmp ne i32 %call20, 0, !dbg !317  ->  Secret
-  REG    %arraydecay24 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !321  ->  Secret
-  REG    %50 = load i32, ptr %param_digest_bytes, align 4, !dbg !322  ->  Secret
-  REG    %add.ptr25 = getelementptr inbounds i8, ptr %arraydecay24, i32 %50, !dbg !323  ->  Secret
+  REG    %arraydecay18 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !311  ->  Public
+  REG    %48 = load i32, ptr %param_digest_bytes, align 4, !dbg !313  ->  Public
+  REG    %add.ptr19 = getelementptr inbounds i8, ptr %arraydecay18, i32 %48, !dbg !314  ->  Public
+  REG    %49 = load i32, ptr %param_salt_bytes, align 4, !dbg !315  ->  Public
+  REG    %call20 = call i32 @randombytes(ptr noundef %add.ptr19, i32 noundef %49) #5, !dbg !316  ->  Public
+  REG    %cmp21 = icmp ne i32 %call20, 0, !dbg !317  ->  Public
+  REG    %arraydecay24 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !321  ->  Public
+  REG    %50 = load i32, ptr %param_digest_bytes, align 4, !dbg !322  ->  Public
+  REG    %add.ptr25 = getelementptr inbounds i8, ptr %arraydecay24, i32 %50, !dbg !323  ->  Public
   REG    %O = getelementptr inbounds nuw %struct.sk_t, ptr %sk, i32 0, i32 1, !dbg !512  ->  Secret
   REG    %arraydecay117 = getelementptr inbounds [2414 x i8], ptr %O, i32 0, i32 0, !dbg !513  ->  Secret
   REG    %arraydecay118 = getelementptr inbounds [1848 x i8], ptr %x, i32 0, i32 0, !dbg !514  ->  Public
   REG    %110 = load i32, ptr %i107, align 4, !dbg !515  ->  Public
-  REG    %111 = load i32, ptr %param_o, align 4, !dbg !516  ->  Secret
+  REG    %111 = load i32, ptr %param_o, align 4, !dbg !516  ->  Public
   REG    %53 = load i32, ptr %param_sk_seed_bytes, align 4, !dbg !327  ->  Secret
-  REG    %arraydecay28 = getelementptr inbounds [40 x i8], ptr %salt, i32 0, i32 0, !dbg !329  ->  Secret
-  REG    %54 = load i32, ptr %param_salt_bytes, align 4, !dbg !330  ->  Secret
-  REG    %arraydecay29 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !331  ->  Secret
-  REG    %55 = load i32, ptr %param_digest_bytes, align 4, !dbg !332  ->  Secret
-  REG    %56 = load i32, ptr %param_salt_bytes, align 4, !dbg !333  ->  Secret
-  REG    %add30 = add nsw i32 %55, %56, !dbg !334  ->  Secret
+  REG    %arraydecay28 = getelementptr inbounds [40 x i8], ptr %salt, i32 0, i32 0, !dbg !329  ->  Public
+  REG    %54 = load i32, ptr %param_salt_bytes, align 4, !dbg !330  ->  Public
+  REG    %arraydecay29 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !331  ->  Public
+  REG    %55 = load i32, ptr %param_digest_bytes, align 4, !dbg !332  ->  Public
+  REG    %56 = load i32, ptr %param_salt_bytes, align 4, !dbg !333  ->  Public
+  REG    %add30 = add nsw i32 %55, %56, !dbg !334  ->  Public
   REG    %57 = load i32, ptr %param_sk_seed_bytes, align 4, !dbg !335  ->  Secret
   REG    %add31 = add nsw i32 %add30, %57, !dbg !336  ->  Secret
   REG    %call32 = call i32 @shake256(ptr noundef %arraydecay28, i32 noundef %54, ptr noundef %arraydecay29, i32 noundef %add31) #5, !dbg !337  ->  Secret
-  REG    %arraydecay33 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !338  ->  Secret
-  REG    %58 = load i32, ptr %param_digest_bytes, align 4, !dbg !339  ->  Secret
-  REG    %add.ptr34 = getelementptr inbounds i8, ptr %arraydecay33, i32 %58, !dbg !340  ->  Secret
-  REG    %arraydecay35 = getelementptr inbounds [40 x i8], ptr %salt, i32 0, i32 0, !dbg !341  ->  Secret
-  REG    %59 = load i32, ptr %param_salt_bytes, align 4, !dbg !342  ->  Secret
-  REG    %arraydecay37 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !344  ->  Secret
-  REG    %60 = load i32, ptr %param_digest_bytes, align 4, !dbg !345  ->  Secret
-  REG    %add.ptr38 = getelementptr inbounds i8, ptr %arraydecay37, i32 %60, !dbg !346  ->  Secret
-  REG    %61 = load i32, ptr %param_salt_bytes, align 4, !dbg !347  ->  Secret
-  REG    %add.ptr39 = getelementptr inbounds i8, ptr %add.ptr38, i32 %61, !dbg !348  ->  Secret
+  REG    %arraydecay33 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !338  ->  Public
+  REG    %58 = load i32, ptr %param_digest_bytes, align 4, !dbg !339  ->  Public
+  REG    %add.ptr34 = getelementptr inbounds i8, ptr %arraydecay33, i32 %58, !dbg !340  ->  Public
+  REG    %arraydecay35 = getelementptr inbounds [40 x i8], ptr %salt, i32 0, i32 0, !dbg !341  ->  Public
+  REG    %59 = load i32, ptr %param_salt_bytes, align 4, !dbg !342  ->  Public
+  REG    %arraydecay37 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !344  ->  Public
+  REG    %60 = load i32, ptr %param_digest_bytes, align 4, !dbg !345  ->  Public
+  REG    %add.ptr38 = getelementptr inbounds i8, ptr %arraydecay37, i32 %60, !dbg !346  ->  Public
+  REG    %61 = load i32, ptr %param_salt_bytes, align 4, !dbg !347  ->  Public
+  REG    %add.ptr39 = getelementptr inbounds i8, ptr %add.ptr38, i32 %61, !dbg !348  ->  Public
   REG    %62 = load i32, ptr %param_sk_seed_bytes, align 4, !dbg !349  ->  Secret
-  REG    %add.ptr40 = getelementptr inbounds i8, ptr %add.ptr39, i32 %62, !dbg !350  ->  Secret
-  REG    %arraydecay41 = getelementptr inbounds [71 x i8], ptr %tenc, i32 0, i32 0, !dbg !352  ->  Secret
-  REG    %63 = load i32, ptr %param_m_bytes, align 4, !dbg !353  ->  Secret
-  REG    %arraydecay42 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !354  ->  Secret
-  REG    %64 = load i32, ptr %param_digest_bytes, align 4, !dbg !355  ->  Secret
-  REG    %65 = load i32, ptr %param_salt_bytes, align 4, !dbg !356  ->  Secret
-  REG    %add43 = add nsw i32 %64, %65, !dbg !357  ->  Secret
-  REG    %call44 = call i32 @shake256(ptr noundef %arraydecay41, i32 noundef %63, ptr noundef %arraydecay42, i32 noundef %add43) #5, !dbg !358  ->  Secret
-  REG    %arraydecay45 = getelementptr inbounds [71 x i8], ptr %tenc, i32 0, i32 0, !dbg !359  ->  Secret
+  REG    %add.ptr40 = getelementptr inbounds i8, ptr %add.ptr39, i32 %62, !dbg !350  ->  Public
+  REG    %arraydecay41 = getelementptr inbounds [71 x i8], ptr %tenc, i32 0, i32 0, !dbg !352  ->  Public
+  REG    %63 = load i32, ptr %param_m_bytes, align 4, !dbg !353  ->  Public
+  REG    %arraydecay42 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !354  ->  Public
+  REG    %64 = load i32, ptr %param_digest_bytes, align 4, !dbg !355  ->  Public
+  REG    %65 = load i32, ptr %param_salt_bytes, align 4, !dbg !356  ->  Public
+  REG    %add43 = add nsw i32 %64, %65, !dbg !357  ->  Public
+  REG    %call44 = call i32 @shake256(ptr noundef %arraydecay41, i32 noundef %63, ptr noundef %arraydecay42, i32 noundef %add43) #5, !dbg !358  ->  Public
+  REG    %arraydecay45 = getelementptr inbounds [71 x i8], ptr %tenc, i32 0, i32 0, !dbg !359  ->  Public
   REG    %arraydecay46 = getelementptr inbounds [142 x i8], ptr %t, i32 0, i32 0, !dbg !360  ->  Public
-  REG    %66 = load i32, ptr %param_m, align 4, !dbg !361  ->  Secret
+  REG    %66 = load i32, ptr %param_m, align 4, !dbg !361  ->  Public
   REG    %67 = load i32, ptr %ctr, align 4, !dbg !367  ->  Public
   REG  i32 255  ->  Public
   REG    %cmp47 = icmp sle i32 %67, 255, !dbg !369  ->  Public
   REG    %68 = load i32, ptr %ctr, align 4, !dbg !371  ->  Public
   REG    %conv = trunc i32 %68 to i8, !dbg !373  ->  Public
-  REG    %69 = load ptr, ptr %ctrbyte, align 4, !dbg !374  ->  Secret
-  REG    %arraydecay48 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !376  ->  Secret
-  REG    %70 = load i32, ptr %param_k, align 4, !dbg !377  ->  Secret
-  REG    %71 = load i32, ptr %param_v_bytes, align 4, !dbg !378  ->  Secret
-  REG    %mul49 = mul nsw i32 %70, %71, !dbg !379  ->  Secret
-  REG    %72 = load i32, ptr %param_r_bytes, align 4, !dbg !380  ->  Secret
-  REG    %add50 = add nsw i32 %mul49, %72, !dbg !381  ->  Secret
-  REG    %arraydecay51 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !382  ->  Secret
-  REG    %73 = load i32, ptr %param_digest_bytes, align 4, !dbg !383  ->  Secret
-  REG    %74 = load i32, ptr %param_salt_bytes, align 4, !dbg !384  ->  Secret
-  REG    %add52 = add nsw i32 %73, %74, !dbg !385  ->  Secret
+  REG    %69 = load ptr, ptr %ctrbyte, align 4, !dbg !374  ->  Public
+  REG    %arraydecay48 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !376  ->  EphSecret
+  REG    %70 = load i32, ptr %param_k, align 4, !dbg !377  ->  Public
+  REG    %71 = load i32, ptr %param_v_bytes, align 4, !dbg !378  ->  Public
+  REG    %mul49 = mul nsw i32 %70, %71, !dbg !379  ->  Public
+  REG    %72 = load i32, ptr %param_r_bytes, align 4, !dbg !380  ->  Public
+  REG    %add50 = add nsw i32 %mul49, %72, !dbg !381  ->  Public
+  REG    %arraydecay51 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !382  ->  Public
+  REG    %73 = load i32, ptr %param_digest_bytes, align 4, !dbg !383  ->  Public
+  REG    %74 = load i32, ptr %param_salt_bytes, align 4, !dbg !384  ->  Public
+  REG    %add52 = add nsw i32 %73, %74, !dbg !385  ->  Public
   REG    %75 = load i32, ptr %param_sk_seed_bytes, align 4, !dbg !386  ->  Secret
   REG    %add53 = add nsw i32 %add52, %75, !dbg !387  ->  Secret
   REG    %add54 = add nsw i32 %add53, 1, !dbg !388  ->  Secret
   REG    %call55 = call i32 @shake256(ptr noundef %arraydecay48, i32 noundef %add50, ptr noundef %arraydecay51, i32 noundef %add54) #5, !dbg !389  ->  Secret
   REG    %76 = load i32, ptr %i, align 4, !dbg !394  ->  Public
-  REG    %77 = load i32, ptr %param_k, align 4, !dbg !396  ->  Secret
-  REG    %sub57 = sub nsw i32 %77, 1, !dbg !397  ->  Secret
-  REG    %cmp58 = icmp sle i32 %76, %sub57, !dbg !398  ->  Secret
-  REG    %arraydecay61 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !400  ->  Secret
+  REG    %77 = load i32, ptr %param_k, align 4, !dbg !396  ->  Public
+  REG    %sub57 = sub nsw i32 %77, 1, !dbg !397  ->  Public
+  REG    %cmp58 = icmp sle i32 %76, %sub57, !dbg !398  ->  Public
+  REG    %arraydecay61 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !400  ->  EphSecret
   REG    %78 = load i32, ptr %i, align 4, !dbg !402  ->  Public
-  REG    %79 = load i32, ptr %param_v_bytes, align 4, !dbg !403  ->  Secret
-  REG    %mul62 = mul nsw i32 %78, %79, !dbg !404  ->  Secret
-  REG    %add.ptr63 = getelementptr inbounds i8, ptr %arraydecay61, i32 %mul62, !dbg !405  ->  Secret
+  REG    %79 = load i32, ptr %param_v_bytes, align 4, !dbg !403  ->  Public
+  REG    %mul62 = mul nsw i32 %78, %79, !dbg !404  ->  Public
+  REG    %add.ptr63 = getelementptr inbounds i8, ptr %arraydecay61, i32 %mul62, !dbg !405  ->  EphSecret
   REG    %arraydecay64 = getelementptr inbounds [1704 x i8], ptr %Vdec, i32 0, i32 0, !dbg !406  ->  EphSecret
   REG    %80 = load i32, ptr %i, align 4, !dbg !407  ->  Public
-  REG    %81 = load i32, ptr %param_v, align 4, !dbg !408  ->  Secret
-  REG    %mul65 = mul nsw i32 %80, %81, !dbg !409  ->  Secret
+  REG    %81 = load i32, ptr %param_v, align 4, !dbg !408  ->  Public
+  REG    %mul65 = mul nsw i32 %80, %81, !dbg !409  ->  Public
   REG    %add.ptr66 = getelementptr inbounds i8, ptr %arraydecay64, i32 %mul65, !dbg !410  ->  EphSecret
-  REG    %82 = load i32, ptr %param_v, align 4, !dbg !411  ->  Secret
+  REG    %82 = load i32, ptr %param_v, align 4, !dbg !411  ->  Public
   REG    %83 = load i32, ptr %i, align 4, !dbg !414  ->  Public
   REG    %inc = add nsw i32 %83, 1, !dbg !414  ->  Public
   REG    %84 = load ptr, ptr %p.addr, align 4, !dbg !419  ->  Public
   REG    %arraydecay67 = getelementptr inbounds [1704 x i8], ptr %Vdec, i32 0, i32 0, !dbg !420  ->  EphSecret
   REG    %85 = load ptr, ptr %L, align 4, !dbg !421  ->  Secret
-  REG    %86 = load ptr, ptr %P1, align 4, !dbg !422  ->  Public
+  REG    %86 = load ptr, ptr %P1, align 4, !dbg !422  ->  Secret
   REG    %arraydecay68 = getelementptr inbounds [1836 x i64], ptr %Mtmp, i32 0, i32 0, !dbg !423  ->  Public
   REG    %arraydecay69 = getelementptr inbounds [29520 x i8], ptr %A, i32 0, i32 0, !dbg !424  ->  Public
   REG    call void @compute_M_and_VPV(ptr noundef %84, ptr noundef %arraydecay67, ptr noundef %85, ptr noundef %86, ptr noundef %arraydecay68, ptr noundef %arraydecay69) #5, !dbg !425  ->  Public
@@ -1548,34 +1539,34 @@ mayo_sign_signature  [Secret]
   REG    %arraydecay73 = getelementptr inbounds [1836 x i64], ptr %Mtmp, i32 0, i32 0, !dbg !432  ->  Public
   REG    %arraydecay74 = getelementptr inbounds [29520 x i8], ptr %A, i32 0, i32 0, !dbg !433  ->  Public
   REG    %89 = load i32, ptr %i75, align 4, !dbg !439  ->  Public
-  REG    %90 = load i32, ptr %param_m, align 4, !dbg !441  ->  Secret
-  REG    %cmp77 = icmp slt i32 %89, %90, !dbg !442  ->  Secret
+  REG    %90 = load i32, ptr %param_m, align 4, !dbg !441  ->  Public
+  REG    %cmp77 = icmp slt i32 %89, %90, !dbg !442  ->  Public
   REG    %91 = load i32, ptr %i75, align 4, !dbg !444  ->  Public
   REG    %add80 = add nsw i32 1, %91, !dbg !446  ->  Public
-  REG    %92 = load i32, ptr %param_k, align 4, !dbg !447  ->  Secret
-  REG    %93 = load i32, ptr %param_o, align 4, !dbg !448  ->  Secret
-  REG    %mul81 = mul nsw i32 %92, %93, !dbg !449  ->  Secret
-  REG    %add82 = add nsw i32 %mul81, 1, !dbg !450  ->  Secret
-  REG    %mul83 = mul nsw i32 %add80, %add82, !dbg !451  ->  Secret
-  REG    %sub84 = sub nsw i32 %mul83, 1, !dbg !452  ->  Secret
+  REG    %92 = load i32, ptr %param_k, align 4, !dbg !447  ->  Public
+  REG    %93 = load i32, ptr %param_o, align 4, !dbg !448  ->  Public
+  REG    %mul81 = mul nsw i32 %92, %93, !dbg !449  ->  Public
+  REG    %add82 = add nsw i32 %mul81, 1, !dbg !450  ->  Public
+  REG    %mul83 = mul nsw i32 %add80, %add82, !dbg !451  ->  Public
+  REG    %sub84 = sub nsw i32 %mul83, 1, !dbg !452  ->  Public
   REG    %arrayidx = getelementptr inbounds [29520 x i8], ptr %A, i32 0, i32 %sub84, !dbg !453  ->  Public
   REG    %94 = load i32, ptr %i75, align 4, !dbg !456  ->  Public
   REG    %inc86 = add nsw i32 %94, 1, !dbg !456  ->  Public
-  REG    %arraydecay88 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !460  ->  Secret
-  REG    %95 = load i32, ptr %param_k, align 4, !dbg !461  ->  Secret
-  REG    %97 = load i32, ptr %param_k, align 4, !dbg !466  ->  Secret
-  REG    %98 = load i32, ptr %param_o, align 4, !dbg !467  ->  Secret
-  REG    %mul92 = mul nsw i32 %97, %98, !dbg !468  ->  Secret
+  REG    %arraydecay88 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !460  ->  EphSecret
+  REG    %95 = load i32, ptr %param_k, align 4, !dbg !461  ->  Public
+  REG    %97 = load i32, ptr %param_k, align 4, !dbg !466  ->  Public
+  REG    %98 = load i32, ptr %param_o, align 4, !dbg !467  ->  Public
+  REG    %mul92 = mul nsw i32 %97, %98, !dbg !468  ->  Public
   REG    call void @decode(ptr noundef %add.ptr90, ptr noundef %arraydecay91, i32 noundef %mul92) #5, !dbg !469  ->  Public
   REG    %99 = load ptr, ptr %p.addr, align 4, !dbg !470  ->  Public
   REG    %arraydecay93 = getelementptr inbounds [29520 x i8], ptr %A, i32 0, i32 0, !dbg !472  ->  Public
   REG    %arraydecay94 = getelementptr inbounds [142 x i8], ptr %y, i32 0, i32 0, !dbg !473  ->  Public
   REG    %arraydecay95 = getelementptr inbounds [205 x i8], ptr %r, i32 0, i32 0, !dbg !474  ->  Public
   REG    %arraydecay96 = getelementptr inbounds [1848 x i8], ptr %x, i32 0, i32 0, !dbg !475  ->  Public
-  REG    %100 = load i32, ptr %param_k, align 4, !dbg !476  ->  Secret
-  REG    %101 = load i32, ptr %param_o, align 4, !dbg !477  ->  Secret
-  REG    %102 = load i32, ptr %param_m, align 4, !dbg !478  ->  Secret
-  REG    %103 = load i32, ptr %param_A_cols, align 4, !dbg !479  ->  Secret
+  REG    %100 = load i32, ptr %param_k, align 4, !dbg !476  ->  Public
+  REG    %101 = load i32, ptr %param_o, align 4, !dbg !477  ->  Public
+  REG    %102 = load i32, ptr %param_m, align 4, !dbg !478  ->  Public
+  REG    %103 = load i32, ptr %param_A_cols, align 4, !dbg !479  ->  Public
   REG    %inc105 = add nsw i32 %104, 1, !dbg !489  ->  Public
   REG    %tobool = icmp ne i32 %call97, 0, !dbg !480  ->  Public
   REG    %arraydecay99 = getelementptr inbounds [1836 x i64], ptr %Mtmp, i32 0, i32 0, !dbg !483  ->  Public
@@ -1584,90 +1575,90 @@ mayo_sign_signature  [Secret]
   REG    %call102 = call ptr @memset(ptr noundef %arraydecay101, i32 noundef 0, i32 noundef 29520) #5, !dbg !487  ->  Public
   REG    %104 = load i32, ptr %ctr, align 4, !dbg !489  ->  Public
   REG    %105 = load i32, ptr %i107, align 4, !dbg !497  ->  Public
-  REG    %106 = load i32, ptr %param_k, align 4, !dbg !499  ->  Secret
-  REG    %sub109 = sub nsw i32 %106, 1, !dbg !500  ->  Secret
-  REG    %cmp110 = icmp sle i32 %105, %sub109, !dbg !501  ->  Secret
+  REG    %106 = load i32, ptr %param_k, align 4, !dbg !499  ->  Public
+  REG    %sub109 = sub nsw i32 %106, 1, !dbg !500  ->  Public
+  REG    %cmp110 = icmp sle i32 %105, %sub109, !dbg !501  ->  Public
   REG    %arraydecay113 = getelementptr inbounds [1704 x i8], ptr %Vdec, i32 0, i32 0, !dbg !503  ->  EphSecret
   REG    %107 = load i32, ptr %i107, align 4, !dbg !505  ->  Public
-  REG    %108 = load i32, ptr %param_n, align 4, !dbg !506  ->  Secret
-  REG    %109 = load i32, ptr %param_o, align 4, !dbg !507  ->  Secret
-  REG    %sub114 = sub nsw i32 %108, %109, !dbg !508  ->  Secret
-  REG    %mul115 = mul nsw i32 %107, %sub114, !dbg !509  ->  Secret
+  REG    %108 = load i32, ptr %param_n, align 4, !dbg !506  ->  Public
+  REG    %109 = load i32, ptr %param_o, align 4, !dbg !507  ->  Public
+  REG    %sub114 = sub nsw i32 %108, %109, !dbg !508  ->  Public
+  REG    %mul115 = mul nsw i32 %107, %sub114, !dbg !509  ->  Public
   REG    %add.ptr116 = getelementptr inbounds i8, ptr %arraydecay113, i32 %mul115, !dbg !510  ->  EphSecret
-  REG    %mul119 = mul nsw i32 %110, %111, !dbg !517  ->  Secret
+  REG    %mul119 = mul nsw i32 %110, %111, !dbg !517  ->  Public
   REG    %add.ptr120 = getelementptr inbounds i8, ptr %arraydecay118, i32 %mul119, !dbg !518  ->  Public
   REG    %arraydecay121 = getelementptr inbounds [142 x i8], ptr %Ox, i32 0, i32 0, !dbg !519  ->  Secret
-  REG    %112 = load i32, ptr %param_o, align 4, !dbg !520  ->  Secret
-  REG    %113 = load i32, ptr %param_n, align 4, !dbg !521  ->  Secret
-  REG    %114 = load i32, ptr %param_o, align 4, !dbg !522  ->  Secret
-  REG    %sub122 = sub nsw i32 %113, %114, !dbg !523  ->  Secret
+  REG    %112 = load i32, ptr %param_o, align 4, !dbg !520  ->  Public
+  REG    %113 = load i32, ptr %param_n, align 4, !dbg !521  ->  Public
+  REG    %114 = load i32, ptr %param_o, align 4, !dbg !522  ->  Public
+  REG    %sub122 = sub nsw i32 %113, %114, !dbg !523  ->  Public
   REG    call void @mat_mul(ptr noundef %arraydecay117, ptr noundef %add.ptr120, ptr noundef %arraydecay121, i32 noundef %112, i32 noundef %sub122, i32 noundef 1) #5, !dbg !524  ->  Public
   REG    %115 = load ptr, ptr %vi, align 4, !dbg !525  ->  EphSecret
   REG    %arraydecay123 = getelementptr inbounds [142 x i8], ptr %Ox, i32 0, i32 0, !dbg !526  ->  Secret
   REG    %arraydecay124 = getelementptr inbounds [1848 x i8], ptr %s, i32 0, i32 0, !dbg !527  ->  Public
   REG    %116 = load i32, ptr %i107, align 4, !dbg !528  ->  Public
-  REG    %117 = load i32, ptr %param_n, align 4, !dbg !529  ->  Secret
-  REG    %mul125 = mul nsw i32 %116, %117, !dbg !530  ->  Secret
+  REG    %117 = load i32, ptr %param_n, align 4, !dbg !529  ->  Public
+  REG    %mul125 = mul nsw i32 %116, %117, !dbg !530  ->  Public
   REG    %add.ptr126 = getelementptr inbounds i8, ptr %arraydecay124, i32 %mul125, !dbg !531  ->  Public
-  REG    %118 = load i32, ptr %param_n, align 4, !dbg !532  ->  Secret
-  REG    %119 = load i32, ptr %param_o, align 4, !dbg !533  ->  Secret
-  REG    %sub127 = sub nsw i32 %118, %119, !dbg !534  ->  Secret
+  REG    %118 = load i32, ptr %param_n, align 4, !dbg !532  ->  Public
+  REG    %119 = load i32, ptr %param_o, align 4, !dbg !533  ->  Public
+  REG    %sub127 = sub nsw i32 %118, %119, !dbg !534  ->  Public
   REG    call void @mat_add(ptr noundef %115, ptr noundef %arraydecay123, ptr noundef %add.ptr126, i32 noundef %sub127, i32 noundef 1) #5, !dbg !535  ->  Public
   REG    %arraydecay128 = getelementptr inbounds [1848 x i8], ptr %s, i32 0, i32 0, !dbg !536  ->  Public
   REG    %120 = load i32, ptr %i107, align 4, !dbg !537  ->  Public
-  REG    %121 = load i32, ptr %param_n, align 4, !dbg !538  ->  Secret
-  REG    %mul129 = mul nsw i32 %120, %121, !dbg !539  ->  Secret
+  REG    %121 = load i32, ptr %param_n, align 4, !dbg !538  ->  Public
+  REG    %mul129 = mul nsw i32 %120, %121, !dbg !539  ->  Public
   REG    %add.ptr130 = getelementptr inbounds i8, ptr %arraydecay128, i32 %mul129, !dbg !540  ->  Public
-  REG    %122 = load i32, ptr %param_n, align 4, !dbg !541  ->  Secret
-  REG    %123 = load i32, ptr %param_o, align 4, !dbg !542  ->  Secret
-  REG    %sub131 = sub nsw i32 %122, %123, !dbg !543  ->  Secret
+  REG    %122 = load i32, ptr %param_n, align 4, !dbg !541  ->  Public
+  REG    %123 = load i32, ptr %param_o, align 4, !dbg !542  ->  Public
+  REG    %sub131 = sub nsw i32 %122, %123, !dbg !543  ->  Public
   REG    %add.ptr132 = getelementptr inbounds i8, ptr %add.ptr130, i32 %sub131, !dbg !544  ->  Public
   REG    %arraydecay133 = getelementptr inbounds [1848 x i8], ptr %x, i32 0, i32 0, !dbg !545  ->  Public
   REG    %124 = load i32, ptr %i107, align 4, !dbg !546  ->  Public
-  REG    %125 = load i32, ptr %param_o, align 4, !dbg !547  ->  Secret
-  REG    %mul134 = mul nsw i32 %124, %125, !dbg !548  ->  Secret
+  REG    %125 = load i32, ptr %param_o, align 4, !dbg !547  ->  Public
+  REG    %mul134 = mul nsw i32 %124, %125, !dbg !548  ->  Public
   REG    %add.ptr135 = getelementptr inbounds i8, ptr %arraydecay133, i32 %mul134, !dbg !549  ->  Public
-  REG    %126 = load i32, ptr %param_o, align 4, !dbg !550  ->  Secret
+  REG    %126 = load i32, ptr %param_o, align 4, !dbg !550  ->  Public
   REG    %call136 = call ptr @memcpy(ptr noundef %add.ptr132, ptr noundef %add.ptr135, i32 noundef %126) #5, !dbg !551  ->  Public
   REG    %127 = load i32, ptr %i107, align 4, !dbg !553  ->  Public
   REG    %inc138 = add nsw i32 %127, 1, !dbg !553  ->  Public
   REG    %arraydecay140 = getelementptr inbounds [1848 x i8], ptr %s, i32 0, i32 0, !dbg !557  ->  Public
   REG    %128 = load ptr, ptr %sig.addr, align 4, !dbg !558  ->  Public
-  REG    %129 = load i32, ptr %param_n, align 4, !dbg !559  ->  Secret
-  REG    %130 = load i32, ptr %param_k, align 4, !dbg !560  ->  Secret
-  REG    %mul141 = mul nsw i32 %129, %130, !dbg !561  ->  Secret
+  REG    %129 = load i32, ptr %param_n, align 4, !dbg !559  ->  Public
+  REG    %130 = load i32, ptr %param_k, align 4, !dbg !560  ->  Public
+  REG    %mul141 = mul nsw i32 %129, %130, !dbg !561  ->  Public
   REG    call void @encode(ptr noundef %arraydecay140, ptr noundef %128, i32 noundef %mul141) #5, !dbg !562  ->  Public
   REG    %131 = load ptr, ptr %sig.addr, align 4, !dbg !563  ->  Public
-  REG    %132 = load i32, ptr %param_sig_bytes, align 4, !dbg !564  ->  Secret
-  REG    %add.ptr142 = getelementptr inbounds i8, ptr %131, i32 %132, !dbg !565  ->  Secret
-  REG    %133 = load i32, ptr %param_salt_bytes, align 4, !dbg !566  ->  Secret
-  REG    %idx.neg = sub i32 0, %133, !dbg !567  ->  Secret
-  REG    %add.ptr143 = getelementptr inbounds i8, ptr %add.ptr142, i32 %idx.neg, !dbg !567  ->  Secret
-  REG    %arraydecay144 = getelementptr inbounds [40 x i8], ptr %salt, i32 0, i32 0, !dbg !568  ->  Secret
-  REG    %134 = load i32, ptr %param_salt_bytes, align 4, !dbg !569  ->  Secret
+  REG    %132 = load i32, ptr %param_sig_bytes, align 4, !dbg !564  ->  Public
+  REG    %add.ptr142 = getelementptr inbounds i8, ptr %131, i32 %132, !dbg !565  ->  Public
+  REG    %133 = load i32, ptr %param_salt_bytes, align 4, !dbg !566  ->  Public
+  REG    %idx.neg = sub i32 0, %133, !dbg !567  ->  Public
+  REG    %add.ptr143 = getelementptr inbounds i8, ptr %add.ptr142, i32 %idx.neg, !dbg !567  ->  Public
+  REG    %arraydecay144 = getelementptr inbounds [40 x i8], ptr %salt, i32 0, i32 0, !dbg !568  ->  Public
+  REG    %134 = load i32, ptr %param_salt_bytes, align 4, !dbg !569  ->  Public
   REG    %call145 = call ptr @memcpy(ptr noundef %add.ptr143, ptr noundef %arraydecay144, i32 noundef %134) #5, !dbg !570  ->  Public
-  REG    %135 = load i32, ptr %param_sig_bytes, align 4, !dbg !571  ->  Secret
+  REG    %135 = load i32, ptr %param_sig_bytes, align 4, !dbg !571  ->  Public
   REG    %136 = load ptr, ptr %siglen.addr, align 4, !dbg !572  ->  Public
-  REG    %arraydecay146 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !577  ->  Secret
+  REG    %arraydecay146 = getelementptr inbounds [924 x i8], ptr %V, i32 0, i32 0, !dbg !577  ->  EphSecret
   REG  i32 924  ->  Public
-  REG    call void @mayo_secure_clear(ptr noundef %arraydecay146, i32 noundef 924) #5, !dbg !578  ->  Secret
+  REG    call void @mayo_secure_clear(ptr noundef %arraydecay146, i32 noundef 924) #5, !dbg !578  ->  Public
   REG    %arraydecay147 = getelementptr inbounds [1704 x i8], ptr %Vdec, i32 0, i32 0, !dbg !579  ->  EphSecret
   REG  i32 1704  ->  Public
-  REG    call void @mayo_secure_clear(ptr noundef %arraydecay147, i32 noundef 1704) #5, !dbg !580  ->  EphSecret
+  REG    call void @mayo_secure_clear(ptr noundef %arraydecay147, i32 noundef 1704) #5, !dbg !580  ->  Public
   REG    %arraydecay148 = getelementptr inbounds [29520 x i8], ptr %A, i32 0, i32 0, !dbg !581  ->  Public
   REG    call void @mayo_secure_clear(ptr noundef %arraydecay148, i32 noundef 29520) #5, !dbg !582  ->  Public
   REG    %arraydecay149 = getelementptr inbounds [205 x i8], ptr %r, i32 0, i32 0, !dbg !583  ->  Public
   REG    call void @mayo_secure_clear(ptr noundef %arraydecay149, i32 noundef 205) #5, !dbg !584  ->  Public
   REG    %O150 = getelementptr inbounds nuw %struct.sk_t, ptr %sk, i32 0, i32 1, !dbg !585  ->  Secret
   REG    %arraydecay151 = getelementptr inbounds [2414 x i8], ptr %O150, i32 0, i32 0, !dbg !586  ->  Secret
-  REG    call void @mayo_secure_clear(ptr noundef %arraydecay151, i32 noundef 2414) #5, !dbg !587  ->  Secret
+  REG    call void @mayo_secure_clear(ptr noundef %arraydecay151, i32 noundef 2414) #5, !dbg !587  ->  Public
   REG    call void @mayo_secure_clear(ptr noundef %sk, i32 noundef 907240) #5, !dbg !588  ->  Public
   REG    %arraydecay152 = getelementptr inbounds [142 x i8], ptr %Ox, i32 0, i32 0, !dbg !589  ->  Secret
   REG  i32 142  ->  Public
-  REG    call void @mayo_secure_clear(ptr noundef %arraydecay152, i32 noundef 142) #5, !dbg !590  ->  Secret
-  REG    %arraydecay153 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !591  ->  Secret
+  REG    call void @mayo_secure_clear(ptr noundef %arraydecay152, i32 noundef 142) #5, !dbg !590  ->  Public
+  REG    %arraydecay153 = getelementptr inbounds [145 x i8], ptr %tmp, i32 0, i32 0, !dbg !591  ->  Public
   REG  i32 145  ->  Public
-  REG    call void @mayo_secure_clear(ptr noundef %arraydecay153, i32 noundef 145) #5, !dbg !592  ->  Secret
+  REG    call void @mayo_secure_clear(ptr noundef %arraydecay153, i32 noundef 145) #5, !dbg !592  ->  Public
   REG    %arraydecay154 = getelementptr inbounds [1836 x i64], ptr %Mtmp, i32 0, i32 0, !dbg !593  ->  Public
   REG    call void @mayo_secure_clear(ptr noundef %arraydecay154, i32 noundef 14688) #5, !dbg !594  ->  Public
   REG    %137 = load i32, ptr %ret, align 4, !dbg !595  ->  Public
@@ -1682,38 +1673,38 @@ mayo_sign_signature  [Secret]
   MEM    %siglen.addr = alloca ptr, align 4  ->  Public
   MEM    %m.addr = alloca ptr, align 4  ->  Public
   MEM    %mlen.addr = alloca i32, align 4  ->  Public
-  MEM    %csk.addr = alloca ptr, align 4  ->  Secret
+  MEM    %csk.addr = alloca ptr, align 4  ->  Public
   MEM    %sk = alloca %struct.sk_t, align 32  ->  Secret
   MEM    %Ox = alloca [142 x i8], align 1  ->  Secret
   MEM    %ret = alloca i32, align 4  ->  Public
-  MEM    %tenc = alloca [71 x i8], align 1  ->  Secret
+  MEM    %tenc = alloca [71 x i8], align 1  ->  Public
   MEM    %t = alloca [142 x i8], align 1  ->  Public
   MEM    %y = alloca [142 x i8], align 1  ->  Public
-  MEM    %salt = alloca [40 x i8], align 1  ->  Secret
-  MEM    %V = alloca [924 x i8], align 1  ->  Secret
+  MEM    %salt = alloca [40 x i8], align 1  ->  Public
+  MEM    %V = alloca [924 x i8], align 1  ->  EphSecret
   MEM    %Vdec = alloca [1704 x i8], align 1  ->  EphSecret
   MEM    %A = alloca [29520 x i8], align 1  ->  Public
   MEM    %x = alloca [1848 x i8], align 1  ->  Public
   MEM    %r = alloca [205 x i8], align 1  ->  Public
   MEM    %s = alloca [1848 x i8], align 1  ->  Public
-  MEM    %seed_sk = alloca ptr, align 4  ->  Secret
-  MEM    %tmp = alloca [145 x i8], align 1  ->  Secret
-  MEM    %ctrbyte = alloca ptr, align 4  ->  Secret
+  MEM    %seed_sk = alloca ptr, align 4  ->  Public
+  MEM    %tmp = alloca [145 x i8], align 1  ->  Public
+  MEM    %ctrbyte = alloca ptr, align 4  ->  Public
   MEM    %vi = alloca ptr, align 4  ->  EphSecret
-  MEM    %param_m = alloca i32, align 4  ->  Secret
-  MEM    %param_n = alloca i32, align 4  ->  Secret
-  MEM    %param_o = alloca i32, align 4  ->  Secret
-  MEM    %param_k = alloca i32, align 4  ->  Secret
-  MEM    %param_v = alloca i32, align 4  ->  Secret
-  MEM    %param_m_bytes = alloca i32, align 4  ->  Secret
-  MEM    %param_v_bytes = alloca i32, align 4  ->  Secret
-  MEM    %param_r_bytes = alloca i32, align 4  ->  Secret
-  MEM    %param_sig_bytes = alloca i32, align 4  ->  Secret
-  MEM    %param_A_cols = alloca i32, align 4  ->  Secret
-  MEM    %param_digest_bytes = alloca i32, align 4  ->  Secret
+  MEM    %param_m = alloca i32, align 4  ->  Public
+  MEM    %param_n = alloca i32, align 4  ->  Public
+  MEM    %param_o = alloca i32, align 4  ->  Public
+  MEM    %param_k = alloca i32, align 4  ->  Public
+  MEM    %param_v = alloca i32, align 4  ->  Public
+  MEM    %param_m_bytes = alloca i32, align 4  ->  Public
+  MEM    %param_v_bytes = alloca i32, align 4  ->  Public
+  MEM    %param_r_bytes = alloca i32, align 4  ->  Public
+  MEM    %param_sig_bytes = alloca i32, align 4  ->  Public
+  MEM    %param_A_cols = alloca i32, align 4  ->  Public
+  MEM    %param_digest_bytes = alloca i32, align 4  ->  Public
   MEM    %param_sk_seed_bytes = alloca i32, align 4  ->  Secret
-  MEM    %param_salt_bytes = alloca i32, align 4  ->  Secret
-  MEM    %P1 = alloca ptr, align 4  ->  Public
+  MEM    %param_salt_bytes = alloca i32, align 4  ->  Public
+  MEM    %P1 = alloca ptr, align 4  ->  Secret
   MEM    %L = alloca ptr, align 4  ->  Secret
   MEM    %Mtmp = alloca [1836 x i64], align 8  ->  Public
   MEM    %ctr = alloca i32, align 4  ->  Public
@@ -1730,7 +1721,7 @@ compute_M_and_VPV  [Secret]
   REG  ptr %p  ->  Public
   REG  ptr %Vdec  ->  EphSecret
   REG  ptr %L  ->  Secret
-  REG  ptr %P1  ->  Public
+  REG  ptr %P1  ->  Secret
   REG  ptr %VL  ->  Public
   REG  ptr %VP1V  ->  Public
   REG    %p.addr = alloca ptr, align 4  ->  Public
@@ -1764,7 +1755,7 @@ compute_M_and_VPV  [Secret]
   REG    call void @mul_add_mat_x_m_mat(i32 noundef %9, ptr noundef %10, ptr noundef %11, ptr noundef %12, i32 noundef %13, i32 noundef %14, i32 noundef %15) #5, !dbg !175  ->  Public
   REG    call void @llvm.memset.p0.i32(ptr align 8 %Pv, i8 0, i32 122688, i1 false), !dbg !180  ->  Public
   REG    %16 = load ptr, ptr %p.addr, align 4, !dbg !181  ->  Public
-  REG    %17 = load ptr, ptr %P1.addr, align 4, !dbg !182  ->  Public
+  REG    %17 = load ptr, ptr %P1.addr, align 4, !dbg !182  ->  Secret
   REG    %18 = load ptr, ptr %Vdec.addr, align 4, !dbg !183  ->  EphSecret
   REG    %arraydecay = getelementptr inbounds [15336 x i64], ptr %Pv, i32 0, i32 0, !dbg !184  ->  Public
   REG    call void @P1_times_Vt(ptr noundef %16, ptr noundef %17, ptr noundef %18, ptr noundef %arraydecay) #5, !dbg !185  ->  Public
@@ -1794,11 +1785,11 @@ compute_M_and_VPV  [Secret]
   MEM    %p.addr = alloca ptr, align 4  ->  Public
   MEM    %Vdec.addr = alloca ptr, align 4  ->  EphSecret
   MEM    %L.addr = alloca ptr, align 4  ->  Secret
-  MEM    %P1.addr = alloca ptr, align 4  ->  Public
+  MEM    %P1.addr = alloca ptr, align 4  ->  Secret
   MEM    %VL.addr = alloca ptr, align 4  ->  Public
   MEM    %VP1V.addr = alloca ptr, align 4  ->  Public
 
-compute_rhs  [Secret] 
+compute_rhs  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 4  ->  Public
@@ -2709,7 +2700,7 @@ mat_mul  [Secret]
   REG    %4 = load ptr, ptr %a.addr, align 4, !dbg !141  ->  Secret
   REG    %5 = load ptr, ptr %b.addr, align 4, !dbg !143  ->  Public
   REG    %6 = load i32, ptr %j, align 4, !dbg !144  ->  Public
-  REG    %add.ptr = getelementptr inbounds i8, ptr %5, i32 %6, !dbg !145  ->  Secret
+  REG    %add.ptr = getelementptr inbounds i8, ptr %5, i32 %6, !dbg !145  ->  Public
   REG    %7 = load i32, ptr %colrow_ab.addr, align 4, !dbg !146  ->  Public
   REG    %8 = load i32, ptr %col_b.addr, align 4, !dbg !147  ->  Public
   REG    %call = call zeroext i8 @lincomb(ptr noundef %4, ptr noundef %add.ptr, i32 noundef %7, i32 noundef %8) #5, !dbg !148  ->  Secret
@@ -2761,10 +2752,10 @@ mat_add  [Secret]
   REG    %5 = load i32, ptr %i, align 4, !dbg !141  ->  Public
   REG    %6 = load i32, ptr %n.addr, align 4, !dbg !142  ->  Public
   REG    %mul = mul nsw i32 %5, %6, !dbg !143  ->  Public
-  REG    %add.ptr = getelementptr inbounds i8, ptr %4, i32 %mul, !dbg !144  ->  Secret
+  REG    %add.ptr = getelementptr inbounds i8, ptr %4, i32 %mul, !dbg !144  ->  EphSecret
   REG    %7 = load i32, ptr %j, align 4, !dbg !145  ->  Public
-  REG    %add.ptr4 = getelementptr inbounds i8, ptr %add.ptr, i32 %7, !dbg !144  ->  Secret
-  REG    %8 = load i8, ptr %add.ptr4, align 1, !dbg !144  ->  Secret
+  REG    %add.ptr4 = getelementptr inbounds i8, ptr %add.ptr, i32 %7, !dbg !144  ->  EphSecret
+  REG    %8 = load i8, ptr %add.ptr4, align 1, !dbg !144  ->  EphSecret
   REG    %9 = load ptr, ptr %b.addr, align 4, !dbg !146  ->  Secret
   REG    %10 = load i32, ptr %i, align 4, !dbg !147  ->  Public
   REG    %11 = load i32, ptr %n.addr, align 4, !dbg !148  ->  Public
@@ -2782,9 +2773,9 @@ mat_add  [Secret]
   REG    %15 = load i32, ptr %i, align 4, !dbg !154  ->  Public
   REG    %16 = load i32, ptr %n.addr, align 4, !dbg !155  ->  Public
   REG    %mul8 = mul nsw i32 %15, %16, !dbg !156  ->  Public
-  REG    %add.ptr9 = getelementptr inbounds i8, ptr %14, i32 %mul8, !dbg !157  ->  Secret
+  REG    %add.ptr9 = getelementptr inbounds i8, ptr %14, i32 %mul8, !dbg !157  ->  Public
   REG    %17 = load i32, ptr %j, align 4, !dbg !158  ->  Public
-  REG    %add.ptr10 = getelementptr inbounds i8, ptr %add.ptr9, i32 %17, !dbg !157  ->  Secret
+  REG    %add.ptr10 = getelementptr inbounds i8, ptr %add.ptr9, i32 %17, !dbg !157  ->  Public
   REG    %18 = load i32, ptr %j, align 4, !dbg !161  ->  Public
   REG    %inc = add nsw i32 %18, 1, !dbg !161  ->  Public
   REG    %19 = load i32, ptr %i, align 4, !dbg !167  ->  Public
@@ -2804,7 +2795,7 @@ mat_add  [Secret]
   MEM  i32 %m  ->  Public
   MEM  i32 %n  ->  Public
 
-encode  [Secret] 
+encode  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 4  ->  Public
@@ -3297,10 +3288,10 @@ mul_add_mat_x_m_mat  [Secret]
   MEM    %c = alloca i32, align 4  ->  Public
   MEM    %k = alloca i32, align 4  ->  Public
 
-P1_times_Vt  [EphSecret] 
+P1_times_Vt  [Secret] 
   REG  i32 1  ->  Public
   REG  ptr %p  ->  Public
-  REG  ptr %P1  ->  Public
+  REG  ptr %P1  ->  Secret
   REG  ptr %V  ->  EphSecret
   REG  ptr %acc  ->  Public
   REG    %9 = load ptr, ptr %p.addr, align 4, !dbg !157  ->  Public
@@ -3311,7 +3302,7 @@ P1_times_Vt  [EphSecret]
   REG    %0 = load ptr, ptr %p.addr, align 4, !dbg !150  ->  Public
   REG    %m_vec_limbs = getelementptr inbounds nuw %struct.mayo_params_t, ptr %0, i32 0, i32 21, !dbg !151  ->  Public
   REG    %1 = load i32, ptr %m_vec_limbs, align 4, !dbg !151  ->  Public
-  REG    %2 = load ptr, ptr %P1.addr, align 4, !dbg !152  ->  Public
+  REG    %2 = load ptr, ptr %P1.addr, align 4, !dbg !152  ->  Secret
   REG    %3 = load ptr, ptr %V.addr, align 4, !dbg !153  ->  EphSecret
   REG    %4 = load ptr, ptr %acc.addr, align 4, !dbg !154  ->  Public
   REG    %5 = load ptr, ptr %p.addr, align 4, !dbg !155  ->  Public
@@ -3337,11 +3328,11 @@ P1_times_Vt  [EphSecret]
   MEM  ptr %V  ->  Public
   MEM  ptr %acc  ->  Public
   MEM    %p.addr = alloca ptr, align 4  ->  Public
-  MEM    %P1.addr = alloca ptr, align 4  ->  Public
+  MEM    %P1.addr = alloca ptr, align 4  ->  Secret
   MEM    %V.addr = alloca ptr, align 4  ->  EphSecret
   MEM    %acc.addr = alloca ptr, align 4  ->  Public
 
-mul_add_m_upper_triangular_mat_x_mat_trans  [EphSecret] 
+mul_add_m_upper_triangular_mat_x_mat_trans  [Secret] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG    %23 = load i32, ptr %bs_mat_entries_used, align 4, !dbg !191  ->  Public
@@ -3349,7 +3340,7 @@ mul_add_m_upper_triangular_mat_x_mat_trans  [EphSecret]
   REG    %24 = load i32, ptr %c, align 4, !dbg !193  ->  Public
   REG    %inc = add nsw i32 %24, 1, !dbg !193  ->  Public
   REG  i32 %m_vec_limbs  ->  Public
-  REG  ptr %bs_mat  ->  Public
+  REG  ptr %bs_mat  ->  Secret
   REG  ptr %mat  ->  EphSecret
   REG  ptr %acc  ->  Public
   REG  i32 %bs_mat_rows  ->  Public
@@ -3382,11 +3373,11 @@ mul_add_m_upper_triangular_mat_x_mat_trans  [EphSecret]
   REG    %7 = load i32, ptr %mat_rows.addr, align 4, !dbg !159  ->  Public
   REG    %cmp5 = icmp slt i32 %6, %7, !dbg !160  ->  Public
   REG    %8 = load i32, ptr %m_vec_limbs.addr, align 4, !dbg !162  ->  Public
-  REG    %9 = load ptr, ptr %bs_mat.addr, align 4, !dbg !164  ->  Public
+  REG    %9 = load ptr, ptr %bs_mat.addr, align 4, !dbg !164  ->  Secret
   REG    %10 = load i32, ptr %m_vec_limbs.addr, align 4, !dbg !165  ->  Public
   REG    %11 = load i32, ptr %bs_mat_entries_used, align 4, !dbg !166  ->  Public
   REG    %mul7 = mul nsw i32 %10, %11, !dbg !167  ->  Public
-  REG    %add.ptr = getelementptr inbounds i64, ptr %9, i32 %mul7, !dbg !168  ->  Public
+  REG    %add.ptr = getelementptr inbounds i64, ptr %9, i32 %mul7, !dbg !168  ->  Secret
   REG    %12 = load ptr, ptr %mat.addr, align 4, !dbg !169  ->  EphSecret
   REG    %13 = load i32, ptr %k, align 4, !dbg !170  ->  Public
   REG    %14 = load i32, ptr %bs_mat_cols.addr, align 4, !dbg !171  ->  Public
@@ -3418,7 +3409,7 @@ mul_add_m_upper_triangular_mat_x_mat_trans  [EphSecret]
   MEM  i32 %triangular  ->  Public
   MEM    %bs_mat_rows.addr = alloca i32, align 4  ->  Public
   MEM    %m_vec_limbs.addr = alloca i32, align 4  ->  Public
-  MEM    %bs_mat.addr = alloca ptr, align 4  ->  Public
+  MEM    %bs_mat.addr = alloca ptr, align 4  ->  Secret
   MEM    %mat.addr = alloca ptr, align 4  ->  EphSecret
   MEM    %acc.addr = alloca ptr, align 4  ->  Public
   MEM    %bs_mat_cols.addr = alloca i32, align 4  ->  Public
@@ -3429,7 +3420,7 @@ mul_add_m_upper_triangular_mat_x_mat_trans  [EphSecret]
   MEM    %c = alloca i32, align 4  ->  Public
   MEM    %k = alloca i32, align 4  ->  Public
 
-mayo_sign  [Secret] 
+mayo_sign  [Public] 
   REG  i32 0  ->  Public
   REG    %call4 = call ptr @memset(ptr noundef %15, i32 noundef 0, i32 noundef %add) #5, !dbg !189  ->  Public
   REG    %call = call ptr @memmove(ptr noundef %add.ptr, ptr noundef %4, i32 noundef %5) #5, !dbg !167  ->  Public
@@ -3438,7 +3429,7 @@ mayo_sign  [Secret]
   REG  ptr %smlen  ->  Public
   REG  ptr %m  ->  Public
   REG  i32 %mlen  ->  Public
-  REG  ptr %csk  ->  Secret
+  REG  ptr %csk  ->  Public
   REG    %ret = alloca i32, align 4  ->  Public
   REG    %p.addr = alloca ptr, align 4  ->  Public
   REG    %sm.addr = alloca ptr, align 4  ->  Public
@@ -3462,7 +3453,7 @@ mayo_sign  [Secret]
   REG    %9 = load i32, ptr %param_sig_bytes, align 4, !dbg !171  ->  Public
   REG    %add.ptr1 = getelementptr inbounds i8, ptr %8, i32 %9, !dbg !172  ->  Public
   REG    %10 = load i32, ptr %mlen.addr, align 4, !dbg !173  ->  Public
-  REG    %11 = load ptr, ptr %csk.addr, align 4, !dbg !174  ->  Secret
+  REG    %11 = load ptr, ptr %csk.addr, align 4, !dbg !174  ->  Public
   REG    %call2 = call i32 @mayo_sign_signature(ptr noundef %6, ptr noundef %7, ptr noundef %siglen, ptr noundef %add.ptr1, i32 noundef %10, ptr noundef %11) #5, !dbg !175  ->  Public
   REG    %12 = load i32, ptr %ret, align 4, !dbg !177  ->  Public
   REG    %cmp = icmp ne i32 %12, 0, !dbg !179  ->  Public
@@ -3492,11 +3483,11 @@ mayo_sign  [Secret]
   MEM    %smlen.addr = alloca ptr, align 4  ->  Public
   MEM    %m.addr = alloca ptr, align 4  ->  Public
   MEM    %mlen.addr = alloca i32, align 4  ->  Public
-  MEM    %csk.addr = alloca ptr, align 4  ->  Secret
+  MEM    %csk.addr = alloca ptr, align 4  ->  Public
   MEM    %param_sig_bytes = alloca i32, align 4  ->  Public
   MEM    %siglen = alloca i32, align 4  ->  Public
 
-mayo_open  [Secret] 
+mayo_open  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  ptr %p  ->  Public
@@ -3563,7 +3554,7 @@ mayo_open  [Secret]
   MEM    %param_sig_bytes = alloca i32, align 4  ->  Public
   MEM    %result = alloca i32, align 4  ->  Public
 
-mayo_verify  [Secret] 
+mayo_verify  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 2  ->  Public
@@ -3740,7 +3731,7 @@ mayo_verify  [Secret]
   MEM    %P2 = alloca ptr, align 4  ->  Public
   MEM    %P3 = alloca ptr, align 4  ->  Public
 
-mayo_expand_pk  [Secret] 
+mayo_expand_pk  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 2  ->  Public
@@ -3826,7 +3817,7 @@ mayo_expand_pk  [Secret]
   MEM    %cpk.addr = alloca ptr, align 4  ->  Public
   MEM    %pk.addr = alloca ptr, align 4  ->  Public
 
-eval_public_map  [Secret] 
+eval_public_map  [Public] 
   REG  ptr %p  ->  Public
   REG  ptr %s  ->  Public
   REG  ptr %P1  ->  Public
@@ -3872,7 +3863,7 @@ eval_public_map  [Secret]
   MEM    %SPS = alloca [1296 x i64], align 8  ->  Public
   MEM    %zero = alloca [142 x i8], align 1  ->  Public
 
-m_calculate_PS_SPS  [Secret] 
+m_calculate_PS_SPS  [Public] 
   REG    call void @mayo_generic_m_calculate_PS(ptr noundef %0, ptr noundef %1, ptr noundef %2, ptr noundef %3, i32 noundef %5, i32 noundef %sub, i32 noundef %11, i32 noundef %13, ptr noundef %arraydecay) #5, !dbg !172  ->  Public
   REG  ptr %p  ->  Public
   REG  ptr %P1  ->  Public
@@ -3937,7 +3928,7 @@ m_calculate_PS_SPS  [Secret]
   MEM    %SPS.addr = alloca ptr, align 4  ->  Public
   MEM    %PS = alloca [16632 x i64], align 8  ->  Public
 
-mayo_generic_m_calculate_PS  [Secret] 
+mayo_generic_m_calculate_PS  [Public] 
   REG  ptr %P1  ->  Public
   REG  ptr %P2  ->  Public
   REG  ptr %P3  ->  Public
@@ -4282,7 +4273,7 @@ mayo_generic_m_calculate_SPS  [Public]
   MEM    %col = alloca i32, align 4  ->  Public
   MEM    %i = alloca i32, align 4  ->  Public
 
-m_vec_add  [Secret] 
+m_vec_add  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 %m_vec_limbs  ->  Public
@@ -4624,7 +4615,7 @@ m_vec_copy  [Public]
   MEM    %out.addr = alloca ptr, align 4  ->  Public
   MEM    %i = alloca i32, align 4  ->  Public
 
-m_upper  [Secret] 
+m_upper  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG    call void @m_vec_add.18(i32 noundef %18, ptr noundef %add.ptr12, ptr noundef %add.ptr14) #5, !dbg !213  ->  Public
@@ -4767,7 +4758,7 @@ m_vec_add.18  [Public]
   MEM    %acc.addr = alloca ptr, align 4  ->  Public
   MEM    %i = alloca i32, align 4  ->  Public
 
-sample_solution  [Secret] 
+sample_solution  [Public] 
   REG  ptr %p  ->  Public
   REG  ptr %A  ->  Public
   REG  ptr %y  ->  Public
@@ -5260,7 +5251,7 @@ sample_solution  [Secret]
   MEM    %i86 = alloca i32, align 4  ->  Public
   MEM    %tmp = alloca i64, align 8  ->  Public
 
-mat_mul.21  [Secret] 
+mat_mul.21  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  ptr %a  ->  Public
@@ -5332,7 +5323,7 @@ sub_f  [Public]
   MEM    %a.addr = alloca i8, align 1  ->  Public
   MEM    %b.addr = alloca i8, align 1  ->  Public
 
-EF  [Secret] 
+EF  [Public] 
   REG  i32 0  ->  Public
   REG  i64 0  ->  Public
   REG  i8 0  ->  Public
@@ -5731,7 +5722,7 @@ mul_fx8  [Public]
   MEM    %top_p = alloca i64, align 8  ->  Public
   MEM    %out = alloca i64, align 8  ->  Public
 
-ef_pack_m_vec  [Secret] 
+ef_pack_m_vec  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 4  ->  Public
@@ -5904,7 +5895,7 @@ inverse_f  [Public]
   MEM    %a6 = alloca i8, align 1  ->  Public
   MEM    %a14 = alloca i8, align 1  ->  Public
 
-vec_mul_add_u64  [Secret] 
+vec_mul_add_u64  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 16  ->  Public
@@ -6002,7 +5993,7 @@ vec_mul_add_u64  [Secret]
   MEM    %lsb_ask = alloca i64, align 8  ->  Public
   MEM    %i = alloca i32, align 4  ->  Public
 
-ef_unpack_m_vec  [Secret] 
+ef_unpack_m_vec  [Public] 
   REG  i32 0  ->  Public
   REG  i32 1  ->  Public
   REG  i32 4  ->  Public
@@ -6171,7 +6162,7 @@ mul_f.22  [Public]
   MEM    %top_p = alloca i8, align 1  ->  Public
   MEM    %out = alloca i8, align 1  ->  Public
 
-lincomb.23  [Secret] 
+lincomb.23  [Public] 
   REG  i32 0  ->  Public
   REG  i8 0  ->  Public
   REG  i32 1  ->  Public
@@ -6232,66 +6223,66 @@ add_f.24  [Public]
 
  Function Sensitivity 
 main -> Public
-example_mayo -> Secret
-mayo_keypair -> Secret
+example_mayo -> Public
+mayo_keypair -> Public
 mayo_keypair_compact -> Secret
 decode -> Secret
-expand_P1_P2 -> Secret
+expand_P1_P2 -> Public
 compute_P3 -> Secret
-pack_m_vecs -> Secret
+pack_m_vecs -> Public
 P1_times_O -> Secret
 mul_add_mat_trans_x_m_mat -> Secret
 m_vec_mul_add -> Secret
 gf16v_mul_u64 -> Secret
 mul_add_m_upper_triangular_mat_x_mat -> Secret
-unpack_m_vecs -> Secret
+unpack_m_vecs -> Public
 mayo_expand_sk -> Secret
-P1P1t_times_O -> Secret
+P1P1t_times_O -> Public
 mayo_sign_signature -> Secret
 compute_M_and_VPV -> Secret
-compute_rhs -> Secret
+compute_rhs -> Public
 compute_A -> Public
 mat_mul -> Secret
 mat_add -> Secret
-encode -> Secret
+encode -> Public
 add_f -> Secret
 lincomb -> Secret
 mul_f -> Secret
 transpose_16x16_nibbles -> Public
 mul_add_mat_x_m_mat -> Secret
-P1_times_Vt -> EphSecret
-mul_add_m_upper_triangular_mat_x_mat_trans -> EphSecret
-mayo_sign -> Secret
-mayo_open -> Secret
-mayo_verify -> Secret
-mayo_expand_pk -> Secret
-eval_public_map -> Secret
-m_calculate_PS_SPS -> Secret
-mayo_generic_m_calculate_PS -> Secret
+P1_times_Vt -> Secret
+mul_add_m_upper_triangular_mat_x_mat_trans -> Secret
+mayo_sign -> Public
+mayo_open -> Public
+mayo_verify -> Public
+mayo_expand_pk -> Public
+eval_public_map -> Public
+m_calculate_PS_SPS -> Public
+mayo_generic_m_calculate_PS -> Public
 mayo_generic_m_calculate_SPS -> Public
-m_vec_add -> Secret
+m_vec_add -> Public
 m_vec_multiply_bins -> Public
 m_vec_mul_add_x_inv -> Public
 m_vec_mul_add_x -> Public
 m_vec_copy -> Public
-m_upper -> Secret
+m_upper -> Public
 m_vec_copy.17 -> Public
 m_vec_add.18 -> Public
-sample_solution -> Secret
-mat_mul.21 -> Secret
+sample_solution -> Public
+mat_mul.21 -> Public
 sub_f -> Public
-EF -> Secret
+EF -> Public
 ct_compare_8 -> Public
 mul_fx8 -> Public
-ef_pack_m_vec -> Secret
+ef_pack_m_vec -> Public
 ct_compare_64 -> Public
 ct_64_is_greater_than -> Public
 m_extract_element -> Public
 inverse_f -> Public
-vec_mul_add_u64 -> Secret
-ef_unpack_m_vec -> Secret
+vec_mul_add_u64 -> Public
+ef_unpack_m_vec -> Public
 mul_table -> Public
 mul_f.22 -> Public
-lincomb.23 -> Secret
+lincomb.23 -> Public
 add_f.24 -> Public
 
