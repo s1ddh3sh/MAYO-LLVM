@@ -165,18 +165,7 @@ private:
                     Value *src = S->getValueOperand();
                     Value *dst = getBase(S->getPointerOperand());
 
-                    bool skipStore = false;
-                    if (S->getValueOperand()->getType()->isPointerTy() &&
-                        isa<AllocaInst>(dst))
-                    {
-                        string name = cast<AllocaInst>(dst)->getName().str();
-                        skipStore = (name == "P1" || name == "P2");
-                    }
-
-                    if (!skipStore)
-                    {
-                        env.mem[dst] = join(env.mem[dst], env.reg[src]);
-                    }
+                    env.mem[dst] = join(env.mem[dst], env.reg[src]);
                 }
                 // binop
                 else if (auto *B = dyn_cast<BinaryOperator>(&I))
