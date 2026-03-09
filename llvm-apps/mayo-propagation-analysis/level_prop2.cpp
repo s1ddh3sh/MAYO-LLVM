@@ -91,12 +91,12 @@ private:
 
         callStack.insert(F);
 
-        // Level funcLvl = Level::Public;
+        Level funcLvl = Level::Public;
 
-        // for (auto &arg : F->args())
-        // {
-        //     funcLvl = join(funcLvl, env.reg[&arg]);
-        // }
+        for (auto &arg : F->args())
+        {
+            funcLvl = join(funcLvl, env.reg[&arg]);
+        }
 
         set<Value *> local;
 
@@ -156,7 +156,6 @@ private:
                         env.reg[&I] = env.reg[base];
 
                         env.mem[&I] = env.mem[base];
-                        // env.mem[getBase(&I)] = env.mem[base];
                     }
 
                     // load
@@ -247,27 +246,27 @@ private:
             outLvl = join(outLvl, env.mem[v]);
         }
 
-        // funcLvl = join(funcLvl, outLvl);
-        funcLevel[F] = join(funcLevel[F], outLvl);
+        funcLvl = join(funcLvl, outLvl);
+        funcLevel[F] = join(funcLevel[F], funcLvl);
 
         callStack.erase(F);
 
-        outs() << "\n--- Function: " << F->getName() << " ---\n";
+        // outs() << "\n--- Function: " << F->getName() << " ---\n";
 
-        for (auto &r : env.reg)
-        {
-            outs() << "REG: ";
-            r.first->print(outs());
-            outs() << " -> Level : " << (int)r.second << "\n";
-        }
+        // for (auto &r : env.reg)
+        // {
+        //     outs() << "REG: ";
+        //     r.first->print(outs());
+        //     outs() << " -> Level : " << (int)r.second << "\n";
+        // }
 
-        for (auto &m : env.mem)
-        {
-            outs() << "MEM: ";
-            m.first->print(outs());
-            outs() << " -> Level : " << (int)m.second << "\n";
-        }
-        outs() << "\n\n";
+        // for (auto &m : env.mem)
+        // {
+        //     outs() << "MEM: ";
+        //     m.first->print(outs());
+        //     outs() << " -> Level : " << (int)m.second << "\n";
+        // }
+        // outs() << "\n\n";
         return env;
     }
 
@@ -288,13 +287,12 @@ private:
                 Value *dst = getBase(C.getArgOperand(0));
                 Value *src = getBase(C.getArgOperand(1));
 
-                // src memory level flows into dst memory
                 Level srcLvl = callerEnv.mem[src];
                 if (!isa<AllocaInst>(src) && !isa<Argument>(src))
                     srcLvl = join(srcLvl, callerEnv.reg[src]);
 
                 callerEnv.mem[dst] = join(callerEnv.mem[dst], srcLvl);
-                callerEnv.reg[&C] = Level::Public; // memcpy returns dst ptr (public)
+                callerEnv.reg[&C] = Level::Public;
                 return;
             }
 
