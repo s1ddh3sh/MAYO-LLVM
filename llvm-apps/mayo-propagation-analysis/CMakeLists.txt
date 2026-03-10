@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(v_Ox_add_expr)
 
+# Use system LLVM instead of /usr/local
+set(LLVM_DIR "/usr/lib/llvm-20/lib/cmake/llvm")
 find_package(LLVM REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")

@@ -3,19 +3,22 @@
 #include "clang/Frontend/Utils.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Frontend/CompilerInvocation.h"
+#include "clang/Basic/DiagnosticOptions.h"
+#include "clang/Frontend/TextDiagnosticPrinter.h"
 
-#include "llvm/TargetParser/Host.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/Analysis/CFGPrinter.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/IR/Verifier.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Transforms/Utils/Mem2Reg.h"
-#include "llvm/IRReader/IRReader.h"
-#include "llvm/Linker/Linker.h"
+#include "llvm-20/llvm/Support/VirtualFileSystem.h"
+#include "llvm-20/llvm/TargetParser/Host.h"
+#include "llvm-20/llvm/IR/Module.h"
+#include "llvm-20/llvm/IR/LLVMContext.h"
+#include "llvm-20/llvm/Analysis/CFGPrinter.h"
+#include "llvm-20/llvm/Support/raw_ostream.h"
+#include "llvm-20/llvm/IR/BasicBlock.h"
+#include "llvm-20/llvm/IR/PassManager.h"
+#include "llvm-20/llvm/IR/Verifier.h"
+#include "llvm-20/llvm/Passes/PassBuilder.h"
+#include "llvm-20/llvm/Transforms/Utils/Mem2Reg.h"
+#include "llvm-20/llvm/IRReader/IRReader.h"
+#include "llvm-20/llvm/Linker/Linker.h"
 
 #include <memory>
 
@@ -25,7 +28,7 @@ std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths, const st
 {
     auto composite = std::make_unique<Module>("composite", llvm_ctx);
 
-    composite->setTargetTriple(llvm::Triple("arm-unknown-none-eabi"));
+    composite->setTargetTriple("arm-unknown-none-eabi");
     // composite->setDataLayout(
     //     llvm::DataLayout("e-m:e-p:32:32-Fi8-i64:64-v128:64:128-a:0:32-n32-S64"));
 
@@ -34,7 +37,9 @@ std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths, const st
     for (const auto &filepath : filepaths)
     {
         clang::CompilerInstance compiler;
-        compiler.createDiagnostics();
+
+        auto VFS = llvm::vfs::getRealFileSystem();
+        compiler.createDiagnostics(*VFS, new clang::TextDiagnosticPrinter(llvm::errs(), new clang::DiagnosticOptions()));
 
         std::vector<const char *> args = {
             "clang-tool",
@@ -107,10 +112,15 @@ std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths, const st
         TO.Features = {"+thumb2"};
 
         compiler.createFileManager();
-        compiler.createSourceManager();
+        compiler.createSourceManager(compiler.getFileManager());
+
+        auto TO_shared = std::make_shared<clang::TargetOptions>(
+            compiler.getInvocation().getTargetOpts());
 
         compiler.setTarget(
-            clang::TargetInfo::CreateTargetInfo(compiler.getDiagnostics(), compiler.getInvocation().getTargetOpts()));
+            clang::TargetInfo::CreateTargetInfo(
+                compiler.getDiagnostics(),
+                TO_shared));
 
         auto action = std::make_unique<clang::EmitLLVMOnlyAction>(&llvm_ctx);
         if (!compiler.ExecuteAction(*action))
@@ -237,7 +247,7 @@ int main(int argc, char **argv)
     llvm::LLVMContext llvm_ctx;
     std::unique_ptr<llvm::Module> module = c2ir(files, includes, llvm_ctx);
 
-    module->setTargetTriple(llvm::Triple("arm-unknown-none-eabi"));
+    module->setTargetTriple("arm-unknown-none-eabi");
     // module->setDataLayout(llvm::DataLayout(
     //     "e-m:e-p:32:32-Fi8-i64:64-v128:64:128-a:0:32-n32-S64"));
 
