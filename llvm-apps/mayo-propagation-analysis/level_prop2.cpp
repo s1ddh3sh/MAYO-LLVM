@@ -1,5 +1,6 @@
 // #include "z3++.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -7,6 +8,8 @@
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Passes/PassBuilder.h"
 
+#include <llvm-20/llvm/Support/Casting.h>
+#include <llvm-20/llvm/Support/raw_ostream.h>
 #include <map>
 #include <set>
 #include <vector>
@@ -365,8 +368,7 @@ private:
 
         Value *cur = callerBase;
         while (auto *LI = dyn_cast<LoadInst>(cur)) {
-          Value *loadSrc =
-              getBase(LI->getPointerOperand());
+          Value *loadSrc = getBase(LI->getPointerOperand());
           callerEnv.mem[loadSrc] = join(callerEnv.mem[loadSrc], memLvl);
           cur = loadSrc;
         }
@@ -374,6 +376,30 @@ private:
     }
 
     callerEnv.reg[&C] = calleeEnv.returnlevel;
+  }
+};
+
+class DefUseGraph : public PassInfoMixin<DefUseGraph> {
+public:
+  PreservedAnalyses run(Module &M, ModuleAnalysisManager &) {
+    Function *main = M.getFunction("main");
+
+    for (auto &F : M) {
+      outs() << "Function : " << F.getName() << "\n";
+      for (auto &I : instructions(F)) {
+        if (!I.getType()->isVoidTy()) {
+          outs() << "\nDef : " << I << "\n";
+
+          for (auto *U : I.users()) {
+            if (auto *Ui = dyn_cast<Instruction>(U)) {
+              outs() << "   Use : " << *Ui << "\n";
+            }
+          }
+        }
+      }
+      outs() << "\n\n";
+    }
+    return PreservedAnalyses::all();
   }
 };
 
@@ -397,7 +423,8 @@ int main() {
 
   // Module Pass Manager
   ModulePassManager MPM;
-  MPM.addPass(LevelPropPass());
+  // MPM.addPass(LevelPropPass());
+  MPM.addPass(DefUseGraph());
 
   // Run
   MPM.run(*module, MAM);
