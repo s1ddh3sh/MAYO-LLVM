@@ -7,6 +7,7 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Passes/PassBuilder.h"
+#include <llvm-20/llvm/IR/Instructions.h>
 #include <memory>
 
 #include <llvm-20/llvm/ADT/PostOrderIterator.h>
@@ -432,10 +433,7 @@ private:
   }
 };
 
-struct SymEnv {
-  std::map<llvm::Value *, z3::expr> reg;
-  std::map<llvm::Value *, z3::expr> mem;
-};
+using SymEnv = std::map<llvm::Value *, z3::expr>;
 
 class SymbolicPass : public PassInfoMixin<SymbolicPass> {
 public:
@@ -459,7 +457,7 @@ public:
       seedArgs(F, lvl, env);
 
       processFunction(F, env, mem);
-      for (auto &[V, expr] : env.reg) {
+      for (auto &[V, expr] : env) {
         if (auto *I = llvm::dyn_cast<llvm::Instruction>(V))
           allSymExprs[F].emplace(I, expr);
       }
@@ -486,7 +484,7 @@ private:
 
       string name = isSecret ? base + "_sec" : base + "_pub";
 
-      env.reg.emplace(&arg, (*zctx).bv_const(name.c_str(), bw));
+      env.emplace(&arg, (*zctx).bv_const(name.c_str(), bw));
     }
   }
 
@@ -512,7 +510,17 @@ private:
                 map<BasicBlock *, z3::expr> &pathCond) {}
 
   void propagateCond(BasicBlock *BB, SymEnv &env,
-                     map<BasicBlock *, z3::expr> &pathCond) {}
+                     map<BasicBlock *, z3::expr> &pathCond) {
+
+    Instruction *end = BB->getTerminator();
+    z3::expr parentCond =
+        (pathCond.at(BB)) ? pathCond[BB] : zctx->bool_val(false);
+
+    if (auto *br = dyn_cast<BranchInst>(end)) {
+
+    } else if (auto *sw = dyn_cast<SwitchInst>(end)) {
+    }
+  }
 
   void printResults() {}
 };
