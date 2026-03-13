@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(v_Ox_add_expr)
+set(LLVM_DIR "/usr/lib/llvm-20/lib/cmake/llvm")
 
 find_package(LLVM REQUIRED CONFIG)
 
@@ -23,7 +24,7 @@ if(NOT Z3_FOUND)
   endif()
 endif()
 
-add_executable(taint_prop taint_prop.cpp)
+add_executable(fault_prop fault_prop.cpp)
 
 # Map needed LLVM components to library names
 llvm_map_components_to_libnames(LLVM_LIBS
@@ -37,13 +38,13 @@ llvm_map_components_to_libnames(LLVM_LIBS
 # --------------------
 # Link libraries
 # --------------------
-target_link_libraries(taint_prop
+target_link_libraries(fault_prop
   PRIVATE
   ${LLVM_LIBS}
   ${Z3_LIBRARIES}
 )
 
-target_include_directories(taint_prop
+target_include_directories(fault_prop
   PRIVATE
   ${Z3_INCLUDE_DIRS}
 )
