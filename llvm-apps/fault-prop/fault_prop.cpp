@@ -7,7 +7,10 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Passes/PassBuilder.h"
+#include <memory>
 
+#include <llvm-20/llvm/ADT/PostOrderIterator.h>
+#include <llvm-20/llvm/IR/Function.h>
 #include <llvm-20/llvm/IR/Type.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_ostream.h>
@@ -429,14 +432,19 @@ private:
   }
 };
 
-using SymEnv = std::map<llvm::Value *, z3::expr>;
+struct SymEnv {
+  std::map<llvm::Value *, z3::expr> reg;
+  std::map<llvm::Value *, z3::expr> mem;
+};
 
 class SymbolicPass : public PassInfoMixin<SymbolicPass> {
 public:
   map<Function *, map<Instruction *, z3::expr>> allSymExprs;
-  z3::context zctx;
+  std::unique_ptr<z3::context> zctx;
 
   std::vector<llvm::Function *> callStack;
+
+  SymbolicPass() : zctx(std::make_unique<z3::context>()) {}
 
   PreservedAnalyses run(Module &M, ModuleAnalysisManager &) {
     for (auto &[F, lvl] : funcLevel) {
@@ -446,14 +454,14 @@ public:
         continue;
 
       SymEnv env;
-      MemModel mem(zctx);
+      MemModel mem(*zctx);
 
       seedArgs(F, lvl, env);
 
       processFunction(F, env, mem);
-      for (auto &[V, expr] : env) {
+      for (auto &[V, expr] : env.reg) {
         if (auto *I = llvm::dyn_cast<llvm::Instruction>(V))
-          allSymExprs[F][I] = expr;
+          allSymExprs[F].emplace(I, expr);
       }
     }
 
@@ -478,9 +486,35 @@ private:
 
       string name = isSecret ? base + "_sec" : base + "_pub";
 
-      env[&arg] = zctx.bv_const(name.c_str(), bw);
+      env.reg.emplace(&arg, (*zctx).bv_const(name.c_str(), bw));
     }
   }
+
+  void processFunction(Function *F, SymEnv &env, MemModel &mem) {
+    callStack.push_back(F);
+
+    map<BasicBlock *, z3::expr> pathCond;
+    pathCond.emplace(&F->getEntryBlock(), (*zctx).bool_val(true));
+
+    llvm::ReversePostOrderTraversal<Function *> RPOT(F);
+
+    for (auto *BB : RPOT) {
+      for (auto &I : *BB) {
+        liftInst(&I, env, mem, pathCond);
+      }
+
+      propagateCond(BB, env, pathCond);
+    }
+    callStack.pop_back();
+  }
+
+  void liftInst(Instruction *I, SymEnv &env, MemModel &mem,
+                map<BasicBlock *, z3::expr> &pathCond) {}
+
+  void propagateCond(BasicBlock *BB, SymEnv &env,
+                     map<BasicBlock *, z3::expr> &pathCond) {}
+
+  void printResults() {}
 };
 
 int main() {
