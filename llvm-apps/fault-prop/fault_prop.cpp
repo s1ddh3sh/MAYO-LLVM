@@ -518,7 +518,27 @@ private:
 
     if (auto *br = dyn_cast<BranchInst>(end)) {
 
+      if (br->isUnconditional()) {
+        mergePathCond(pathCond, br->getSuccessor(0), parentCond);
+      } else {
+        z3::expr rawCond = getOrMake(br->getCondition(), env, 1);
+        z3::expr boolCond = (rawCond == zctx->bv_val(1, 1));
+
+        mergePathCond(pathCond, br->getSuccessor(0), parentCond && boolCond);
+        mergePathCond(pathCond, br->getSuccessor(1), parentCond && !boolCond);
+      }
+
     } else if (auto *sw = dyn_cast<SwitchInst>(end)) {
+    }
+  }
+
+  void mergePathCond(map<BasicBlock *, z3::expr> &pathCond, BasicBlock *succ,
+                     z3::expr parentCond) {
+    auto it = pathCond.find(succ);
+    if (it == pathCond.end()) {
+      pathCond.emplace(succ, parentCond);
+    } else {
+      it->second = it->second || parentCond;
     }
   }
 
