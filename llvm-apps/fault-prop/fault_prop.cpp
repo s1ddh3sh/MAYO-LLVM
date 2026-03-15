@@ -1,5 +1,6 @@
 #include "z3++.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/GetElementPtrTypeIterator.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
@@ -469,22 +470,72 @@ public:
   }
 
 private:
-  void seedArgs(llvm::Function *F, Level lvl, SymEnv &env) {
+  void envSet(SymEnv &env, llvm::Value *key, z3::expr val) {
+    env.insert_or_assign(key, val);
+  }
+  z3::expr getOrMake(llvm::Value *V, SymEnv &env, unsigned wantBits) {
+    auto it = env.find(V);
+    if (it != env.end()) {
+      z3::expr e = it->second;
+      unsigned have = e.get_sort().bv_size();
+      if (have < wantBits)
+        return z3::zext(e, wantBits - have);
+      if (have > wantBits)
+        return e.extract(wantBits - 1, 0);
+      return e;
+    }
+
+    if (auto *CI = dyn_cast<ConstantInt>(V)) {
+      unsigned w = CI->getBitWidth();
+      z3::expr e = (w <= 64) ? zctx->bv_val(CI->getZExtValue(), w) : [&] {
+        llvm::SmallString<64> s;
+        CI->getValue().toString(s, 10, false);
+        return zctx->bv_val(s.c_str(), w);
+      }();
+      env.insert_or_assign(V, e);
+      if (w < wantBits)
+        return z3::zext(e, wantBits - w);
+      if (w > wantBits)
+        return e.extract(wantBits - 1, 0);
+      return e;
+    }
+
+    if (isa<UndefValue>(V) || isa<PoisonValue>(V)) {
+      static int uid = 0;
+      z3::expr e =
+          zctx->bv_const(("undef_" + std::to_string(uid++)).c_str(), wantBits);
+      env.insert_or_assign(V, e);
+      return e;
+    }
+
+    if (auto *CE = dyn_cast<ConstantExpr>(V)) {
+      Instruction *tmp = CE->getAsInstruction();
+      MemModel tmpMem(*zctx);
+      std::map<BasicBlock *, z3::expr> noPath;
+      liftInstr(tmp, env, tmpMem, noPath);
+      z3::expr res =
+          env.count(tmp) ? env.at(tmp) : zctx->bv_const("ce_unk", wantBits);
+      tmp->deleteValue();
+      return res;
+    }
+
+    std::string name = "sym_" + (V->hasName() ? V->getName().str()
+                                              : std::to_string((uintptr_t)V));
+    z3::expr e = zctx->bv_const(name.c_str(), wantBits);
+    env.insert_or_assign(V, e);
+    return e;
+  }
+
+  void seedArgs(Function *F, Level lvl, SymEnv &env) {
     int idx = 0;
     for (Argument &arg : F->args()) {
-      string base = "arg_" + to_string(idx++);
-      llvm::Type *ty = arg.getType();
-
-      unsigned bw = 64;
-      if (ty->isIntegerTy()) {
-        bw = ty->getIntegerBitWidth();
-      }
-
+      std::string base = F->getName().str() + "_arg" + std::to_string(idx++);
+      unsigned bw = arg.getType()->isIntegerTy()
+                        ? arg.getType()->getIntegerBitWidth()
+                        : 64;
       bool isSecret = (lvl >= Level::EphSecret);
-
-      string name = isSecret ? base + "_sec" : base + "_pub";
-
-      env.emplace(&arg, (*zctx).bv_const(name.c_str(), bw));
+      std::string name = isSecret ? base + "_sec" : base + "_pub";
+      env.insert_or_assign(&arg, zctx->bv_const(name.c_str(), bw));
     }
   }
 
@@ -492,57 +543,409 @@ private:
     callStack.push_back(F);
 
     map<BasicBlock *, z3::expr> pathCond;
-    pathCond.emplace(&F->getEntryBlock(), (*zctx).bool_val(true));
+    pathCond.emplace(&F->getEntryBlock(), zctx->bool_val(true));
 
-    llvm::ReversePostOrderTraversal<Function *> RPOT(F);
-
+    ReversePostOrderTraversal<Function *> RPOT(F);
     for (auto *BB : RPOT) {
-      for (auto &I : *BB) {
-        liftInst(&I, env, mem, pathCond);
-      }
-
+      for (auto &I : *BB)
+        liftInstr(&I, env, mem, pathCond);
       propagateCond(BB, env, pathCond);
     }
+
     callStack.pop_back();
   }
 
-  void liftInst(Instruction *I, SymEnv &env, MemModel &mem,
-                map<BasicBlock *, z3::expr> &pathCond) {}
+  void liftInstr(Instruction *I, SymEnv &env, MemModel &mem,
+                 map<BasicBlock *, z3::expr> &pathCond) {
+
+    // BinaryOperator
+    if (auto *B = dyn_cast<BinaryOperator>(I)) {
+      unsigned w = B->getType()->getIntegerBitWidth();
+      z3::expr a = getOrMake(B->getOperand(0), env, w);
+      z3::expr b = getOrMake(B->getOperand(1), env, w);
+      envSet(env, I, liftBinOp(B->getOpcode(), a, b, w));
+      return;
+    }
+
+    if (auto *C = dyn_cast<CastInst>(I)) {
+      unsigned srcW = C->getSrcTy()->isIntegerTy()
+                          ? C->getSrcTy()->getIntegerBitWidth()
+                          : 64;
+      unsigned dstW = C->getDestTy()->isIntegerTy()
+                          ? C->getDestTy()->getIntegerBitWidth()
+                          : 64;
+      z3::expr src = getOrMake(C->getOperand(0), env, srcW);
+      envSet(env, I, liftCast(C->getOpcode(), src, srcW, dstW));
+      return;
+    }
+
+    if (auto *cmp = dyn_cast<ICmpInst>(I)) {
+      unsigned w = cmp->getOperand(0)->getType()->getIntegerBitWidth();
+      z3::expr a = getOrMake(cmp->getOperand(0), env, w);
+      z3::expr b = getOrMake(cmp->getOperand(1), env, w);
+      z3::expr cond = liftICmp(cmp->getPredicate(), a, b);
+      envSet(env, I, z3::ite(cond, zctx->bv_val(1, 1), zctx->bv_val(0, 1)));
+      return;
+    }
+
+    if (auto *sel = dyn_cast<SelectInst>(I)) {
+      unsigned w = sel->getType()->isIntegerTy()
+                       ? sel->getType()->getIntegerBitWidth()
+                       : 64;
+      z3::expr cond = getOrMake(sel->getCondition(), env, 1);
+      z3::expr tv = getOrMake(sel->getTrueValue(), env, w);
+      z3::expr fv = getOrMake(sel->getFalseValue(), env, w);
+      envSet(env, I, z3::ite(cond == zctx->bv_val(1, 1), tv, fv));
+      return;
+    }
+
+    if (auto *phi = dyn_cast<PHINode>(I)) {
+      envSet(env, I, liftPHI(phi, env, pathCond));
+      return;
+    }
+
+    if (auto *gep = dyn_cast<GetElementPtrInst>(I)) {
+      envSet(env, I, liftGEP(gep, env, I->getModule()->getDataLayout()));
+      return;
+    }
+
+    if (auto *load = dyn_cast<LoadInst>(I)) {
+      z3::expr addr = getOrMake(load->getPointerOperand(), env, 64);
+      unsigned bw = load->getType()->isIntegerTy()
+                        ? load->getType()->getIntegerBitWidth()
+                        : 8;
+      envSet(env, I, mem.read(addr, bw));
+      return;
+    }
+
+    if (auto *store = dyn_cast<StoreInst>(I)) {
+      unsigned bw =
+          store->getValueOperand()->getType()->isIntegerTy()
+              ? store->getValueOperand()->getType()->getIntegerBitWidth()
+              : 64;
+      z3::expr val = getOrMake(store->getValueOperand(), env, bw);
+      z3::expr addr = getOrMake(store->getPointerOperand(), env, 64);
+      mem.write(addr, val);
+      return;
+    }
+
+    // Call
+    if (auto *call = dyn_cast<CallInst>(I)) {
+      liftCall(call, env, mem, pathCond);
+      return;
+    }
+
+    if (auto *alloca = dyn_cast<AllocaInst>(I)) {
+      std::string name = "alloca_" + alloca->getName().str();
+      envSet(env, I, zctx->bv_const(name.c_str(), 64));
+      return;
+    }
+
+    if (auto *ret = dyn_cast<ReturnInst>(I)) {
+      if (ret->getReturnValue()) {
+        unsigned w =
+            ret->getReturnValue()->getType()->isIntegerTy()
+                ? ret->getReturnValue()->getType()->getIntegerBitWidth()
+                : 64;
+        envSet(env, I, getOrMake(ret->getReturnValue(), env, w));
+      }
+      return;
+    }
+
+  }
+
+  z3::expr liftBinOp(Instruction::BinaryOps op, z3::expr a, z3::expr b,
+                     unsigned w) {
+    switch (op) {
+    case Instruction::Xor:
+      return a ^ b;
+    case Instruction::And:
+      return a & b;
+    case Instruction::Or:
+      return a | b;
+    case Instruction::Add:
+      return a + b;
+    case Instruction::Sub:
+      return a - b;
+    case Instruction::Mul:
+      return a * b;
+    case Instruction::Shl:
+      return z3::shl(a, b);
+    case Instruction::LShr:
+      return z3::lshr(a, b);
+    case Instruction::AShr:
+      return z3::ashr(a, b);
+    case Instruction::UDiv:
+      return z3::udiv(a, b);
+    case Instruction::URem:
+      return z3::urem(a, b);
+    case Instruction::SDiv:
+      return a / b;
+    case Instruction::SRem:
+      return z3::srem(a, b);
+    default:
+      static int unk = 0;
+      return zctx->bv_const(("binop_unk_" + std::to_string(unk++)).c_str(), w);
+    }
+  }
+
+  z3::expr liftCast(Instruction::CastOps op, z3::expr src, unsigned srcW,
+                    unsigned dstW) {
+    switch (op) {
+    case Instruction::ZExt:
+      return z3::zext(src, dstW - srcW);
+    case Instruction::SExt:
+      return z3::sext(src, dstW - srcW);
+    case Instruction::Trunc:
+      return src.extract(dstW - 1, 0);
+    case Instruction::BitCast:
+      return (srcW == dstW)
+                 ? src
+                 : zctx->bv_const(("bitcast_" + std::to_string(dstW)).c_str(),
+                                  dstW);
+    case Instruction::PtrToInt:
+      return (srcW <= dstW) ? z3::zext(src, dstW - srcW)
+                            : src.extract(dstW - 1, 0);
+    case Instruction::IntToPtr:
+      return src;
+    default:
+      return zctx->bv_const(("cast_unk_" + std::to_string(dstW)).c_str(), dstW);
+    }
+  }
+
+  z3::expr liftICmp(ICmpInst::Predicate pred, z3::expr a, z3::expr b) {
+    switch (pred) {
+    case ICmpInst::ICMP_EQ:
+      return a == b;
+    case ICmpInst::ICMP_NE:
+      return a != b;
+    case ICmpInst::ICMP_ULT:
+      return z3::ult(a, b);
+    case ICmpInst::ICMP_ULE:
+      return z3::ule(a, b);
+    case ICmpInst::ICMP_UGT:
+      return z3::ugt(a, b);
+    case ICmpInst::ICMP_UGE:
+      return z3::uge(a, b);
+    case ICmpInst::ICMP_SLT:
+      return a < b;
+    case ICmpInst::ICMP_SLE:
+      return a <= b;
+    case ICmpInst::ICMP_SGT:
+      return a > b;
+    case ICmpInst::ICMP_SGE:
+      return a >= b;
+    default:
+      return zctx->bool_val(true);
+    }
+  }
+
+  z3::expr liftPHI(PHINode *phi, SymEnv &env,
+                   map<BasicBlock *, z3::expr> &pathCond) {
+    unsigned w = phi->getType()->isIntegerTy()
+                     ? phi->getType()->getIntegerBitWidth()
+                     : 64;
+
+    z3::expr result =
+        zctx->bv_const(("phi_" + phi->getName().str()).c_str(), w);
+
+    for (unsigned i = 0; i < phi->getNumIncomingValues(); i++) {
+      Value *inVal = phi->getIncomingValue(i);
+      BasicBlock *inBB = phi->getIncomingBlock(i);
+
+      z3::expr val = getOrMake(inVal, env, w);
+
+      auto pcIt = pathCond.find(inBB);
+      z3::expr cond =
+          (pcIt != pathCond.end()) ? pcIt->second : zctx->bool_val(false);
+
+      result = z3::ite(cond, val, result);
+    }
+    return result;
+  }
+
+  z3::expr liftGEP(GetElementPtrInst *gep, SymEnv &env, const DataLayout &DL) {
+    z3::expr ptr = getOrMake(gep->getPointerOperand(), env, 64);
+    z3::expr offset = zctx->bv_val((uint64_t)0, 64);
+
+    auto ti = gep_type_begin(gep);
+    auto te = gep_type_end(gep);
+    for (; ti != te; ++ti) {
+      Value *idxV = ti.getOperand();
+      unsigned idxW = idxV->getType()->isIntegerTy()
+                          ? idxV->getType()->getIntegerBitWidth()
+                          : 64;
+      z3::expr idx = getOrMake(idxV, env, idxW);
+      if (idx.get_sort().bv_size() < 64)
+        idx = z3::sext(idx, 64 - idx.get_sort().bv_size());
+
+      if (auto *st = dyn_cast<StructType>(ti.getIndexedType())) {
+        // Struct: field offset is always a constant
+        if (auto *CI = dyn_cast<ConstantInt>(idxV)) {
+          uint64_t off =
+              DL.getStructLayout(st)->getElementOffset(CI->getZExtValue());
+          offset = offset + zctx->bv_val(off, 64);
+        }
+      } else {
+        // Array / pointer: stride × index
+        uint64_t stride = DL.getTypeAllocSize(ti.getIndexedType());
+        offset = offset + (idx * zctx->bv_val(stride, 64));
+      }
+    }
+    return ptr + offset;
+  }
+
+  void liftCall(CallInst *call, SymEnv &env, MemModel &mem,
+                map<BasicBlock *, z3::expr> &pathCond) {
+
+    Function *callee = call->getCalledFunction();
+
+    // Indirect call — return fresh symbol
+    if (!callee) {
+      if (call->getType()->isIntegerTy()) {
+        static int ic = 0;
+        envSet(env, call,
+               zctx->bv_const(("indirect_" + std::to_string(ic++)).c_str(),
+                              call->getType()->getIntegerBitWidth()));
+      }
+      return;
+    }
+
+    StringRef name = callee->getName();
+
+    // memcpy / memmove
+    if ((name == "memcpy" || name == "memmove" ||
+         name.find("llvm.memcpy") != StringRef::npos ||
+         name.find("llvm.memmove") != StringRef::npos) &&
+        call->arg_size() >= 3) {
+      z3::expr dst = getOrMake(call->getArgOperand(0), env, 64);
+      z3::expr src = getOrMake(call->getArgOperand(1), env, 64);
+      if (auto *CI = dyn_cast<ConstantInt>(call->getArgOperand(2))) {
+        uint64_t len = CI->getZExtValue();
+        for (uint64_t i = 0; i < len; i++)
+          mem.write(dst + zctx->bv_val(i, 64),
+                    mem.read(src + zctx->bv_val(i, 64), 8));
+      } else {
+        mem.write(dst, mem.read(src, 8)); // conservative
+      }
+      return;
+    }
+
+    if ((name == "memset" || name.find("llvm.memset") != StringRef::npos) &&
+        call->arg_size() >= 3) {
+      z3::expr dst = getOrMake(call->getArgOperand(0), env, 64);
+      z3::expr fill = getOrMake(call->getArgOperand(1), env, 8);
+      if (auto *CI = dyn_cast<ConstantInt>(call->getArgOperand(2))) {
+        uint64_t len = CI->getZExtValue();
+        for (uint64_t i = 0; i < len; i++)
+          mem.write(dst + zctx->bv_val(i, 64), fill);
+      } else {
+        mem.write(dst, fill);
+      }
+      return;
+    }
+
+    bool inCallStack = false;
+    for (auto *f : callStack)
+      if (f == callee) {
+        inCallStack = true;
+        break;
+      }
+
+    if (!callee->isDeclaration() && funcLevel.count(callee) &&
+        funcLevel[callee] != Level::Public && !inCallStack) {
+
+      SymEnv calleeEnv;
+      int i = 0;
+      for (Argument &farg : callee->args()) {
+        unsigned w = farg.getType()->isIntegerTy()
+                         ? farg.getType()->getIntegerBitWidth()
+                         : 64;
+        calleeEnv.insert_or_assign(&farg,
+                                   getOrMake(call->getArgOperand(i++), env, w));
+      }
+
+      processFunction(callee, calleeEnv, mem);
+
+      for (auto &BB : *callee) {
+        if (auto *ret = dyn_cast<ReturnInst>(BB.getTerminator())) {
+          if (ret->getReturnValue()) {
+            // The ReturnInst itself was stored in calleeEnv by liftInstr
+            auto it = calleeEnv.find(ret);
+            if (it != calleeEnv.end())
+              envSet(env, call, it->second);
+          }
+          break; 
+        }
+      }
+      return;
+    }
+
+    if (call->getType()->isIntegerTy()) {
+      std::string sym = callee->getName().str() + "_ret";
+      envSet(
+          env, call,
+          zctx->bv_const(sym.c_str(), call->getType()->getIntegerBitWidth()));
+    }
+  }
 
   void propagateCond(BasicBlock *BB, SymEnv &env,
                      map<BasicBlock *, z3::expr> &pathCond) {
 
-    Instruction *end = BB->getTerminator();
+    Instruction *term = BB->getTerminator();
+
+    auto pcIt = pathCond.find(BB);
     z3::expr parentCond =
-        (pathCond.at(BB)) ? pathCond[BB] : zctx->bool_val(false);
+        (pcIt != pathCond.end()) ? pcIt->second : zctx->bool_val(false);
 
-    if (auto *br = dyn_cast<BranchInst>(end)) {
-
+    if (auto *br = dyn_cast<BranchInst>(term)) {
       if (br->isUnconditional()) {
         mergePathCond(pathCond, br->getSuccessor(0), parentCond);
       } else {
         z3::expr rawCond = getOrMake(br->getCondition(), env, 1);
         z3::expr boolCond = (rawCond == zctx->bv_val(1, 1));
-
         mergePathCond(pathCond, br->getSuccessor(0), parentCond && boolCond);
         mergePathCond(pathCond, br->getSuccessor(1), parentCond && !boolCond);
       }
+    } else if (auto *sw = dyn_cast<SwitchInst>(term)) {
+      unsigned sw_w = sw->getCondition()->getType()->getIntegerBitWidth();
+      z3::expr switchVal = getOrMake(sw->getCondition(), env, sw_w);
+      z3::expr defaultCond = parentCond;
 
-    } else if (auto *sw = dyn_cast<SwitchInst>(end)) {
+      for (auto &cas : sw->cases()) {
+        z3::expr caseVal =
+            zctx->bv_val(cas.getCaseValue()->getZExtValue(), sw_w);
+        z3::expr caseCond = parentCond && (switchVal == caseVal);
+        mergePathCond(pathCond, cas.getCaseSuccessor(), caseCond);
+        defaultCond = defaultCond && !(switchVal == caseVal);
+      }
+      mergePathCond(pathCond, sw->getDefaultDest(), defaultCond);
     }
+    
   }
 
   void mergePathCond(map<BasicBlock *, z3::expr> &pathCond, BasicBlock *succ,
-                     z3::expr parentCond) {
+                     z3::expr cond) {
     auto it = pathCond.find(succ);
-    if (it == pathCond.end()) {
-      pathCond.emplace(succ, parentCond);
-    } else {
-      it->second = it->second || parentCond;
-    }
+    if (it == pathCond.end())
+      pathCond.emplace(succ, cond);
+    else
+      it->second = it->second || cond;
   }
 
-  void printResults() {}
+  void printResults() {
+    llvm::outs() << "\n[SymbolicPass] Results\n";
+    for (auto &[F, instrMap] : allSymExprs) {
+      llvm::outs() << "Function: " << F->getName() << "  (" << instrMap.size()
+                   << " instructions lifted)\n";
+      for (auto &[I, expr] : instrMap) {
+        llvm::outs() << "  ";
+        I->print(llvm::outs());
+        llvm::outs() << "\n    Z3: " << expr.to_string() << "\n";
+      }
+      llvm::outs() << "\n";
+    }
+  }
 };
 
 int main() {
@@ -571,7 +974,7 @@ int main() {
   // Module Pass Manager
   ModulePassManager MPM;
   MPM.addPass(LevelPropPass());
-  MPM.addPass(SymbolicPass());
+  // MPM.addPass(SymbolicPass());
 
   // Run
   MPM.run(*module, MAM);
