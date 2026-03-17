@@ -44,7 +44,7 @@ public:
 
     Env global;
     analyzeFunc(main, global);
-    printMaps();
+    // printMaps();
     return PreservedAnalyses::all();
   }
 
@@ -974,7 +974,7 @@ int main() {
   // Module Pass Manager
   ModulePassManager MPM;
   MPM.addPass(LevelPropPass());
-  // MPM.addPass(SymbolicPass());
+  MPM.addPass(SymbolicPass());
 
   // Run
   MPM.run(*module, MAM);
