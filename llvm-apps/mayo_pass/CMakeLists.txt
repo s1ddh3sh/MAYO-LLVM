@@ -24,7 +24,7 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories(${CLANG_INCLUDE_DIRS})
 
 
-add_executable(llvm-demo Hello.cpp)
+add_executable(llvm-demo mayo_constant_prop.cpp)
 
 # Link Clang *components*
 target_link_libraries(llvm-demo

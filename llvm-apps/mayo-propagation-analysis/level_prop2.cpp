@@ -406,7 +406,7 @@ public:
 int main() {
   LLVMContext ctx;
   SMDiagnostic err;
-  auto module = parseIRFile("../mayo.ll", err, ctx);
+  auto module = parseIRFile("../no-inline/mayo1.ll", err, ctx);
 
   LoopAnalysisManager LAM;
   FunctionAnalysisManager FAM;
@@ -423,8 +423,8 @@ int main() {
 
   // Module Pass Manager
   ModulePassManager MPM;
-  // MPM.addPass(LevelPropPass());
-  MPM.addPass(DefUseGraph());
+  MPM.addPass(LevelPropPass());
+  // MPM.addPass(DefUseGraph());
 
   // Run
   MPM.run(*module, MAM);
