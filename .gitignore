@@ -4,6 +4,7 @@
 build/
 build32/
 build64/
+/llvm-apps/fault-prop/llvmbmc
 
 doc/*.html
 doc/doc.css

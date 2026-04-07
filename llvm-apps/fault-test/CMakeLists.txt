@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(fault_prop)
+project(v_Ox_add_expr)
 set(LLVM_DIR "/usr/lib/llvm-20/lib/cmake/llvm")
 
 find_package(LLVM REQUIRED CONFIG)
@@ -13,16 +13,16 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Z3 setup
-# find_package(Z3 QUIET)
-# if(NOT Z3_FOUND)
-#   # Fall back to pkg-config if find_package fails
-#   find_package(PkgConfig QUIET)
-#   if(PkgConfig_FOUND)
-#     pkg_check_modules(Z3 REQUIRED z3)
-#   else()
-#     message(Error "Z3 not found and pkg-config not available")
-#   endif()
-# endif()
+find_package(Z3 QUIET)
+if(NOT Z3_FOUND)
+  # Fall back to pkg-config if find_package fails
+  find_package(PkgConfig QUIET)
+  if(PkgConfig_FOUND)
+    pkg_check_modules(Z3 REQUIRED z3)
+  else()
+    message(Error "Z3 not found and pkg-config not available")
+  endif()
+endif()
 
 add_executable(fault_prop fault_prop.cpp)
 
@@ -41,10 +41,10 @@ llvm_map_components_to_libnames(LLVM_LIBS
 target_link_libraries(fault_prop
   PRIVATE
   ${LLVM_LIBS}
-  # ${Z3_LIBRARIES}
+  ${Z3_LIBRARIES}
 )
 
-# target_include_directories(fault_prop
-#   PRIVATE
-#   ${Z3_INCLUDE_DIRS}
-# )
+target_include_directories(fault_prop
+  PRIVATE
+  ${Z3_INCLUDE_DIRS}
+)
