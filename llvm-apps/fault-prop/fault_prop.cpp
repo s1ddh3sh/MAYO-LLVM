@@ -8,6 +8,8 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Utils/Cloning.h"
+#include "llvm/Transforms/Utils/Mem2Reg.h"
+
 #include <array>
 #include <cstdio>
 #include <cstdlib>
@@ -17,6 +19,7 @@
 #include <llvm-20/llvm/IR/InstrTypes.h>
 #include <llvm-20/llvm/Support/Casting.h>
 #include <llvm-20/llvm/Transforms/Utils/ValueMapper.h>
+
 #include <memory>
 #include <vector>
 
@@ -72,7 +75,7 @@ struct FaultResult {
   std::string llFile;
   std::string smt2File;
 };
-enum class FaultModel { Undef, Zero, One, OpB, OpC };
+enum class FaultModel { Undef, Zero, OpB, OpC };
 
 class SkipAddPass : public PassInfoMixin<SkipAddPass> {
   FaultModel FM;
@@ -109,7 +112,7 @@ public:
           Instruction *I = &*it++;
 
           if (auto *binOp = dyn_cast<BinaryOperator>(I)) {
-            if (binOp->getOpcode() == Instruction::Xor) {
+            if (binOp->getOpcode() == Instruction::Add) {
 
               Value *b = binOp->getOperand(0);
               Value *c = binOp->getOperand(1);
@@ -126,10 +129,6 @@ public:
               case FaultModel::Zero:
                 faulty = ConstantInt::get(ty, 0);
                 faultyDesc = "i32 0";
-                break;
-              case FaultModel::One:
-                faulty = ConstantInt::get(ty, 1);
-                faultyDesc = "i32 1";
                 break;
               case FaultModel::OpB:
                 faulty = b;
@@ -205,9 +204,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Function *target = module->getFunction("mul_table");
+  Function *target = module->getFunction("test");
   if (!target) {
-    errs() << "Function not found in input module\n";
+    errs() << "Function 'test' not found in input module\n";
     errs() << "Available functions:\n";
     for (Function &F : *module) {
       errs() << "  " << F.getName() << (F.isDeclaration() ? " [decl]" : "")
@@ -220,6 +219,27 @@ int main(int argc, char **argv) {
   if (!funcModule) {
     errs() << "Failed to create extracted module\n";
     return 1;
+  }
+
+  {
+    LoopAnalysisManager LAM;
+    FunctionAnalysisManager FAM;
+    CGSCCAnalysisManager CGAM;
+    ModuleAnalysisManager MAM;
+
+    PassBuilder PB;
+    PB.registerModuleAnalyses(MAM);
+    PB.registerCGSCCAnalyses(CGAM);
+    PB.registerFunctionAnalyses(FAM);
+    PB.registerLoopAnalyses(LAM);
+    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+
+    FunctionPassManager FPM;
+    FPM.addPass(PromotePass());
+
+    ModulePassManager MPM;
+    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+    MPM.run(*funcModule, MAM);
   }
 
   dump_module(*funcModule, "../original.ll");
@@ -235,8 +255,7 @@ int main(int argc, char **argv) {
   };
 
   FaultEntry faults[] = {
-      {FaultModel::Undef, "undef"}, {FaultModel::Zero, "zero"},
-      {FaultModel::One, "one"},     {FaultModel::OpB, "opB"},
+      {FaultModel::Undef, "undef"}, {FaultModel::Zero, "zero"},  {FaultModel::OpB, "opB"},
       {FaultModel::OpC, "opC"},
   };
 
@@ -260,7 +279,12 @@ int main(int argc, char **argv) {
     PB.registerLoopAnalyses(LAM);
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
+    FunctionPassManager FPM;
+    FPM.addPass(PromotePass());
+
     ModulePassManager MPM;
+    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+
     MPM.addPass(SkipAddPass(fe.model, &result));
     MPM.run(*cloned, MAM);
 
