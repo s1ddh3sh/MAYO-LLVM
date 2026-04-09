@@ -88,6 +88,11 @@ int main() {
   s.add(b2 > ctx.int_val(0));
   s.add(c1 > ctx.int_val(0));
   s.add(c2 > ctx.int_val(0));
+
+  // s.add(b1 < ctx.int_val(256));
+  // s.add(b2 < ctx.int_val(256));
+  // s.add(c1 < ctx.int_val(256));
+  // s.add(c2 < ctx.int_val(256));
   s.add(b1 != b2);
 
   if (s.check() == sat) {
