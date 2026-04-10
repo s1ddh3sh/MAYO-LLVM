@@ -74,20 +74,20 @@ int main() {
   // cout << bvC_b1.arg(0).arg(1).to_string() << "\n";
   // cout << bvC_b2.arg(0).arg(1).to_string() << "\n";
 
-
-
   s.add(delta_b1 == ctx.bv_val(0, 8));
   s.add(delta_b2 != ctx.bv_val(0, 8));
+
   // expr b1 = ctx.int_const(bvF_b1.arg(0).to_string().c_str());
   // expr b2 = ctx.int_const(bvF_b2.arg(0).to_string().c_str());
+
   expr b1 = ctx.int_const("i_1__b1");
   expr b2 = ctx.int_const("i_1__b2");
   expr c1 = ctx.int_const("i_2__b1");
   expr c2 = ctx.int_const("i_2__b2");
-  s.add(b1 > ctx.int_val(0));
-  s.add(b2 > ctx.int_val(0));
-  s.add(c1 > ctx.int_val(0));
-  s.add(c2 > ctx.int_val(0));
+  s.add(b1 >= ctx.int_val(0));
+  s.add(b2 >= ctx.int_val(0));
+  s.add(c1 >= ctx.int_val(0));
+  s.add(c2 >= ctx.int_val(0));
 
   // s.add(b1 < ctx.int_val(256));
   // s.add(b2 < ctx.int_val(256));

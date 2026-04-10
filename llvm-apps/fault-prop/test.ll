@@ -13,7 +13,7 @@ define dso_local i32 @test(i32 noundef %0, i32 noundef %1) #0 {
   store i32 %1, ptr %4, align 4
   %7 = load i32, ptr %3, align 4
   %8 = load i32, ptr %4, align 4
-  %9 = add nsw i32 %7, %8
+  %9 = mul nsw i32 %7, %8
   store i32 %9, ptr %5, align 4
   %10 = load i32, ptr %5, align 4
   store i32 %10, ptr %6, align 4

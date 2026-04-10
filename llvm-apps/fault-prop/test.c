@@ -1,7 +1,7 @@
 #include <stdbool.h>
 bool assert(bool);
 int test(int b, int c) {
-  int a = b + c;
+  int a = b * c;
   int out = a;
   assert(out == b);
   return out;

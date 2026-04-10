@@ -112,7 +112,7 @@ public:
           Instruction *I = &*it++;
 
           if (auto *binOp = dyn_cast<BinaryOperator>(I)) {
-            if (binOp->getOpcode() == Instruction::Add) {
+            if (binOp->getOpcode() == Instruction::Mul) {
 
               Value *b = binOp->getOperand(0);
               Value *c = binOp->getOperand(1);
@@ -255,7 +255,9 @@ int main(int argc, char **argv) {
   };
 
   FaultEntry faults[] = {
-      {FaultModel::Undef, "undef"}, {FaultModel::Zero, "zero"},  {FaultModel::OpB, "opB"},
+      {FaultModel::Undef, "undef"},
+      {FaultModel::Zero, "zero"},
+      {FaultModel::OpB, "opB"},
       {FaultModel::OpC, "opC"},
   };
 
