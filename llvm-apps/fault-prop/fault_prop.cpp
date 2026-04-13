@@ -17,6 +17,7 @@
 #include <llvm-20/llvm/ADT/SmallVector.h>
 #include <llvm-20/llvm/IR/Function.h>
 #include <llvm-20/llvm/IR/InstrTypes.h>
+#include <llvm-20/llvm/IR/Instruction.h>
 #include <llvm-20/llvm/Support/Casting.h>
 #include <llvm-20/llvm/Transforms/Utils/ValueMapper.h>
 
@@ -112,7 +113,7 @@ public:
           Instruction *I = &*it++;
 
           if (auto *binOp = dyn_cast<BinaryOperator>(I)) {
-            if (binOp->getOpcode() == Instruction::Mul) {
+            if (binOp->getOpcode() == Instruction::Mul || binOp->getOpcode() == Instruction::Add) {
 
               Value *b = binOp->getOperand(0);
               Value *c = binOp->getOperand(1);
