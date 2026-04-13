@@ -60,15 +60,18 @@ int main() {
   expr outC_b2 = substitute_vars(outC, ctx, "_b2");
   expr outF_b2 = substitute_vars(outF, ctx, "_b2");
 
-  expr bvC_b1 = z3::to_expr(ctx, Z3_mk_int2bv(ctx, 8, outC_b1));
-  expr bvF_b1 = z3::to_expr(ctx, Z3_mk_int2bv(ctx, 8, outF_b1));
+  expr bvC_b1 = int2bv(8, outC_b1);
+  expr bvF_b1 = int2bv(8, outF_b1);
+  // bvC_b1 = int2bv(8, outC_b1);
 
-  expr bvC_b2 = z3::to_expr(ctx, Z3_mk_int2bv(ctx, 8, outC_b2));
-  expr bvF_b2 = z3::to_expr(ctx, Z3_mk_int2bv(ctx, 8, outF_b2));
+  expr bvC_b2 = int2bv(8, outC_b2);
+  expr bvF_b2 = int2bv(8, outF_b2);
 
   expr delta_b1 = bvC_b1 ^ bvF_b1;
   expr delta_b2 = bvC_b2 ^ bvF_b2;
 
+  // cout << delta_b1 << "\n";
+  // cout << delta_b2;
   // cout << bvC_b1.arg(0).arg(0).to_string() << "\n";
   // cout << bvC_b2.arg(0).arg(0).to_string() << "\n";
   // cout << bvC_b1.arg(0).arg(1).to_string() << "\n";
@@ -84,15 +87,22 @@ int main() {
   expr b2 = ctx.int_const("i_1__b2");
   expr c1 = ctx.int_const("i_2__b1");
   expr c2 = ctx.int_const("i_2__b2");
+
   s.add(b1 >= ctx.int_val(0));
   s.add(b2 >= ctx.int_val(0));
   s.add(c1 >= ctx.int_val(0));
   s.add(c2 >= ctx.int_val(0));
 
-  // s.add(b1 < ctx.int_val(256));
-  // s.add(b2 < ctx.int_val(256));
-  // s.add(c1 < ctx.int_val(256));
-  // s.add(c2 < ctx.int_val(256));
+  s.add(b1 < ctx.int_val(256));
+  s.add(b2 < ctx.int_val(256));
+  s.add(c1 < ctx.int_val(256));
+  s.add(c2 < ctx.int_val(256));
+
+
+  // s.add(b1 == ctx.int_val(0));
+  // s.add(c1 == ctx.int_val(1));
+
+
   s.add(b1 != b2);
 
   if (s.check() == sat) {
