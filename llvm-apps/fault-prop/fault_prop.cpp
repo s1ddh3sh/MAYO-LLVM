@@ -133,10 +133,13 @@ public:
                 break;
               case FaultModel::OpB:
                 faulty = b;
+                // faulty = ConstantInt::get(ty)
                 faultyDesc = valueName(b);
                 break;
               case FaultModel::OpC:
                 faulty = c;
+                faulty = ConstantInt::get(ty, 12);
+
                 faultyDesc = valueName(c);
                 break;
               }

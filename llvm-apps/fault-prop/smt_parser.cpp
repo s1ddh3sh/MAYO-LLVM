@@ -46,7 +46,7 @@ int main() {
   solver s(ctx);
 
   expr_vector correct = ctx.parse_file("correct.smt2");
-  expr_vector faulty = ctx.parse_file("faulty_opB.smt2");
+  expr_vector faulty = ctx.parse_file("faulty_opC.smt2");
 
   expr outC = extract_output(correct);
   expr outF = extract_output(faulty);

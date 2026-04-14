@@ -5,9 +5,9 @@ target triple = "x86_64-pc-linux-gnu"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @test(i32 noundef %0, i32 noundef %1) #0 {
-  %3 = icmp eq i32 %1, %0
+  %3 = icmp eq i32 12, %0
   %4 = call zeroext i1 @assert(i1 noundef zeroext %3)
-  ret i32 %1
+  ret i32 12
 }
 
 declare zeroext i1 @assert(i1 noundef zeroext) #1
