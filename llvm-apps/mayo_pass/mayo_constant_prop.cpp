@@ -197,22 +197,24 @@ void prepare(std::unique_ptr<llvm::Module> &module,
   ModulePassManager MPM;
   MPM.addPass(GlobalOptPass());
 
-  // constants 
-  {
-    FunctionPassManager FPM;
-    FPM.addPass(PromotePass());
-    FPM.addPass(SCCPPass());
-    FPM.addPass(InstCombinePass());
-    FPM.addPass(SimplifyCFGPass());
-    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
-  }
-
+  
   // inlining
   {
     InlineParams IP;
-    IP.DefaultThreshold = 100;
+    IP.DefaultThreshold = 10000;
     MPM.addPass(ModuleInlinerPass(IP));
   }
+  
+  // constants
+  // {
+  //   FunctionPassManager FPM;
+  //   FPM.addPass(PromotePass());
+  //   FPM.addPass(SCCPPass());
+  //   FPM.addPass(CorrelatedValuePropagationPass());
+  //   FPM.addPass(InstCombinePass());
+  //   FPM.addPass(SimplifyCFGPass());
+  //   MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+  // }
 
   {
     FunctionPassManager FPM;
@@ -238,6 +240,17 @@ void prepare(std::unique_ptr<llvm::Module> &module,
     // FPM.addPass(SCCPPass()); // SCCP again after unrolling
     // FPM.addPass(InstCombinePass());
     // FPM.addPass(SimplifyCFGPass());
+
+    LoopUnrollOptions options;
+    options.setFullUnrollMaxCount(1024);
+    options.setPartial(true);
+    options.setRuntime(true);
+    // options.setUpperBound(true);
+    FPM.addPass(LoopUnrollPass(options));
+    FPM.addPass(InstCombinePass());
+    FPM.addPass(SCCPPass());
+    FPM.addPass(SimplifyCFGPass());
+
     MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
   }
 
@@ -278,9 +291,8 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    
     prepare(module, variant);
-    std::string outPath = "../" + suffix + ".ll";
+    std::string outPath = "../unrolled/" + suffix + ".ll";
     std::error_code EC;
     llvm::raw_fd_ostream outFile(outPath, EC);
     if (!EC)
