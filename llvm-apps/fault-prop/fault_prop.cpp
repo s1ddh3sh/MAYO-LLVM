@@ -113,7 +113,8 @@ public:
           Instruction *I = &*it++;
 
           if (auto *binOp = dyn_cast<BinaryOperator>(I)) {
-            if (binOp->getOpcode() == Instruction::Mul || binOp->getOpcode() == Instruction::Add) {
+            if (binOp->getOpcode() == Instruction::Mul ||
+                binOp->getOpcode() == Instruction::Add) {
 
               Value *b = binOp->getOperand(0);
               Value *c = binOp->getOperand(1);
@@ -208,7 +209,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Function *target = module->getFunction("test");
+  Function *target = module->getFunction("mat_mul");
   if (!target) {
     errs() << "Function 'test' not found in input module\n";
     errs() << "Available functions:\n";
@@ -249,10 +250,9 @@ int main(int argc, char **argv) {
   dump_module(*funcModule, "../original.ll");
   // auto mod = parseIRFile("original.ll", err, ctx);
   // outs() << *funcModule;
-
-  run_command("../llvmbmc ../original.ll --dump-solver-query -f test");
+  run_command("../llvmbmc ../original.ll --dump-solver-query -f mat_mul");
   run_command("cp /tmp/test.smt2 ../correct.smt2");
-
+  return 1;
   struct FaultEntry {
     FaultModel model;
     const char *name;
