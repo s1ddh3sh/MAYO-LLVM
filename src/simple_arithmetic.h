@@ -3,7 +3,8 @@
 #ifndef SIMPLE_ARITHMETIC_H
 #define SIMPLE_ARITHMETIC_H
 #include <mem.h>
-
+#include <stdbool.h>
+bool assert(bool);
 // GF(16) multiplication mod x^4 + x + 1
 static inline unsigned char mul_f(unsigned char a, unsigned char b) {
     // carryless multiply
@@ -82,6 +83,7 @@ static inline void mat_mul(const unsigned char *a, const unsigned char *b,
             *c = lincomb(a, b + j, colrow_ab, col_b);
         }
     }
+    assert(row_a == col_b);
 }
 
 static inline void mat_add(const unsigned char *a, const unsigned char *b,

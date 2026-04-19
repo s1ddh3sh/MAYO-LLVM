@@ -199,11 +199,11 @@ void prepare(std::unique_ptr<llvm::Module> &module,
 
   
   // inlining
-  {
-    InlineParams IP;
-    IP.DefaultThreshold = 10000;
-    MPM.addPass(ModuleInlinerPass(IP));
-  }
+  // {
+  //   InlineParams IP;
+  //   IP.DefaultThreshold = 10000;
+  //   MPM.addPass(ModuleInlinerPass(IP));
+  // }
   
   // constants
   // {
@@ -292,7 +292,7 @@ int main(int argc, char **argv) {
     }
 
     prepare(module, variant);
-    std::string outPath = "../unrolled/" + suffix + ".ll";
+    std::string outPath = "../no-inline/" + suffix + ".ll";
     std::error_code EC;
     llvm::raw_fd_ostream outFile(outPath, EC);
     if (!EC)
