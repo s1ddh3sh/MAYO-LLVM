@@ -1,14 +1,26 @@
 #include <stdbool.h>
 bool assert(bool);
-int test(int b, int c) {
-  int a = b * c;
-  int out = a;
-  assert(out == b);
+static inline unsigned char mul_f(unsigned char a, unsigned char b) {
+  // carryless multiply
+  unsigned char p;
+
+  p = (a & 1) * b;
+  p ^= (a & 2) * b;
+  p ^= (a & 4) * b;
+  p ^= (a & 8) * b;
+
+  // reduce mod x^4 + x + 1
+  unsigned char top_p = p & 0xf0;
+  unsigned char out = (p ^ (top_p >> 4) ^ (top_p >> 3)) & 0x0f;
   return out;
 }
 
-int solve() {
-  int a = 2, b = 2;
-  int res = test(a, b);
-  return res;
+unsigned char lincomb(const unsigned char *a,
+                                    const unsigned char *b, int n, int m) {
+  unsigned char ret = 0;
+  for (int i = 0; i < n; ++i, b += m) {
+    ret = mul_f(a[i], *b) ^ ret;
+  }
+  assert(a == b);
+  return ret;
 }

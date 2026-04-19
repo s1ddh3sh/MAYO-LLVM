@@ -188,13 +188,39 @@ void dump_module(Module &M, const std::string &filename) {
 
 std::unique_ptr<Module> extractFunction(Module &M, Function *F) {
   auto newMod = CloneModule(M);
+
+  std::set<std::string> keep;
+  keep.insert(F->getName().str());
+
+  std::function<void(Function *)> collectCallees = [&](Function *fn) {
+    for (auto &BB : *fn) {
+      for (auto &I : BB) {
+        if (auto *call = dyn_cast<CallInst>(&I)) {
+          Function *callee = call->getCalledFunction();
+          if (callee && !callee->isDeclaration()) {
+            if (keep.insert(callee->getName().str()).second) {
+              collectCallees(callee); 
+            }
+          }
+        }
+      }
+    }
+  };
+  collectCallees(F); 
+
   for (auto it = newMod->begin(); it != newMod->end();) {
     Function &F2 = *it++;
     if (F2.isDeclaration())
       continue;
-    if (F2.getName() != F->getName())
-      F2.eraseFromParent();
+    if (keep.find(F2.getName().str()) == keep.end()) {
+      if (F2.use_empty())
+        F2.eraseFromParent();
+      else
+        F2.deleteBody(); 
+    }
+    
   }
+
   return newMod;
 }
 
@@ -216,9 +242,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Function *target = module->getFunction("test");
+  Function *target = module->getFunction("lincomb");
   if (!target) {
-    errs() << "Function 'test' not found in input module\n";
+    errs() << "Function 'lincomb' not found in input module\n";
     errs() << "Available functions:\n";
     for (Function &F : *module) {
       errs() << "  " << F.getName() << (F.isDeclaration() ? " [decl]" : "")
@@ -257,7 +283,7 @@ int main(int argc, char **argv) {
   dump_module(*funcModule, "../original.ll");
   // auto mod = parseIRFile("original.ll", err, ctx);
   // outs() << *funcModule;
-  run_command("../llvmbmc ../original.ll --dump-solver-query -f mat_mul");
+  run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
   run_command("cp /tmp/test.smt2 ../correct.smt2");
   return 1;
   struct FaultEntry {
