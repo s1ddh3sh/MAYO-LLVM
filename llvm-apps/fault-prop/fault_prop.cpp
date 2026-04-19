@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Function *target = module->getFunction("mat_mul");
+  Function *target = module->getFunction("test");
   if (!target) {
     errs() << "Function 'test' not found in input module\n";
     errs() << "Available functions:\n";
