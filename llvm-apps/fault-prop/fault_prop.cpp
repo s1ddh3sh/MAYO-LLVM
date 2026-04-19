@@ -113,7 +113,8 @@ public:
           Instruction *I = &*it++;
 
           if (auto *binOp = dyn_cast<BinaryOperator>(I)) {
-            if (binOp->getOpcode() == Instruction::Mul || binOp->getOpcode() == Instruction::Add) {
+            if (binOp->getOpcode() == Instruction::Mul ||
+                binOp->getOpcode() == Instruction::Add) {
 
               Value *b = binOp->getOperand(0);
               Value *c = binOp->getOperand(1);
@@ -126,37 +127,44 @@ public:
               case FaultModel::Undef:
                 faulty = UndefValue::get(ty);
                 faultyDesc = "undef";
+                binOp->replaceAllUsesWith(faulty);
+                binOp->eraseFromParent();
                 break;
               case FaultModel::Zero:
                 faulty = ConstantInt::get(ty, 0);
                 faultyDesc = "i32 0";
+                binOp->replaceAllUsesWith(faulty);
+                binOp->eraseFromParent();
                 break;
-              case FaultModel::OpB:
-                faulty = b;
-                // faulty = ConstantInt::get(ty)
-                faultyDesc = valueName(b);
-                break;
-              case FaultModel::OpC:
-                faulty = c;
-                faulty = ConstantInt::get(ty, 12);
-
-                faultyDesc = valueName(c);
-                break;
+              case FaultModel::OpB: {
+                Value *faultyB = UndefValue::get(b->getType());
+                faultyDesc = "b' = undef";
+                if (Result) {
+                  Result->faultyValueDesc = faultyDesc;
+                  Result->operand0Name = valueName(b);
+                  Result->operand1Name = valueName(c);
+                  Result->functionName = F.getName().str();
+                  Result->originalInstr = instrString(binOp);
+                }
+                binOp->setOperand(0, faultyB);
+                modified = true;
+                goto done;
               }
-
-              if (Result) {
-                Result->functionName = F.getName().str();
-                Result->originalInstr = instrString(binOp);
-                Result->faultyValueDesc = faultyDesc;
-                Result->operand0Name = valueName(b);
-                Result->operand1Name = valueName(c);
+              case FaultModel::OpC: {
+                Value *faultyC = UndefValue::get(c->getType());
+                faultyDesc = "c' = undef";
+                if (Result) {
+                  Result->faultyValueDesc = faultyDesc;
+                  Result->operand0Name = valueName(b);
+                  Result->operand1Name = valueName(c);
+                  Result->functionName = F.getName().str();
+                  Result->originalInstr = instrString(binOp);
+                }
+                binOp->setOperand(1, faultyC);
+                modified = true;
+                goto done;
               }
-
-              binOp->replaceAllUsesWith(faulty);
-              binOp->eraseFromParent();
-
-              modified = true;
-              goto done;
+              }
             }
           }
         }
