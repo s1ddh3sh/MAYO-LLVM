@@ -325,9 +325,9 @@ int main(int argc, char **argv) {
       FPM.addPass(LabeledUnrollPass());
 
       // FPM.addPass(InstCombinePass());
-      // FPM.addPass(SCCPPass());
+      FPM.addPass(SCCPPass());
       // FPM.addPass(SimplifyCFGPass());
-      // FPM.addPass(PromotePass());
+      FPM.addPass(PromotePass());
 
       MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
     }

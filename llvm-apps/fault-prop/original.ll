@@ -39,9 +39,7 @@ iter_0_start:                                     ; preds = %2
   %.masked.iter0 = and i8 %20, 15
   %25 = xor i8 %24, %.masked.iter0
   %26 = xor i8 %25, 0
-  %indvars.iv.next.iter0 = add nuw nsw i64 0, 1
   %27 = getelementptr inbounds nuw i8, ptr %1, i64 1
-  %exitcond.iter0 = icmp ne i64 %indvars.iv.next.iter0, 8
   br label %iter_0_end
 
 iter_0_end:                                       ; preds = %6
@@ -51,7 +49,7 @@ iter_1_start:                                     ; preds = %iter_0_end
   br label %28
 
 28:                                               ; preds = %iter_1_start
-  %29 = getelementptr inbounds nuw i8, ptr %0, i64 %indvars.iv.next.iter0
+  %29 = getelementptr inbounds nuw i8, ptr %0, i64 1
   %30 = load i8, ptr %29, align 1
   %31 = and i8 %30, 8
   %32 = load i8, ptr %27, align 1
@@ -72,9 +70,7 @@ iter_1_start:                                     ; preds = %iter_0_end
   %.masked.iter1 = and i8 %42, 15
   %47 = xor i8 %46, %.masked.iter1
   %48 = xor i8 %47, %26
-  %indvars.iv.next.iter1 = add nuw nsw i64 %indvars.iv.next.iter0, 1
   %49 = getelementptr inbounds nuw i8, ptr %27, i64 1
-  %exitcond.iter1 = icmp ne i64 %indvars.iv.next.iter1, 8
   br label %iter_1_end
 
 iter_1_end:                                       ; preds = %28
@@ -84,7 +80,7 @@ iter_2_start:                                     ; preds = %iter_1_end
   br label %50
 
 50:                                               ; preds = %iter_2_start
-  %51 = getelementptr inbounds nuw i8, ptr %0, i64 %indvars.iv.next.iter1
+  %51 = getelementptr inbounds nuw i8, ptr %0, i64 2
   %52 = load i8, ptr %51, align 1
   %53 = and i8 %52, 8
   %54 = load i8, ptr %49, align 1
@@ -105,9 +101,7 @@ iter_2_start:                                     ; preds = %iter_1_end
   %.masked.iter2 = and i8 %64, 15
   %69 = xor i8 %68, %.masked.iter2
   %70 = xor i8 %69, %48
-  %indvars.iv.next.iter2 = add nuw nsw i64 %indvars.iv.next.iter1, 1
   %71 = getelementptr inbounds nuw i8, ptr %49, i64 1
-  %exitcond.iter2 = icmp ne i64 %indvars.iv.next.iter2, 8
   br label %iter_2_end
 
 iter_2_end:                                       ; preds = %50
@@ -117,7 +111,7 @@ iter_3_start:                                     ; preds = %iter_2_end
   br label %72
 
 72:                                               ; preds = %iter_3_start
-  %73 = getelementptr inbounds nuw i8, ptr %0, i64 %indvars.iv.next.iter2
+  %73 = getelementptr inbounds nuw i8, ptr %0, i64 3
   %74 = load i8, ptr %73, align 1
   %75 = and i8 %74, 8
   %76 = load i8, ptr %71, align 1
@@ -138,9 +132,7 @@ iter_3_start:                                     ; preds = %iter_2_end
   %.masked.iter3 = and i8 %86, 15
   %91 = xor i8 %90, %.masked.iter3
   %92 = xor i8 %91, %70
-  %indvars.iv.next.iter3 = add nuw nsw i64 %indvars.iv.next.iter2, 1
   %93 = getelementptr inbounds nuw i8, ptr %71, i64 1
-  %exitcond.iter3 = icmp ne i64 %indvars.iv.next.iter3, 8
   br label %iter_3_end
 
 iter_3_end:                                       ; preds = %72
@@ -150,7 +142,7 @@ iter_4_start:                                     ; preds = %iter_3_end
   br label %94
 
 94:                                               ; preds = %iter_4_start
-  %95 = getelementptr inbounds nuw i8, ptr %0, i64 %indvars.iv.next.iter3
+  %95 = getelementptr inbounds nuw i8, ptr %0, i64 4
   %96 = load i8, ptr %95, align 1
   %97 = and i8 %96, 8
   %98 = load i8, ptr %93, align 1
@@ -171,9 +163,7 @@ iter_4_start:                                     ; preds = %iter_3_end
   %.masked.iter4 = and i8 %108, 15
   %113 = xor i8 %112, %.masked.iter4
   %114 = xor i8 %113, %92
-  %indvars.iv.next.iter4 = add nuw nsw i64 %indvars.iv.next.iter3, 1
   %115 = getelementptr inbounds nuw i8, ptr %93, i64 1
-  %exitcond.iter4 = icmp ne i64 %indvars.iv.next.iter4, 8
   br label %iter_4_end
 
 iter_4_end:                                       ; preds = %94
@@ -183,7 +173,7 @@ iter_5_start:                                     ; preds = %iter_4_end
   br label %116
 
 116:                                              ; preds = %iter_5_start
-  %117 = getelementptr inbounds nuw i8, ptr %0, i64 %indvars.iv.next.iter4
+  %117 = getelementptr inbounds nuw i8, ptr %0, i64 5
   %118 = load i8, ptr %117, align 1
   %119 = and i8 %118, 8
   %120 = load i8, ptr %115, align 1
@@ -204,9 +194,7 @@ iter_5_start:                                     ; preds = %iter_4_end
   %.masked.iter5 = and i8 %130, 15
   %135 = xor i8 %134, %.masked.iter5
   %136 = xor i8 %135, %114
-  %indvars.iv.next.iter5 = add nuw nsw i64 %indvars.iv.next.iter4, 1
   %137 = getelementptr inbounds nuw i8, ptr %115, i64 1
-  %exitcond.iter5 = icmp ne i64 %indvars.iv.next.iter5, 8
   br label %iter_5_end
 
 iter_5_end:                                       ; preds = %116
@@ -216,7 +204,7 @@ iter_6_start:                                     ; preds = %iter_5_end
   br label %138
 
 138:                                              ; preds = %iter_6_start
-  %139 = getelementptr inbounds nuw i8, ptr %0, i64 %indvars.iv.next.iter5
+  %139 = getelementptr inbounds nuw i8, ptr %0, i64 6
   %140 = load i8, ptr %139, align 1
   %141 = and i8 %140, 8
   %142 = load i8, ptr %137, align 1
@@ -237,9 +225,7 @@ iter_6_start:                                     ; preds = %iter_5_end
   %.masked.iter6 = and i8 %152, 15
   %157 = xor i8 %156, %.masked.iter6
   %158 = xor i8 %157, %136
-  %indvars.iv.next.iter6 = add nuw nsw i64 %indvars.iv.next.iter5, 1
   %159 = getelementptr inbounds nuw i8, ptr %137, i64 1
-  %exitcond.iter6 = icmp ne i64 %indvars.iv.next.iter6, 8
   br label %iter_6_end
 
 iter_6_end:                                       ; preds = %138
@@ -249,7 +235,7 @@ iter_7_start:                                     ; preds = %iter_6_end
   br label %160
 
 160:                                              ; preds = %iter_7_start
-  %161 = getelementptr inbounds nuw i8, ptr %0, i64 %indvars.iv.next.iter6
+  %161 = getelementptr inbounds nuw i8, ptr %0, i64 7
   %162 = load i8, ptr %161, align 1
   %163 = and i8 %162, 8
   %164 = load i8, ptr %159, align 1
@@ -270,9 +256,7 @@ iter_7_start:                                     ; preds = %iter_6_end
   %.masked.iter7 = and i8 %174, 15
   %179 = xor i8 %178, %.masked.iter7
   %180 = xor i8 %179, %158
-  %indvars.iv.next.iter7 = add nuw nsw i64 %indvars.iv.next.iter6, 1
   %181 = getelementptr inbounds nuw i8, ptr %159, i64 1
-  %exitcond.iter7 = icmp ne i64 %indvars.iv.next.iter7, 8
   br label %iter_7_end
 
 iter_7_end:                                       ; preds = %160
