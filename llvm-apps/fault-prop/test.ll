@@ -17,7 +17,7 @@ define dso_local zeroext i8 @lincomb(ptr noundef %0, ptr noundef %1) #0 {
 
 7:                                                ; preds = %24, %2
   %8 = load i32, ptr %6, align 4
-  %9 = icmp slt i32 %8, 2
+  %9 = icmp slt i32 %8, 8
   br i1 %9, label %10, label %29
 
 10:                                               ; preds = %7

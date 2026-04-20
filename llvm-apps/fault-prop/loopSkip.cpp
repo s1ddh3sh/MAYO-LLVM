@@ -19,19 +19,21 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
 
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/Analysis/LoopAnalysisManager.h"
+#include "llvm/Analysis/LoopInfo.h"
+#include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Transforms/Utils/ValueMapper.h"
 #include <array>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <llvm-20/llvm/ADT/SmallVector.h>
-#include <llvm-20/llvm/Analysis/ScalarEvolution.h>
-#include <llvm-20/llvm/IR/Analysis.h>
-#include <llvm-20/llvm/IR/BasicBlock.h>
-#include <llvm-20/llvm/IR/Function.h>
-#include <llvm-20/llvm/IR/InstrTypes.h>
-#include <llvm-20/llvm/IR/Instruction.h>
-#include <llvm-20/llvm/Support/Casting.h>
-#include <llvm-20/llvm/Transforms/Utils/ValueMapper.h>
 
 #include <memory>
 #include <vector>
@@ -85,6 +87,7 @@ std::unique_ptr<Module> extractFunction(Module &M, Function *F) {
 class LabeledUnrollPass : public PassInfoMixin<LabeledUnrollPass> {
 public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
+
     auto &LI = FAM.getResult<LoopAnalysis>(F);
     auto &SE = FAM.getResult<ScalarEvolutionAnalysis>(F);
 
@@ -113,7 +116,8 @@ public:
       errs() << "Loop not in simplified form\n";
       return;
     }
-    SmallVector<BasicBlock *, 8> origBlocks;
+
+    std::vector<BasicBlock *> origBlocks;
     for (BasicBlock *BB : L->blocks()) {
       origBlocks.push_back(BB);
     }
@@ -122,66 +126,135 @@ public:
     ValueToValueMapTy cumulativeMap;
 
     for (unsigned i = 0; i < tripCount; i++) {
-      std::vector<BasicBlock *> clonedBBs;
+      // 1. Create start label
+      BasicBlock *iterStart = BasicBlock::Create(
+          F.getContext(), "iter_" + std::to_string(i) + "_start", &F);
 
-      for (BasicBlock *BB : origBlocks) {
-        BasicBlock *cloned = CloneBasicBlock(
-            BB, cumulativeMap, std::string(".iter") + std::to_string(i), &F);
-        clonedBBs.push_back(cloned);
-        cumulativeMap[BB] = cloned;
-      }
-      // outs() << cumulativeMap.size() << '\n';
-
-      clonedBBs.front()->setName(std::string("iter_") + std::to_string(i) +
-                                 "_start");
-
-      // Resolve phi nodes in the cloned header BEFORE remapping
-      for (auto it = clonedBBs.front()->begin(); isa<PHINode>(it);) {
-        PHINode *phi = cast<PHINode>(it++);
+      // 2. Resolve PHI nodes for this iteration
+      std::vector<std::pair<PHINode *, Value *>> resolvedPhis;
+      for (PHINode &PN : header->phis()) {
         Value *incoming;
         if (i == 0) {
-          incoming = phi->getIncomingValueForBlock(preheader);
+          incoming = PN.getIncomingValueForBlock(preheader);
         } else {
-          Value *latchVal = phi->getIncomingValueForBlock(latch);
+          Value *latchVal = PN.getIncomingValueForBlock(latch);
           if (Value *mapped = cumulativeMap.lookup(latchVal))
             incoming = mapped;
           else
             incoming = latchVal;
         }
-        phi->replaceAllUsesWith(incoming);
-        phi->eraseFromParent();
+        cumulativeMap[&PN] = incoming;
+        resolvedPhis.push_back({&PN, incoming});
       }
 
-      // Remap all instructions
-      for (BasicBlock *cloned : clonedBBs) {
+      // 3. Clone all blocks for this iteration
+      std::vector<BasicBlock *> iterationCloned;
+      ValueToValueMapTy iterationBlockMap;
+      for (BasicBlock *BB : origBlocks) {
+        BasicBlock *cloned =
+            CloneBasicBlock(BB, cumulativeMap, ".iter" + std::to_string(i), &F);
+        iterationCloned.push_back(cloned);
+        iterationBlockMap[BB] = cloned;
+
+        // Map individual instructions to their clones
+        auto itOrig = BB->begin();
+        auto itCloned = cloned->begin();
+        while (itOrig != BB->end() && itCloned != cloned->end()) {
+          iterationBlockMap[&*itOrig] = &*itCloned;
+          // For next iteration's use
+          cumulativeMap[&*itOrig] = &*itCloned;
+          itOrig++;
+          itCloned++;
+        }
+      }
+
+      // 4. Resolve internal control flow in the cloned iteration
+      for (BasicBlock *cloned : iterationCloned) {
         for (Instruction &I : *cloned) {
-          RemapInstruction(&I, cumulativeMap,
+          RemapInstruction(&I, iterationBlockMap,
                            RF_NoModuleLevelChanges | RF_IgnoreMissingLocals);
         }
       }
 
-      // Wire previous exit → this iteration's entry
-      Instruction *prevTerm = prevIterExit->getTerminator();
-      BranchInst::Create(clonedBBs.front(), prevTerm);
-      prevTerm->eraseFromParent();
+      // 5. Remove PHI nodes from the cloned header as they are now resolved
+      for (auto &pair : resolvedPhis) {
+        PHINode *origPhi = pair.first;
+        Value *resolvedVal = pair.second;
+        if (Value *clonedPhiVal = iterationBlockMap.lookup(origPhi)) {
+          PHINode *clonedPhi = cast<PHINode>(clonedPhiVal);
+          clonedPhi->replaceAllUsesWith(resolvedVal);
+          clonedPhi->eraseFromParent();
+        }
+      }
 
-      // This iteration's exit = cloned latch
-      prevIterExit = cast<BasicBlock>(cumulativeMap[latch]);
+      // 6. Create end label
+      BasicBlock *iterEnd = BasicBlock::Create(
+          F.getContext(), "iter_" + std::to_string(i) + "_end", &F);
+
+      // 7. Connect control flow
+      if (i == 0) {
+        Instruction *prevTerm = preheader->getTerminator();
+        BranchInst::Create(iterStart, preheader);
+        prevTerm->eraseFromParent();
+      } else {
+        BranchInst::Create(iterStart, prevIterExit);
+      }
+
+      BranchInst::Create(iterationCloned.front(), iterStart);
+
+      BasicBlock *clonedLatch = cast<BasicBlock>(iterationBlockMap[latch]);
+      Instruction *latchTerm = clonedLatch->getTerminator();
+      BranchInst::Create(iterEnd, clonedLatch);
+      latchTerm->eraseFromParent();
+
+      prevIterExit = iterEnd;
     }
 
-    Instruction *lastTerm = prevIterExit->getTerminator();
-    BranchInst::Create(exitBB, lastTerm);
-    lastTerm->eraseFromParent();
+    BranchInst::Create(exitBB, prevIterExit);
+    for (auto it = exitBB->begin(); isa<PHINode>(it);) {
+      PHINode *PN = cast<PHINode>(&*it++);
+      Value *incomingVal = nullptr;
 
-    // Remove original loop blocks
-    for (BasicBlock *BB : origBlocks)
-      BB->dropAllReferences();
-    for (BasicBlock *BB : origBlocks)
+      for (unsigned j = 0; j < PN->getNumIncomingValues(); j++) {
+        if (L->contains(PN->getIncomingBlock(j))) {
+          incomingVal = PN->getIncomingValue(j);
+          break;
+        }
+      }
+
+      if (!incomingVal)
+        continue;
+
+      if (Value *mapped = cumulativeMap.lookup(incomingVal))
+        incomingVal = mapped;
+
+      while (true) {
+        bool removed = false;
+        for (unsigned j = 0; j < PN->getNumIncomingValues(); j++) {
+          if (L->contains(PN->getIncomingBlock(j))) {
+            PN->removeIncomingValue(j, false);
+            removed = true;
+            break;
+          }
+        }
+        if (!removed)
+          break;
+      }
+
+      PN->addIncoming(incomingVal, prevIterExit);
+    }
+
+    for (BasicBlock *BB : origBlocks) {
       BB->eraseFromParent();
+    }
   }
 };
 
 int main(int argc, char **argv) {
+  if (argc < 2) {
+    errs() << "Usage: loopSkip <input.ll>\n";
+    return 1;
+  }
   std::string inputFile = argv[1];
 
   LLVMContext ctx;
@@ -194,18 +267,13 @@ int main(int argc, char **argv) {
 
   Function *target = module->getFunction("lincomb");
   if (!target) {
-    errs() << "Function 'lincomb' not found in input module\n";
-    errs() << "Available functions:\n";
-    for (Function &F : *module) {
-      errs() << "  " << F.getName() << (F.isDeclaration() ? " [decl]" : "")
-             << "\n";
-    }
+    std::cout << "Function not found" << std::endl;
     return 1;
   }
 
   auto funcModule = extractFunction(*module, target);
   if (!funcModule) {
-    errs() << "Failed to create extracted module\n";
+    std::cout << "Failed to create extracted module" << std::endl;
     return 1;
   }
   for (Function &F : *funcModule) {
@@ -254,18 +322,12 @@ int main(int argc, char **argv) {
       FPM.addPass(createFunctionToLoopPassAdaptor(LoopRotatePass()));
       FPM.addPass(createFunctionToLoopPassAdaptor(IndVarSimplifyPass()));
 
-      //   LoopUnrollOptions options;
-      //   options.setFullUnrollMaxCount(1024);
-      //   options.setRuntime(false);
-      //   options.setUpperBound(true);
-      //   FPM.addPass(LoopUnrollPass(options));
-
       FPM.addPass(LabeledUnrollPass());
 
-      FPM.addPass(InstCombinePass());
-      FPM.addPass(SCCPPass());
-      FPM.addPass(SimplifyCFGPass());
-      FPM.addPass(PromotePass());
+      // FPM.addPass(InstCombinePass());
+      // FPM.addPass(SCCPPass());
+      // FPM.addPass(SimplifyCFGPass());
+      // FPM.addPass(PromotePass());
 
       MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
     }
@@ -274,7 +336,15 @@ int main(int argc, char **argv) {
 
     MPM.run(*funcModule, MAM);
   }
-
+  // outs() << *funcModule;
+  if (verifyModule(*funcModule, &errs())) {
+    errs() << "Invalid IR\n";
+    return 1;
+  }
+  else{
+    outs() << "IR verified";
+  }
+  std::cout << "Dumping module..." << std::endl;
   dump_module(*funcModule, "../original.ll");
   return 0;
 }
