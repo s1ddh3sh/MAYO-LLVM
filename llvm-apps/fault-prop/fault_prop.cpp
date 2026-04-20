@@ -7,6 +7,15 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "llvm/Transforms/IPO/GlobalOpt.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
+#include "llvm/Transforms/Scalar/IndVarSimplify.h"
+#include "llvm/Transforms/Scalar/LoopUnrollPass.h"
+#include "llvm/Transforms/Scalar/SCCP.h"
+#include "llvm/Transforms/Scalar/SimplifyCFG.h"
+#include "llvm/Transforms/Scalar/LoopRotation.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
 
@@ -80,7 +89,7 @@ enum class FaultModel { Undef, Zero, OpB, OpC };
 
 class SkipAddPass : public PassInfoMixin<SkipAddPass> {
   FaultModel FM;
-  FaultResult *Result; // where to store the result (owned by caller)
+  FaultResult *Result; 
 
   static std::string valueName(Value *V) {
     if (V->hasName())
@@ -90,7 +99,7 @@ class SkipAddPass : public PassInfoMixin<SkipAddPass> {
     V->printAsOperand(os, false);
     return os.str();
   }
-
+F
   static std::string instrString(Instruction *I) {
     std::string s;
     raw_string_ostream os(s);
@@ -199,14 +208,14 @@ std::unique_ptr<Module> extractFunction(Module &M, Function *F) {
           Function *callee = call->getCalledFunction();
           if (callee && !callee->isDeclaration()) {
             if (keep.insert(callee->getName().str()).second) {
-              collectCallees(callee); 
+              collectCallees(callee);
             }
           }
         }
       }
     }
   };
-  collectCallees(F); 
+  collectCallees(F);
 
   for (auto it = newMod->begin(); it != newMod->end();) {
     Function &F2 = *it++;
@@ -216,9 +225,8 @@ std::unique_ptr<Module> extractFunction(Module &M, Function *F) {
       if (F2.use_empty())
         F2.eraseFromParent();
       else
-        F2.deleteBody(); 
+        F2.deleteBody();
     }
-    
   }
 
   return newMod;
@@ -258,7 +266,14 @@ int main(int argc, char **argv) {
     errs() << "Failed to create extracted module\n";
     return 1;
   }
+  for (Function &F : *funcModule) {
+    F.removeFnAttr(Attribute::NoInline);
+    F.removeFnAttr(Attribute::OptimizeNone);
 
+    if (!F.isDeclaration()) {
+      F.addFnAttr(Attribute::InlineHint);
+    }
+  }
   {
     LoopAnalysisManager LAM;
     FunctionAnalysisManager FAM;
@@ -272,20 +287,54 @@ int main(int argc, char **argv) {
     PB.registerLoopAnalyses(LAM);
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
-    FunctionPassManager FPM;
-    FPM.addPass(PromotePass());
-
     ModulePassManager MPM;
-    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+
+    {
+      InlineParams IP;
+      IP.DefaultThreshold = 10000;
+      MPM.addPass(ModuleInlinerPass(IP));
+    }
+    {
+      FunctionPassManager FPM;
+      FPM.addPass(PromotePass());
+      FPM.addPass(SCCPPass());
+      FPM.addPass(CorrelatedValuePropagationPass());
+      FPM.addPass(InstCombinePass());
+      FPM.addPass(SimplifyCFGPass());
+      MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+    }
+    {
+      FunctionPassManager FPM;
+      FPM.addPass(LoopSimplifyPass());
+      FPM.addPass(LCSSAPass());
+      FPM.addPass(createFunctionToLoopPassAdaptor(LoopRotatePass()));
+      FPM.addPass(createFunctionToLoopPassAdaptor(IndVarSimplifyPass()));
+
+      LoopUnrollOptions options;
+      options.setFullUnrollMaxCount(1024);
+      options.setRuntime(false);
+      options.setUpperBound(true);
+      FPM.addPass(LoopUnrollPass(options));
+
+      FPM.addPass(InstCombinePass());
+      FPM.addPass(SCCPPass());
+      FPM.addPass(SimplifyCFGPass());
+      FPM.addPass(PromotePass());
+
+      MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+    }
+
+    MPM.addPass(GlobalOptPass());
+
     MPM.run(*funcModule, MAM);
   }
 
   dump_module(*funcModule, "../original.ll");
   // auto mod = parseIRFile("original.ll", err, ctx);
   // outs() << *funcModule;
+  return 1;
   run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
   run_command("cp /tmp/test.smt2 ../correct.smt2");
-  return 1;
   struct FaultEntry {
     FaultModel model;
     const char *name;

@@ -16,9 +16,9 @@ static inline unsigned char mul_f(unsigned char a, unsigned char b) {
 }
 
 unsigned char lincomb(const unsigned char *a,
-                                    const unsigned char *b, int n, int m) {
+                                    const unsigned char *b) {
   unsigned char ret = 0;
-  for (int i = 0; i < n; ++i, b += m) {
+  for (int i = 0; i < 2; ++i, b += 1) {
     ret = mul_f(a[i], *b) ^ ret;
   }
   assert(a == b);
