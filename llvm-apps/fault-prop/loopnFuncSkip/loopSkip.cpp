@@ -35,10 +35,50 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <llvm-20/llvm/IR/Analysis.h>
+#include <llvm-20/llvm/IR/Constant.h>
 #include <memory>
 #include <vector>
 
 using namespace llvm;
+
+enum FaultMode { LOOP_SKIP = 0, FUNC_SKIP = 1 };
+
+class FuncSkip : public PassInfoMixin<FuncSkip> {
+public:
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
+    bool changed = false;
+    for (BasicBlock &BB : F) {
+      for (auto It = BB.begin(); It != BB.end();) {
+        Instruction *I = &*It++;
+        auto *CI = dyn_cast<CallInst>(I);
+        if (!CI)
+          continue;
+
+        Function *callee = CI->getCalledFunction();
+        if (callee->getName() == "assert")
+          continue;
+        outs() << "skipping fn call" << callee->getName();
+        if (!CI->getType()->isVoidTy()) {
+          Value *v = Constant::getNullValue(CI->getType());
+          CI->replaceAllUsesWith(v);
+        }
+        CI->eraseFromParent();
+        changed = true;
+        break;
+      }
+    }
+    return changed ? PreservedAnalyses::none() : PreservedAnalyses::all();
+  }
+};
+
+void run_command(const std::string &cmd) {
+  int ret = system(cmd.c_str());
+  if (ret != 0) {
+    std::cerr << "Command failed!\n";
+    exit(1);
+  }
+}
 
 void dump_module(Module &M, const std::string &filename) {
   std::error_code EC;
@@ -251,11 +291,15 @@ public:
 };
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    errs() << "Usage: loopSkip <input.ll>\n";
+  if (argc < 3) {
+    errs() << "Usage: loopSkip <input.ll> <mode>\n";
+    errs() << "0 => loopSkip\n";
+    errs() << "1 => funcSkip\n";
     return 1;
   }
+
   std::string inputFile = argv[1];
+  int mode = std::stoi(argv[2]);
 
   LLVMContext ctx;
   SMDiagnostic err;
@@ -276,28 +320,30 @@ int main(int argc, char **argv) {
     std::cout << "Failed to create extracted module" << std::endl;
     return 1;
   }
-  for (Function &F : *funcModule) {
-    F.removeFnAttr(Attribute::NoInline);
-    F.removeFnAttr(Attribute::OptimizeNone);
 
-    if (!F.isDeclaration()) {
-      F.addFnAttr(Attribute::InlineHint);
+  LoopAnalysisManager LAM;
+  FunctionAnalysisManager FAM;
+  CGSCCAnalysisManager CGAM;
+  ModuleAnalysisManager MAM;
+
+  PassBuilder PB;
+  PB.registerModuleAnalyses(MAM);
+  PB.registerCGSCCAnalyses(CGAM);
+  PB.registerFunctionAnalyses(FAM);
+  PB.registerLoopAnalyses(LAM);
+  PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+
+  ModulePassManager MPM;
+
+  if (mode == LOOP_SKIP) {
+    for (Function &F : *funcModule) {
+      F.removeFnAttr(Attribute::NoInline);
+      F.removeFnAttr(Attribute::OptimizeNone);
+
+      if (!F.isDeclaration()) {
+        F.addFnAttr(Attribute::InlineHint);
+      }
     }
-  }
-  {
-    LoopAnalysisManager LAM;
-    FunctionAnalysisManager FAM;
-    CGSCCAnalysisManager CGAM;
-    ModuleAnalysisManager MAM;
-
-    PassBuilder PB;
-    PB.registerModuleAnalyses(MAM);
-    PB.registerCGSCCAnalyses(CGAM);
-    PB.registerFunctionAnalyses(FAM);
-    PB.registerLoopAnalyses(LAM);
-    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
-
-    ModulePassManager MPM;
     // inline
     {
       InlineParams IP;
@@ -331,20 +377,34 @@ int main(int argc, char **argv) {
 
       MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
     }
-
-    MPM.addPass(GlobalOptPass());
-
-    MPM.run(*funcModule, MAM);
+  } else if (mode == FUNC_SKIP) {
+    FunctionPassManager FPM;
+    FPM.addPass(PromotePass());
+    FPM.addPass(SCCPPass());
+    FPM.addPass(FuncSkip());
+    FPM.addPass(SimplifyCFGPass());
+    FPM.addPass(InstCombinePass());
+    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+  } else {
+    errs() << "Invalid mode. Use 0 or 1\n";
+    return 1;
   }
+  MPM.addPass(GlobalOptPass());
+
+  MPM.run(*funcModule, MAM);
+
   // outs() << *funcModule;
   if (verifyModule(*funcModule, &errs())) {
     errs() << "Invalid IR\n";
     return 1;
-  }
-  else{
+  } else {
     outs() << "IR verified";
   }
   std::cout << "Dumping module..." << std::endl;
   dump_module(*funcModule, "../original.ll");
+
+  run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
+  run_command("cp /tmp/test.smt2 ../correct.smt2");
+
   return 0;
 }

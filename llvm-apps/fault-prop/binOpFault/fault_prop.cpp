@@ -12,10 +12,10 @@
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
 #include "llvm/Transforms/Scalar/IndVarSimplify.h"
+#include "llvm/Transforms/Scalar/LoopRotation.h"
 #include "llvm/Transforms/Scalar/LoopUnrollPass.h"
 #include "llvm/Transforms/Scalar/SCCP.h"
 #include "llvm/Transforms/Scalar/SimplifyCFG.h"
-#include "llvm/Transforms/Scalar/LoopRotation.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
 
@@ -89,7 +89,7 @@ enum class FaultModel { Undef, Zero, OpB, OpC };
 
 class SkipAddPass : public PassInfoMixin<SkipAddPass> {
   FaultModel FM;
-  FaultResult *Result; 
+  FaultResult *Result;
 
   static std::string valueName(Value *V) {
     if (V->hasName())
@@ -99,7 +99,7 @@ class SkipAddPass : public PassInfoMixin<SkipAddPass> {
     V->printAsOperand(os, false);
     return os.str();
   }
-F
+
   static std::string instrString(Instruction *I) {
     std::string s;
     raw_string_ostream os(s);
@@ -250,9 +250,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Function *target = module->getFunction("lincomb");
+  Function *target = module->getFunction("test");
   if (!target) {
-    errs() << "Function 'lincomb' not found in input module\n";
+    errs() << "Function  not found in input module\n";
     errs() << "Available functions:\n";
     for (Function &F : *module) {
       errs() << "  " << F.getName() << (F.isDeclaration() ? " [decl]" : "")
@@ -332,8 +332,8 @@ int main(int argc, char **argv) {
   dump_module(*funcModule, "../original.ll");
   // auto mod = parseIRFile("original.ll", err, ctx);
   // outs() << *funcModule;
-  return 1;
-  run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
+
+  run_command("../llvmbmc ../original.ll --dump-solver-query -f test");
   run_command("cp /tmp/test.smt2 ../correct.smt2");
   struct FaultEntry {
     FaultModel model;
