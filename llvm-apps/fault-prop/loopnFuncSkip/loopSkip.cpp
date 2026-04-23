@@ -1,4 +1,3 @@
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -19,24 +18,23 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
 
-#include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/ScalarEvolution.h"
+#include "llvm/IR/Analysis.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constant.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
-#include <array>
+
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
 
-#include <llvm-20/llvm/IR/Analysis.h>
-#include <llvm-20/llvm/IR/Constant.h>
 #include <memory>
 #include <vector>
 
