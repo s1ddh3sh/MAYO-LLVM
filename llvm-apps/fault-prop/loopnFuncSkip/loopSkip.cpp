@@ -35,9 +35,9 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <map>
 #include <memory>
 #include <vector>
-#include <map>
 
 using namespace llvm;
 
@@ -63,8 +63,8 @@ public:
     return PreservedAnalyses::none();
   }
 
-  void addLabelNUnrollWithFuncSkip(Function &F, Loop *L, LoopInfo &LI, ScalarEvolution &SE,
-                       unsigned tripCount) {
+  void addLabelNUnrollWithFuncSkip(Function &F, Loop *L, LoopInfo &LI,
+                                   ScalarEvolution &SE, unsigned tripCount) {
     BasicBlock *header = L->getHeader();
     BasicBlock *latch = L->getLoopLatch();
     BasicBlock *preheader = L->getLoopPreheader();
@@ -600,13 +600,13 @@ int main(int argc, char **argv) {
     outs() << "IR verified";
   }
   std::cout << "Dumping module..." << std::endl;
-  if(mode == LOOP_SKIP) {
+  if (mode == LOOP_SKIP) {
     dump_module(*funcModule, "../original.ll");
 
     // --- Simulate loop-skip fault: skip iteration 1 ---
     auto faultModule = CloneModule(*funcModule);
 
-    unsigned skipIter = 1; // which iteration to skip
+    unsigned skipIter = 1;
     Function *faultFunc = faultModule->getFunction("lincomb");
     if (faultFunc) {
       std::string srcName = "iter_" + std::to_string(skipIter - 1) + "_end";
@@ -622,26 +622,31 @@ int main(int argc, char **argv) {
       bool inSkipped = false;
 
       for (BasicBlock &BB : *faultFunc) {
-        if (BB.getName() == srcName) srcBB = &BB;
-        if (BB.getName() == newTarget) newTargetBB = &BB;
-        if (BB.getName() == skipStartName) inSkipped = true;
-        if (inSkipped) skippedBlocks.push_back(&BB);
-        if (BB.getName() == skipEndName) inSkipped = false;
+        if (BB.getName() == srcName)
+          srcBB = &BB;
+        if (BB.getName() == newTarget)
+          newTargetBB = &BB;
+        if (BB.getName() == skipStartName)
+          inSkipped = true;
+        if (inSkipped)
+          skippedBlocks.push_back(&BB);
+        if (BB.getName() == skipEndName)
+          inSkipped = false;
       }
 
       if (srcBB && newTargetBB) {
-        // Build mapping: values defined in skipped iteration -> previous iteration's values
-        // For each instruction in skipped blocks with name ".iterK",
-        // find the corresponding ".iter(K-1)" instruction
+
         std::map<Value *, Value *> remap;
         for (BasicBlock *BB : skippedBlocks) {
           for (Instruction &I : *BB) {
             std::string iName = I.getName().str();
-            if (iName.empty()) continue;
+            if (iName.empty())
+              continue;
 
             // Check if this instruction's name ends with the skipped suffix
             size_t pos = iName.rfind(skippedSuffix);
-            if (pos == std::string::npos) continue;
+            if (pos == std::string::npos)
+              continue;
 
             // Build the corresponding previous-iteration name
             std::string prevName = iName.substr(0, pos) + prevSuffix;
@@ -654,7 +659,8 @@ int main(int argc, char **argv) {
                   break;
                 }
               }
-              if (remap.count(&I)) break;
+              if (remap.count(&I))
+                break;
             }
           }
         }
@@ -664,12 +670,16 @@ int main(int argc, char **argv) {
           std::vector<Use *> usesToReplace;
           for (Use &U : skippedVal->uses()) {
             Instruction *user = dyn_cast<Instruction>(U.getUser());
-            if (!user) continue;
+            if (!user)
+              continue;
             // Only replace uses outside the skipped blocks
             BasicBlock *userBB = user->getParent();
             bool isInSkipped = false;
             for (BasicBlock *sBB : skippedBlocks) {
-              if (sBB == userBB) { isInSkipped = true; break; }
+              if (sBB == userBB) {
+                isInSkipped = true;
+                break;
+              }
             }
             if (!isInSkipped) {
               usesToReplace.push_back(&U);
@@ -703,8 +713,15 @@ int main(int argc, char **argv) {
     dump_module(*funcModule, "../funcSkip.ll");
   }
 
-  // run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
-  // run_command("cp /tmp/test.smt2 ../correct.smt2");
+  run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
+  run_command("cp /tmp/test.smt2 ../correct.smt2");
+  // if (mode == LOOP_SKIP) {
+  //   run_command("../llvmbmc ../loopSkip.ll --dump-solver-query -f lincomb");
+  //   run_command("cp /tmp/test.smt2 ../loopFault.smt2");
+  // } else {
+  //   run_command("../llvmbmc ../funcSkip.ll --dump-solver-query -f lincomb");
+  //   run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
+  // }
 
   return 0;
 }
