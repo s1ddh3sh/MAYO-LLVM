@@ -288,14 +288,12 @@ typedef struct {
     const char *name;
 } mayo_params_t;
 
-typedef struct sk_t {
-    uint64_t p[P1_LIMBS_MAX + P2_LIMBS_MAX];
-    uint8_t O[V_MAX*O_MAX];
-} sk_t;
+typedef uint64_t sk_t[P1_LIMBS_MAX + P2_LIMBS_MAX + (V_MAX*O_MAX+7)/8];
+#define SK_P(sk) ((uint64_t*)(sk))
+#define SK_O(sk) ((uint8_t*)((uint64_t*)(sk) + P1_LIMBS_MAX + P2_LIMBS_MAX))
 
-typedef struct pk_t {
-    uint64_t p[P1_LIMBS_MAX + P2_LIMBS_MAX + P3_LIMBS_MAX];
-} pk_t;
+typedef uint64_t pk_t[P1_LIMBS_MAX + P2_LIMBS_MAX + P3_LIMBS_MAX];
+
 
 /**
  * MAYO parameter sets
@@ -418,7 +416,7 @@ int mayo_expand_pk(const mayo_params_t *p, const unsigned char *cpk,
  */
 #define mayo_expand_sk MAYO_NAMESPACE(mayo_expand_sk)
 int mayo_expand_sk(const mayo_params_t *p, const unsigned char *csk,
-                   sk_t *esk);
+                   sk_t esk);
 
 /**
  * Mayo verify signature.

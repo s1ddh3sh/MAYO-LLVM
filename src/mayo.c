@@ -308,11 +308,11 @@ err:
 }
 
 int mayo_expand_sk(const mayo_params_t *p, const unsigned char *csk,
-                   sk_t *sk) {
+                   sk_t sk) {
     int ret = MAYO_OK;
     unsigned char S[PK_SEED_BYTES_MAX + O_BYTES_MAX];
-    uint64_t *P = sk->p;
-    unsigned char *O = sk->O;
+    uint64_t *P = SK_P(sk);
+    unsigned char *O = SK_O(sk);
 
     const int param_o = PARAM_o(p);
     const int param_v = PARAM_v(p);
@@ -389,7 +389,7 @@ int mayo_sign_signature(const mayo_params_t *p, unsigned char *sig,
     const int param_sk_seed_bytes = PARAM_sk_seed_bytes(p);
     const int param_salt_bytes = PARAM_salt_bytes(p);
 
-    ret = mayo_expand_sk(p, csk, &sk);
+    ret = mayo_expand_sk(p, csk, sk);
     if (ret != MAYO_OK) {
         goto err;
     }
@@ -400,7 +400,7 @@ int mayo_sign_signature(const mayo_params_t *p, unsigned char *sig,
     // hash message
     shake256(tmp, param_digest_bytes, m, mlen);
 
-    uint64_t *P1 = sk.p;
+    uint64_t *P1 = SK_P(sk);
     uint64_t *L  = P1 + PARAM_P1_limbs(p);
     uint64_t Mtmp[K_MAX * O_MAX * M_VEC_LIMBS_MAX] = {0};
 
@@ -477,7 +477,7 @@ int mayo_sign_signature(const mayo_params_t *p, unsigned char *sig,
 
     for (int i = 0; i <= param_k - 1; ++i) {
         vi = Vdec + i * (param_n - param_o);
-        mat_mul(sk.O, x + i * param_o, Ox, param_o, param_n - param_o, 1);
+        mat_mul(SK_O(sk), x + i * param_o, Ox, param_o, param_n - param_o, 1);
         mat_add(vi, Ox, s + i * param_n, param_n - param_o, 1);
         memcpy(s + i * param_n + (param_n - param_o), x + i * param_o, param_o);
     }
@@ -491,7 +491,7 @@ err:
     mayo_secure_clear(Vdec, sizeof(Vdec));
     mayo_secure_clear(A, sizeof(A));
     mayo_secure_clear(r, sizeof(r));
-    mayo_secure_clear(sk.O, sizeof(sk.O));
+    mayo_secure_clear(SK_O(sk), V_MAX * O_MAX);
     mayo_secure_clear(&sk, sizeof(sk_t));
     mayo_secure_clear(Ox, sizeof(Ox));
     mayo_secure_clear(tmp, sizeof(tmp));

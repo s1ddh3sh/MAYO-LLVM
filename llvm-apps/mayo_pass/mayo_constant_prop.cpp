@@ -1,12 +1,10 @@
 #include "clang/Basic/DiagnosticOptions.h"
 #include "clang/CodeGen/CodeGenAction.h"
-#include "clang/Driver/Driver.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/CompilerInvocation.h"
 #include "clang/Frontend/TextDiagnosticPrinter.h"
 #include "clang/Frontend/Utils.h"
 
-#include "llvm/Analysis/CFGPrinter.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -18,18 +16,16 @@
 #include "llvm/Support/VirtualFileSystem.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Host.h"
-#include "llvm/Transforms/AggressiveInstCombine/AggressiveInstCombine.h"
 #include "llvm/Transforms/IPO/GlobalDCE.h"
 #include "llvm/Transforms/IPO/GlobalOpt.h"
-#include "llvm/Transforms/IPO/Inliner.h"
+#include "llvm/Transforms/IPO/SCCP.h"
 #include "llvm/Transforms/IPO/StripDeadPrototypes.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
 #include "llvm/Transforms/Scalar/IndVarSimplify.h"
-#include "llvm/Transforms/Scalar/InstSimplifyPass.h"
-#include "llvm/Transforms/Scalar/LoopDeletion.h"
 #include "llvm/Transforms/Scalar/LoopUnrollPass.h"
 #include "llvm/Transforms/Scalar/SCCP.h"
+#include "llvm/Transforms/Scalar/SROA.h"
 #include "llvm/Transforms/Scalar/SimplifyCFG.h"
 #include "llvm/Transforms/Utils/LoopSimplify.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
@@ -197,30 +193,31 @@ void prepare(std::unique_ptr<llvm::Module> &module,
   ModulePassManager MPM;
   MPM.addPass(GlobalOptPass());
 
-  
   // inlining
   // {
   //   InlineParams IP;
   //   IP.DefaultThreshold = 10000;
   //   MPM.addPass(ModuleInlinerPass(IP));
   // }
-  
-  // constants
-  // {
-  //   FunctionPassManager FPM;
-  //   FPM.addPass(PromotePass());
-  //   FPM.addPass(SCCPPass());
-  //   FPM.addPass(CorrelatedValuePropagationPass());
-  //   FPM.addPass(InstCombinePass());
-  //   FPM.addPass(SimplifyCFGPass());
-  //   MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
-  // }
 
   {
     FunctionPassManager FPM;
     FPM.addPass(PromotePass());
+    FPM.addPass(SROAPass(SROAOptions::ModifyCFG));
     FPM.addPass(SCCPPass());
     FPM.addPass(CorrelatedValuePropagationPass());
+    FPM.addPass(InstCombinePass());
+    FPM.addPass(SimplifyCFGPass());
+    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+  }
+
+  // Interprocedural constant propagation: propagates constants from
+  // call sites into function bodies (e.g. lincomb's n,m args) without inlining
+  MPM.addPass(IPSCCPPass());
+
+  // Clean up after IPSCCP
+  {
+    FunctionPassManager FPM;
     FPM.addPass(InstCombinePass());
     FPM.addPass(SimplifyCFGPass());
     MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
@@ -241,15 +238,15 @@ void prepare(std::unique_ptr<llvm::Module> &module,
     // FPM.addPass(InstCombinePass());
     // FPM.addPass(SimplifyCFGPass());
 
-    LoopUnrollOptions options;
-    options.setFullUnrollMaxCount(1024);
-    options.setPartial(true);
-    options.setRuntime(true);
-    // options.setUpperBound(true);
-    FPM.addPass(LoopUnrollPass(options));
-    FPM.addPass(InstCombinePass());
-    FPM.addPass(SCCPPass());
-    FPM.addPass(SimplifyCFGPass());
+    // LoopUnrollOptions options;
+    // options.setFullUnrollMaxCount(1024);
+    // options.setPartial(true);
+    // options.setRuntime(true);
+    // // options.setUpperBound(true);
+    // FPM.addPass(LoopUnrollPass(options));
+    // FPM.addPass(InstCombinePass());
+    // FPM.addPass(SCCPPass());
+    // FPM.addPass(SimplifyCFGPass());
 
     MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
   }
@@ -292,7 +289,7 @@ int main(int argc, char **argv) {
     }
 
     prepare(module, variant);
-    std::string outPath = "../no-inline/" + suffix + ".ll";
+    std::string outPath = "../no_struct/" + suffix + ".ll";
     std::error_code EC;
     llvm::raw_fd_ostream outFile(outPath, EC);
     if (!EC)

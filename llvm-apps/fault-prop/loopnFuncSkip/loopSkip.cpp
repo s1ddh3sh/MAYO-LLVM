@@ -44,29 +44,186 @@ enum FaultMode { LOOP_SKIP = 0, FUNC_SKIP = 1 };
 
 class FuncSkip : public PassInfoMixin<FuncSkip> {
 public:
-  PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
-    bool changed = false;
-    for (BasicBlock &BB : F) {
-      for (auto It = BB.begin(); It != BB.end();) {
-        Instruction *I = &*It++;
-        auto *CI = dyn_cast<CallInst>(I);
-        if (!CI)
-          continue;
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
+    auto &LI = FAM.getResult<LoopAnalysis>(F);
+    auto &SE = FAM.getResult<ScalarEvolutionAnalysis>(F);
 
-        Function *callee = CI->getCalledFunction();
-        if (callee->getName() == "assert")
-          continue;
-        outs() << "skipping fn call" << callee->getName();
-        if (!CI->getType()->isVoidTy()) {
-          Value *v = Constant::getNullValue(CI->getType());
-          CI->replaceAllUsesWith(v);
-        }
-        CI->eraseFromParent();
-        changed = true;
-        break;
+    std::vector<Loop *> loops(LI.begin(), LI.end());
+    for (Loop *L : loops) {
+      unsigned tripCount = SE.getSmallConstantTripCount(L);
+      if (tripCount == 0) {
+        errs() << "cannot determine trip count\n";
+        continue;
       }
+
+      errs() << "Loop trip count: " << tripCount << "\n";
+      addLabelNUnrollWithFuncSkip(F, L, LI, SE, tripCount);
     }
-    return changed ? PreservedAnalyses::none() : PreservedAnalyses::all();
+    return PreservedAnalyses::none();
+  }
+
+  void addLabelNUnrollWithFuncSkip(Function &F, Loop *L, LoopInfo &LI, ScalarEvolution &SE,
+                       unsigned tripCount) {
+    BasicBlock *header = L->getHeader();
+    BasicBlock *latch = L->getLoopLatch();
+    BasicBlock *preheader = L->getLoopPreheader();
+    BasicBlock *exitBB = L->getUniqueExitBlock();
+
+    if (!header || !latch || !preheader || !exitBB) {
+      errs() << "Loop not in simplified form\n";
+      return;
+    }
+
+    std::vector<BasicBlock *> origBlocks;
+    for (BasicBlock *BB : L->blocks()) {
+      origBlocks.push_back(BB);
+    }
+
+    BasicBlock *prevIterExit = preheader;
+    ValueToValueMapTy cumulativeMap;
+
+    for (unsigned i = 0; i < tripCount; i++) {
+      // 1. Create start label
+      BasicBlock *iterStart = BasicBlock::Create(
+          F.getContext(), "iter_" + std::to_string(i) + "_start", &F);
+
+      // 2. Resolve PHI nodes for this iteration
+      std::vector<std::pair<PHINode *, Value *>> resolvedPhis;
+      for (PHINode &PN : header->phis()) {
+        Value *incoming;
+        if (i == 0) {
+          incoming = PN.getIncomingValueForBlock(preheader);
+        } else {
+          Value *latchVal = PN.getIncomingValueForBlock(latch);
+          if (Value *mapped = cumulativeMap.lookup(latchVal))
+            incoming = mapped;
+          else
+            incoming = latchVal;
+        }
+        cumulativeMap[&PN] = incoming;
+        resolvedPhis.push_back({&PN, incoming});
+      }
+
+      // 3. Clone all blocks for this iteration
+      std::vector<BasicBlock *> iterationCloned;
+      ValueToValueMapTy iterationBlockMap;
+      for (BasicBlock *BB : origBlocks) {
+        BasicBlock *cloned =
+            CloneBasicBlock(BB, cumulativeMap, ".iter" + std::to_string(i), &F);
+        iterationCloned.push_back(cloned);
+        iterationBlockMap[BB] = cloned;
+
+        // Map individual instructions to their clones
+        auto itOrig = BB->begin();
+        auto itCloned = cloned->begin();
+        while (itOrig != BB->end() && itCloned != cloned->end()) {
+          iterationBlockMap[&*itOrig] = &*itCloned;
+          // For next iteration's use
+          cumulativeMap[&*itOrig] = &*itCloned;
+          itOrig++;
+          itCloned++;
+        }
+      }
+
+      // 4. Resolve internal control flow in the cloned iteration
+      for (BasicBlock *cloned : iterationCloned) {
+        for (Instruction &I : *cloned) {
+          RemapInstruction(&I, iterationBlockMap,
+                           RF_NoModuleLevelChanges | RF_IgnoreMissingLocals);
+        }
+
+        // Skip function calls in the first iteration
+        if (i == 0) {
+          for (auto It = cloned->begin(); It != cloned->end();) {
+            Instruction *I = &*It++;
+            auto *CI = dyn_cast<CallInst>(I);
+            if (!CI)
+              continue;
+
+            Function *callee = CI->getCalledFunction();
+            if (callee && callee->getName() != "assert") {
+              outs() << "skipping fn call " << callee->getName() << "\n";
+              if (!CI->getType()->isVoidTy()) {
+                Value *v = Constant::getNullValue(CI->getType());
+                CI->replaceAllUsesWith(v);
+              }
+              CI->eraseFromParent();
+            }
+          }
+        }
+      }
+
+      // 5. Remove PHI nodes from the cloned header as they are now resolved
+      for (auto &pair : resolvedPhis) {
+        PHINode *origPhi = pair.first;
+        Value *resolvedVal = pair.second;
+        if (Value *clonedPhiVal = iterationBlockMap.lookup(origPhi)) {
+          PHINode *clonedPhi = cast<PHINode>(clonedPhiVal);
+          clonedPhi->replaceAllUsesWith(resolvedVal);
+          clonedPhi->eraseFromParent();
+        }
+      }
+
+      // 6. Create end label
+      BasicBlock *iterEnd = BasicBlock::Create(
+          F.getContext(), "iter_" + std::to_string(i) + "_end", &F);
+
+      // 7. Connect control flow
+      if (i == 0) {
+        Instruction *prevTerm = preheader->getTerminator();
+        BranchInst::Create(iterStart, preheader);
+        prevTerm->eraseFromParent();
+      } else {
+        BranchInst::Create(iterStart, prevIterExit);
+      }
+
+      BranchInst::Create(iterationCloned.front(), iterStart);
+
+      BasicBlock *clonedLatch = cast<BasicBlock>(iterationBlockMap[latch]);
+      Instruction *latchTerm = clonedLatch->getTerminator();
+      BranchInst::Create(iterEnd, clonedLatch);
+      latchTerm->eraseFromParent();
+
+      prevIterExit = iterEnd;
+    }
+
+    BranchInst::Create(exitBB, prevIterExit);
+    for (auto it = exitBB->begin(); isa<PHINode>(it);) {
+      PHINode *PN = cast<PHINode>(&*it++);
+      Value *incomingVal = nullptr;
+
+      for (unsigned j = 0; j < PN->getNumIncomingValues(); j++) {
+        if (L->contains(PN->getIncomingBlock(j))) {
+          incomingVal = PN->getIncomingValue(j);
+          break;
+        }
+      }
+
+      if (!incomingVal)
+        continue;
+
+      if (Value *mapped = cumulativeMap.lookup(incomingVal))
+        incomingVal = mapped;
+
+      while (true) {
+        bool removed = false;
+        for (unsigned j = 0; j < PN->getNumIncomingValues(); j++) {
+          if (L->contains(PN->getIncomingBlock(j))) {
+            PN->removeIncomingValue(j, false);
+            removed = true;
+            break;
+          }
+        }
+        if (!removed)
+          break;
+      }
+
+      PN->addIncoming(incomingVal, prevIterExit);
+    }
+
+    for (BasicBlock *BB : origBlocks) {
+      BB->eraseFromParent();
+    }
   }
 };
 
@@ -319,6 +476,11 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  // Make lincomb externally visible so GlobalOptPass doesn't delete it
+  if (Function *F = funcModule->getFunction("lincomb")) {
+    F->setLinkage(GlobalValue::ExternalLinkage);
+  }
+
   LoopAnalysisManager LAM;
   FunctionAnalysisManager FAM;
   CGSCCAnalysisManager CGAM;
@@ -376,13 +538,51 @@ int main(int argc, char **argv) {
       MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
     }
   } else if (mode == FUNC_SKIP) {
-    FunctionPassManager FPM;
-    FPM.addPass(PromotePass());
-    FPM.addPass(SCCPPass());
-    FPM.addPass(FuncSkip());
-    FPM.addPass(SimplifyCFGPass());
-    FPM.addPass(InstCombinePass());
-    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+    for (Function &F : *funcModule) {
+      F.removeFnAttr(Attribute::NoInline);
+      F.removeFnAttr(Attribute::OptimizeNone);
+
+      if (!F.isDeclaration()) {
+        F.addFnAttr(Attribute::InlineHint);
+      }
+    }
+
+    // Add prep passes to allow SE to determine trip count
+    {
+      FunctionPassManager FPM;
+      FPM.addPass(PromotePass());
+      FPM.addPass(SCCPPass());
+      FPM.addPass(CorrelatedValuePropagationPass());
+      FPM.addPass(InstCombinePass());
+      FPM.addPass(SimplifyCFGPass());
+      MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+    }
+    {
+      FunctionPassManager FPM;
+      FPM.addPass(LoopSimplifyPass());
+      FPM.addPass(LCSSAPass());
+      FPM.addPass(createFunctionToLoopPassAdaptor(LoopRotatePass()));
+      FPM.addPass(createFunctionToLoopPassAdaptor(IndVarSimplifyPass()));
+
+      FPM.addPass(FuncSkip());
+
+      FPM.addPass(SCCPPass());
+      FPM.addPass(PromotePass());
+      MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+    }
+
+    // inline remaining function calls
+    {
+      InlineParams IP;
+      IP.DefaultThreshold = 10000;
+      MPM.addPass(ModuleInlinerPass(IP));
+    }
+    {
+      // FunctionPassManager FPM;
+      // // FPM.addPass(InstCombinePass());
+      // FPM.addPass(SimplifyCFGPass());
+      // MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+    }
   } else {
     errs() << "Invalid mode. Use 0 or 1\n";
     return 1;
@@ -399,10 +599,10 @@ int main(int argc, char **argv) {
     outs() << "IR verified";
   }
   std::cout << "Dumping module..." << std::endl;
-  dump_module(*funcModule, "../original.ll");
-
-  run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
-  run_command("cp /tmp/test.smt2 ../correct.smt2");
+  if(mode == LOOP_SKIP)dump_module(*funcModule, "../original.ll");
+  else dump_module(*funcModule, "../funcSkip.ll");
+  // run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
+  // run_command("cp /tmp/test.smt2 ../correct.smt2");
 
   return 0;
 }
