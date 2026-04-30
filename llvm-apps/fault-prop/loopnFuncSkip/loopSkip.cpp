@@ -37,6 +37,7 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 
 using namespace llvm;
 
@@ -599,8 +600,109 @@ int main(int argc, char **argv) {
     outs() << "IR verified";
   }
   std::cout << "Dumping module..." << std::endl;
-  if(mode == LOOP_SKIP)dump_module(*funcModule, "../original.ll");
-  else dump_module(*funcModule, "../funcSkip.ll");
+  if(mode == LOOP_SKIP) {
+    dump_module(*funcModule, "../original.ll");
+
+    // --- Simulate loop-skip fault: skip iteration 1 ---
+    auto faultModule = CloneModule(*funcModule);
+
+    unsigned skipIter = 1; // which iteration to skip
+    Function *faultFunc = faultModule->getFunction("lincomb");
+    if (faultFunc) {
+      std::string srcName = "iter_" + std::to_string(skipIter - 1) + "_end";
+      std::string newTarget = "iter_" + std::to_string(skipIter + 1) + "_start";
+      std::string skippedSuffix = ".iter" + std::to_string(skipIter);
+      std::string prevSuffix = ".iter" + std::to_string(skipIter - 1);
+
+      // Collect blocks belonging to the skipped iteration
+      std::string skipStartName = "iter_" + std::to_string(skipIter) + "_start";
+      std::string skipEndName = "iter_" + std::to_string(skipIter) + "_end";
+      std::vector<BasicBlock *> skippedBlocks;
+      BasicBlock *srcBB = nullptr, *newTargetBB = nullptr;
+      bool inSkipped = false;
+
+      for (BasicBlock &BB : *faultFunc) {
+        if (BB.getName() == srcName) srcBB = &BB;
+        if (BB.getName() == newTarget) newTargetBB = &BB;
+        if (BB.getName() == skipStartName) inSkipped = true;
+        if (inSkipped) skippedBlocks.push_back(&BB);
+        if (BB.getName() == skipEndName) inSkipped = false;
+      }
+
+      if (srcBB && newTargetBB) {
+        // Build mapping: values defined in skipped iteration -> previous iteration's values
+        // For each instruction in skipped blocks with name ".iterK",
+        // find the corresponding ".iter(K-1)" instruction
+        std::map<Value *, Value *> remap;
+        for (BasicBlock *BB : skippedBlocks) {
+          for (Instruction &I : *BB) {
+            std::string iName = I.getName().str();
+            if (iName.empty()) continue;
+
+            // Check if this instruction's name ends with the skipped suffix
+            size_t pos = iName.rfind(skippedSuffix);
+            if (pos == std::string::npos) continue;
+
+            // Build the corresponding previous-iteration name
+            std::string prevName = iName.substr(0, pos) + prevSuffix;
+
+            // Find the instruction with that name in the function
+            for (BasicBlock &searchBB : *faultFunc) {
+              for (Instruction &searchI : searchBB) {
+                if (searchI.getName() == prevName) {
+                  remap[&I] = &searchI;
+                  break;
+                }
+              }
+              if (remap.count(&I)) break;
+            }
+          }
+        }
+
+        // Replace uses of skipped-iteration values in non-skipped blocks
+        for (auto &[skippedVal, prevVal] : remap) {
+          std::vector<Use *> usesToReplace;
+          for (Use &U : skippedVal->uses()) {
+            Instruction *user = dyn_cast<Instruction>(U.getUser());
+            if (!user) continue;
+            // Only replace uses outside the skipped blocks
+            BasicBlock *userBB = user->getParent();
+            bool isInSkipped = false;
+            for (BasicBlock *sBB : skippedBlocks) {
+              if (sBB == userBB) { isInSkipped = true; break; }
+            }
+            if (!isInSkipped) {
+              usesToReplace.push_back(&U);
+            }
+          }
+          for (Use *U : usesToReplace) {
+            U->set(prevVal);
+          }
+        }
+
+        // Redirect the branch
+        Instruction *term = srcBB->getTerminator();
+        if (auto *br = dyn_cast<BranchInst>(term)) {
+          BranchInst::Create(newTargetBB, srcBB);
+          br->eraseFromParent();
+          outs() << "Fault injected: " << srcName << " -> " << newTarget
+                 << " (skipping iteration " << skipIter << ")\n";
+        }
+      } else {
+        errs() << "Could not find blocks for fault injection\n";
+      }
+    }
+
+    if (verifyModule(*faultModule, &errs())) {
+      errs() << "Fault module has invalid IR\n";
+    } else {
+      dump_module(*faultModule, "../loopSkip.ll");
+      outs() << "Wrote ../loopSkip.ll\n";
+    }
+  } else {
+    dump_module(*funcModule, "../funcSkip.ll");
+  }
+
   // run_command("../llvmbmc ../original.ll --dump-solver-query -f lincomb");
   // run_command("cp /tmp/test.smt2 ../correct.smt2");
 
