@@ -17,6 +17,7 @@
 #include "llvm/Transforms/Scalar/SimplifyCFG.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
+#include "llvm/Transforms/Utils/LoopUtils.h"
 
 #include "llvm/Analysis/LoopAnalysisManager.h"
 #include "llvm/Analysis/LoopInfo.h"
@@ -42,6 +43,17 @@
 using namespace llvm;
 
 // skip the addition of one coordinate of oil into signature, s[i] = v[i]
+
+class ForceUnroll : public PassInfoMixin<ForceUnroll> {
+public:
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
+    LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
+    for (Loop *L : LI) {
+      addStringMetadataToLoop(L, "llvm.loop.unroll.full");
+    }
+    return PreservedAnalyses::all();
+  }
+};
 
 class AddSkip : public PassInfoMixin<AddSkip> {
 public:
@@ -233,9 +245,12 @@ int main(int argc, char **argv) {
     FPM.addPass(PromotePass());
     {
       LoopUnrollOptions options;
-      options.setFullUnrollMaxCount(1024);
+      options.setFullUnrollMaxCount(10000);
+      options.setOptLevel(3);
+      options.setPartial(false);
       options.setRuntime(false);
       options.setUpperBound(true);
+      FPM.addPass(ForceUnroll());
       FPM.addPass(LoopUnrollPass(options));
     }
     // FPM.addPass(
