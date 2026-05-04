@@ -58,7 +58,7 @@ public:
       }
 
       errs() << "Loop trip count: " << tripCount << "\n";
-      addLabelNUnrollWithFuncSkip(F, L, LI, SE, tripCount, "mul_f");
+      addLabelNUnrollWithFuncSkip(F, L, LI, SE, tripCount, "mat_add");
     }
     return PreservedAnalyses::none();
   }
@@ -466,7 +466,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Function *target = module->getFunction("lincomb");
+  Function *target = module->getFunction("pqmayo_MAYO_1_ref_mayo_sign_signature");
   if (!target) {
     std::cout << "Function not found" << std::endl;
     return 1;
@@ -479,7 +479,7 @@ int main(int argc, char **argv) {
   }
 
   // Make lincomb externally visible so GlobalOptPass doesn't delete it
-  if (Function *F = funcModule->getFunction("lincomb")) {
+  if (Function *F = funcModule->getFunction("pqmayo_MAYO_1_ref_mayo_sign_signature")) {
     F->setLinkage(GlobalValue::ExternalLinkage);
   }
 

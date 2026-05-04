@@ -441,8 +441,8 @@ int mayo_sign_signature(const mayo_params_t *p, unsigned char *sig,
 
     decode(tenc, t, param_m); // may not be necessary
 
-    for (int ctr = 0; ctr <= 255; ++ctr) {
-        *ctrbyte = (unsigned char)ctr;
+    // for (int ctr = 0; ctr <= 0; ++ctr) {
+        *ctrbyte = (unsigned char)0;
 
         shake256(V, param_k * param_v_bytes + param_r_bytes, tmp,
                  param_digest_bytes + param_salt_bytes + param_sk_seed_bytes + 1);
@@ -451,7 +451,6 @@ int mayo_sign_signature(const mayo_params_t *p, unsigned char *sig,
         for (int i = 0; i <= param_k - 1; ++i) {
             decode(V + i * param_v_bytes, Vdec + i * param_v, param_v);
         }
-
         // compute M_i matrices and all v_i*P1*v_j
         compute_M_and_VPV(p, Vdec, L, P1, Mtmp, (uint64_t*) A);
 
@@ -468,12 +467,12 @@ int mayo_sign_signature(const mayo_params_t *p, unsigned char *sig,
                param_o);
 
         if (sample_solution(p, A, y, r, x, param_k, param_o, param_m, param_A_cols)) {
-            break;
+            // break;
         } else {
             memset(Mtmp, 0, sizeof(Mtmp));
             memset(A, 0, sizeof(A));
         }
-    }
+    // }
 
     for (int i = 0; i <= param_k - 1; ++i) {
         vi = Vdec + i * (param_n - param_o);
