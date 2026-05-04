@@ -265,8 +265,9 @@ int main(int argc, char **argv) {
       {"MAYO_5", "mayo5"},
   };
 
-  std::vector<std::string> files = {"../example.c", "../../../src/mayo.c",
-                                    "../../../src/arithmetic.c"};
+  std::vector<std::string> files = {
+      "../example.c", "../../../src/mayo.c", "../../../src/arithmetic.c",
+      "../../../src/common/fips202.c", "../../../src/common/aes_c.c"};
 
   std::vector<std::string> includes = {"../../../include", "../../../src",
                                        "../../../src/common",
