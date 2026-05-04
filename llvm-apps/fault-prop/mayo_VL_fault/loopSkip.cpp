@@ -39,6 +39,8 @@
 #include <memory>
 #include <vector>
 
+// skip the inner loop iteration in the mul_add_mat_x_m_mat code, to simulate skipping one of v[0][0]*L[0]
+
 using namespace llvm;
 
 enum FaultMode { LOOP_SKIP = 0, FUNC_SKIP = 1 };
