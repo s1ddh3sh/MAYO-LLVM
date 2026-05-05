@@ -47,6 +47,21 @@ int main() {
   expr_vector correct = ctx.parse_file("correct.smt2");
   expr_vector faulty = ctx.parse_file("funcSkip.smt2");
 
+  // expr_vector correct_b1(ctx);
+  // expr_vector faulty_b1(ctx);
+
+  // for (expr e : correct)
+  //   correct_b1.push_back(substitute_vars(e, ctx, "_b1"));
+
+  // for (expr e : faulty)
+  //   faulty_b1.push_back(substitute_vars(e, ctx, "_b1"));
+
+  // for (expr e : correct_b1)
+  //   s.add(e);
+
+  // for (expr e : faulty_b1)
+  //   s.add(e);
+  
   expr valC = extract_store_value(correct, ctx);
   expr valF = extract_store_value(faulty, ctx);
 
@@ -54,12 +69,12 @@ int main() {
     // cout << "Correct : \n" << valC << "\n";
     // cout << "Faulty : \n" << valF << "\n";
 
-    expr s1 = int2bv(8, valC);
-    expr s2 = int2bv(8, valF);
+    expr s1 = int2bv(4, valC);
+    expr s2 = int2bv(4, valF);
 
     expr delta = s1 ^ s2;
 
-    expr delta_s = ctx.bv_const("delta_p", 8);
+    expr delta_s = ctx.bv_const("delta_s", 4);
 
     expr mem = ctx.constant("c_3_Global_M",
                             ctx.array_sort(ctx.int_sort(), ctx.int_sort()));
@@ -70,13 +85,13 @@ int main() {
     expr a = select(mem, i_a);
     expr b_int = select(mem, i_b);
 
-    expr b = int2bv(8, select(mem, ctx.int_const("i_7_b")));
+    expr b = int2bv(4, select(mem, ctx.int_const("i_7_b")));
 
     s.add(a >= 0 && a < 16);
     s.add(b_int >= 0 && b_int < 16);
     s.add(a != b_int);
 
-    s.add(delta != ctx.bv_val(0, 8));
+    s.add(delta_s != ctx.bv_val(0, 4));
     s.add(s1 != s2);
     // s.add(delta_p != delta);
     // s.add(delta == b);
