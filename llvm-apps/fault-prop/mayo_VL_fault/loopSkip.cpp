@@ -39,7 +39,8 @@
 #include <memory>
 #include <vector>
 
-// skip the inner loop iteration in the mul_add_mat_x_m_mat code, to simulate skipping one of v[0][0]*L[0]
+// skip the inner loop iteration in the mul_add_mat_x_m_mat code, to simulate
+// skipping one of v[0][0]*L[0]
 
 using namespace llvm;
 
@@ -57,8 +58,12 @@ public:
       if (L->getSubLoops().empty()) {
         innermostLoops.push_back(L);
       } else {
-        for (Loop *sub : L->getSubLoops())
+        for (Loop *sub : L->getSubLoops()) {
+          unsigned tripCount = SE.getSmallConstantTripCount(L);
+
+          errs() << "Innermost loop trip count: " << tripCount << "\n";
           collectInnermost(sub);
+        }
       }
     };
     for (Loop *L : LI)
@@ -299,10 +304,6 @@ public:
     auto &LI = FAM.getResult<LoopAnalysis>(F);
     auto &SE = FAM.getResult<ScalarEvolutionAnalysis>(F);
 
-    // *** KEY CHANGE: collect only innermost loops ***
-    // The top-level LI iterator gives outermost loops; we need to recurse
-    // to find innermost loops (those with no sub-loops), since those are
-    // the ones containing the m_vec_mul_add call we want to unroll/skip.
     SmallVector<Loop *, 8> innermostLoops;
     std::function<void(Loop *)> collectInnermost = [&](Loop *L) {
       if (L->getSubLoops().empty()) {
@@ -754,18 +755,18 @@ int main(int argc, char **argv) {
     dump_module(*funcModule, "../funcSkip.ll");
   }
 
-  run_command(
-      "../llvmbmc ../original.ll --dump-solver-query -f mul_add_mat_x_m_mat");
-  run_command("cp /tmp/test.smt2 ../correct.smt2");
-  if (mode == LOOP_SKIP) {
-    run_command(
-        "../llvmbmc ../loopSkip.ll --dump-solver-query -f mul_add_mat_x_m_mat");
-    run_command("cp /tmp/test.smt2 ../loopFault.smt2");
-  } else {
-    run_command(
-        "../llvmbmc ../funcSkip.ll --dump-solver-query -f mul_add_mat_x_m_mat");
-    run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
-  }
+  // run_command(
+  //     "../llvmbmc ../original.ll --dump-solver-query -f mul_add_mat_x_m_mat");
+  // run_command("cp /tmp/test.smt2 ../correct.smt2");
+  // if (mode == LOOP_SKIP) {
+  //   run_command(
+  //       "../llvmbmc ../loopSkip.ll --dump-solver-query -f mul_add_mat_x_m_mat");
+  //   run_command("cp /tmp/test.smt2 ../loopFault.smt2");
+  // } else {
+  //   run_command(
+  //       "../llvmbmc ../funcSkip.ll --dump-solver-query -f mul_add_mat_x_m_mat");
+  //   run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
+  // }
 
   return 0;
 }
