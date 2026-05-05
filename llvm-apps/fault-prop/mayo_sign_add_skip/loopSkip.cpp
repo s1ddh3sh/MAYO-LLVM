@@ -722,13 +722,13 @@ int main(int argc, char **argv) {
     dump_module(*funcModule, "../funcSkip.ll");
   }
 
-  run_command("../llvmbmc ../original.ll --dump-solver-query -f mat_add");
+  run_command("../llvmbmc ../original.ll --dump-solver-query -f mat_add --var-suffix correct");
   run_command("cp /tmp/test.smt2 ../correct.smt2");
   if (mode == LOOP_SKIP) {
-    run_command("../llvmbmc ../loopSkip.ll --dump-solver-query -f mat_add");
+    run_command("../llvmbmc ../loopSkip.ll --dump-solver-query -f mat_add --var-suffix faulty");
     run_command("cp /tmp/test.smt2 ../loopFault.smt2");
   } else {
-    run_command("../llvmbmc ../funcSkip.ll --dump-solver-query -f mat_add");
+    run_command("../llvmbmc ../funcSkip.ll --dump-solver-query -f mat_add --var-suffix faulty");
     run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
   }
 
