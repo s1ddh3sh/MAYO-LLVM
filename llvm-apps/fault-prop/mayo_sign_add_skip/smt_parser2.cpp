@@ -47,22 +47,22 @@ int main() {
   expr_vector correct = ctx.parse_file("correct.smt2");
   expr_vector faulty = ctx.parse_file("funcSkip.smt2");
 
-  // expr_vector correct_b1(ctx);
-  // expr_vector faulty_b1(ctx);
+  expr_vector correct_b1(ctx);
+  expr_vector faulty_b1(ctx);
 
-  // for (expr e : correct)
-  //   correct_b1.push_back(substitute_vars(e, ctx, "_b1"));
+  for (expr e : correct)
+    correct_b1.push_back(substitute_vars(e, ctx, "_b1"));
 
-  // for (expr e : faulty)
-  //   faulty_b1.push_back(substitute_vars(e, ctx, "_b1"));
+  for (expr e : faulty)
+    faulty_b1.push_back(substitute_vars(e, ctx, "_b1"));
+  cout << faulty_b1;
 
-  // for (expr e : correct_b1)
-  //   s.add(e);
+  for (expr e : correct_b1)
+    s.add(e);
 
-  // for (expr e : faulty_b1)
-  //   s.add(e);
-  // s.from_file("correct.smt2");
-  // s.from_file("funcSkip.smt2");
+  for (expr e : faulty_b1)
+    s.add(e);
+
   expr valC = extract_store_value(correct, ctx);
   expr valF = extract_store_value(faulty, ctx);
 
@@ -77,16 +77,16 @@ int main() {
 
     expr delta_s = ctx.bv_const("delta_s", 4);
 
-    expr mem = ctx.constant("c_3_Global_M",
+    expr mem = ctx.constant("c_3_Global_M_b1",
                             ctx.array_sort(ctx.int_sort(), ctx.int_sort()));
 
-    expr i_a = ctx.int_const("i_6_a");
-    expr i_b = ctx.int_const("i_7_b");
+    expr i_a = ctx.int_const("i_6_a_b1");
+    expr i_b = ctx.int_const("i_7_b_b1");
 
     expr a = select(mem, i_a);
     expr b_int = select(mem, i_b);
 
-    expr b = int2bv(4, select(mem, ctx.int_const("i_7_b")));
+    expr b = int2bv(4, select(mem, ctx.int_const("i_7_b_b1")));
 
     s.add(a >= 0 && a < 16);
     s.add(b_int >= 0 && b_int < 16);
