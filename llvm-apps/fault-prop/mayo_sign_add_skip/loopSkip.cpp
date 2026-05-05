@@ -145,10 +145,11 @@ public:
             Function *callee = CI->getCalledFunction();
             if (callee && callee->getName() == funcToSkip) {
               outs() << "skipping fn call " << callee->getName() << "\n";
-              if (!CI->getType()->isVoidTy()) {
-                Value *v = Constant::getNullValue(CI->getType());
-                CI->replaceAllUsesWith(v);
-              }
+              // if (!CI->getType()->isVoidTy()) {
+              Value *v = CI->getArgOperand(0);
+              // Value *v = Constant::getNullValue(CI->getType());
+              CI->replaceAllUsesWith(v);
+              // }
               CI->eraseFromParent();
             }
           }

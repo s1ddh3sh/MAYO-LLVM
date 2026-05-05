@@ -32,7 +32,7 @@ for.body3.iter0:                                  ; preds = %iter_0_start
   %add.ptr6.iter0 = getelementptr inbounds nuw i8, ptr %b, i32 0, !dbg !114
   %1 = load i8, ptr %add.ptr6.iter0, align 1, !dbg !115
   %add.ptr9.iter0 = getelementptr inbounds nuw i8, ptr %c, i32 0, !dbg !116
-  store i8 0, ptr %add.ptr9.iter0, align 1, !dbg !117
+  store i8 %0, ptr %add.ptr9.iter0, align 1, !dbg !117
     #dbg_value(i32 undef, !101, !DIExpression(), !103)
   br label %iter_0_end
 
