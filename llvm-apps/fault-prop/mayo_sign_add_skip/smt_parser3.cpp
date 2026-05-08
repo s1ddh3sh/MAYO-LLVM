@@ -8,11 +8,7 @@
 using namespace z3;
 using namespace std;
 
-// ── Rewrite SMT2 to pure bitvector theory ────────────────────────────────────
-// Eliminates int2bv/bv2int which cause theory explosion.
-// Array Int Int  ->  Array (_ BitVec 32) (_ BitVec 8)
-// Index vars     ->  BitVec 32
-// Value ops      ->  native bvxor on BitVec 8
+
 string rewrite_to_bv(const string &filename) {
   ifstream ifs(filename);
   if (!ifs) {
@@ -22,7 +18,6 @@ string rewrite_to_bv(const string &filename) {
 
   string content((istreambuf_iterator<char>(ifs)), istreambuf_iterator<char>());
 
-  // ── Step 1: Remove invalid/unwanted lines ────────────────────────
   {
     istringstream ss(content);
     ostringstream out;
@@ -41,7 +36,6 @@ string rewrite_to_bv(const string &filename) {
     content = out.str();
   }
 
-  // ── Step 2: Array type Int->Int  becomes  BitVec32->BitVec8 ──────
   {
     size_t pos = 0;
     const string from = "(Array Int Int)";
@@ -52,7 +46,7 @@ string rewrite_to_bv(const string &filename) {
     }
   }
 
-  // ── Step 3: Index variable declarations  Int -> BitVec 32 ────────
+  //int to bitvec
   for (const string &var : {"i_6_a_correct", "i_6_a_faulty", "i_7_b_correct",
                             "i_7_b_faulty", "i_8_c_correct", "i_8_c_faulty"}) {
     string from = "(declare-fun " + var + " () Int)";
@@ -62,8 +56,8 @@ string rewrite_to_bv(const string &filename) {
       content.replace(pos, from.size(), to);
   }
 
-  // ── Step 4: Replace the XOR let-block with pure bvxor ────────────
-  // Original pattern (one block per iteration):
+  //Replace the XOR let-block with pure bvxor
+  // Original pattern:
   //   (let ((a!1 (bvslt (bvxor ((_ int2bv 8) (select MEM IDX_A))
   //                            ((_ int2bv 8) (select MEM IDX_B)))
   //                     #x00))
@@ -71,15 +65,11 @@ string rewrite_to_bv(const string &filename) {
   //                             ((_ int2bv 8) (select MEM IDX_B))))))
   //     (= C_NEW (store MEM IDX_C (ite a!1 (- a!2 256) a!2))))
   //
-  // Replacement (pure bv8):
+  // Replacement :
   //   (= C_NEW (store MEM IDX_C (bvxor (select MEM IDX_A)
   //                                    (select MEM IDX_B))))
-  //
-  // Use regex to match and replace all occurrences.
   {
-    // The regex captures: MEM, IDX_A, IDX_B, C_NEW, MEM again, IDX_C
-    // We rely on the fact that MEM and IDX_A/B are consistent within each
-    // block.
+    
     regex pat(
         R"(\(let \(\(a!1 \(bvslt \(bvxor \(\(_ int2bv 8\)\s*)"
         R"(\(select (\S+) (\S+)\)\)\s*)"                    // MEM, IDX_A
@@ -100,12 +90,12 @@ string rewrite_to_bv(const string &filename) {
 
     while (regex_search(it, end, m, pat)) {
       result += m.prefix().str();
-      string mem = m[1];   // e.g. c_3_Global_M_correct
-      string idx_a = m[2]; // e.g. i_6_a_correct
-      string idx_b = m[3]; // e.g. i_7_b_correct
-      string c_new = m[4]; // e.g. c_4_Global_M_correct
-      string mem2 = m[5];  // same as mem
-      string idx_c = m[6]; // e.g. i_8_c_correct
+      string mem = m[1];   
+      string idx_a = m[2]; 
+      string idx_b = m[3]; 
+      string c_new = m[4]; 
+      string mem2 = m[5];  
+      string idx_c = m[6]; 
 
       result += "(= " + c_new + " (store " + mem2 + " " + idx_c +
                 " (bvxor (select " + mem + " " + idx_a +
@@ -119,15 +109,11 @@ string rewrite_to_bv(const string &filename) {
     content = result;
   }
 
-  // ── Step 5: Remove any remaining int2bv/bv2int leftovers ─────────
-  // The faulty file has a simpler first store without XOR, no int2bv there.
-  // But clean up any stragglers.
+//remove any bvint and intbv
   {
-    // (bv2int X) -> X  (shouldn't remain but just in case)
     regex bv2int_pat(R"(\(bv2int (\([^)]+\))\))");
     content = regex_replace(content, bv2int_pat, "$1");
 
-    // ((_ int2bv 8) X) -> X
     regex int2bv_pat(R"(\(\(_ int2bv 8\) ([^)]+)\))");
     content = regex_replace(content, int2bv_pat, "$1");
   }
@@ -167,7 +153,6 @@ int main(int argc, char *argv[]) {
   cout << "Loaded " << correct_exprs.size() << " correct + "
        << faulty_exprs.size() << " faulty assertions\n";
 
-  // ── Now everything is in BitVec — use bv sorts ───────────────────
   z3::sort bv32 = ctx.bv_sort(32);
   z3::sort bv8 = ctx.bv_sort(8);
   z3::sort arr = ctx.array_sort(bv32, bv8);
@@ -189,7 +174,7 @@ int main(int argc, char *argv[]) {
   s.add(ctx.constant("c_1_Global_M_correct", arr) ==
         ctx.constant("c_1_Global_M_faulty", arr));
 
-  // Output divergence — the property we want to check
+  // Output differs
   s.add(ctx.constant("c_314_Global_M_correct", arr) !=
         ctx.constant("c_314_Global_M_faulty", arr));
 
