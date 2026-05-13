@@ -1,4 +1,3 @@
-Rewriting to pure bitvector theory...
 Written to /tmp/z3_bv_correct.smt2 and /tmp/z3_bv_faulty.smt2
 Inspect these files if Z3 fails to parse.
 
@@ -8,9 +7,9 @@ Running Z3...
 Result: SAT, fault IS observable
 
   i_6_a  = #x00000000
-  i_7_b  = #x00000080
+  i_7_b  = #x00000000
   i_8_c  = #x00000000
   M[a]   = #x00
-  M[b]   = #x91
+  M[b]   = #x00
   Correct: c[i_8_c] = M[a] bvxor M[b]
   Faulty:  c[i_8_c] = M[a]  (b skipped)

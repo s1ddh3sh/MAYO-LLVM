@@ -8,7 +8,6 @@
 using namespace z3;
 using namespace std;
 
-
 string rewrite_to_bv(const string &filename) {
   ifstream ifs(filename);
   if (!ifs) {
@@ -46,7 +45,7 @@ string rewrite_to_bv(const string &filename) {
     }
   }
 
-  //int to bitvec
+  // int to bitvec
   for (const string &var : {"i_6_a_correct", "i_6_a_faulty", "i_7_b_correct",
                             "i_7_b_faulty", "i_8_c_correct", "i_8_c_faulty"}) {
     string from = "(declare-fun " + var + " () Int)";
@@ -56,26 +55,16 @@ string rewrite_to_bv(const string &filename) {
       content.replace(pos, from.size(), to);
   }
 
-  //Replace the XOR let-block with pure bvxor
-  // Original pattern:
-  //   (let ((a!1 (bvslt (bvxor ((_ int2bv 8) (select MEM IDX_A))
-  //                            ((_ int2bv 8) (select MEM IDX_B)))
-  //                     #x00))
-  //         (a!2 (bv2int (bvxor ((_ int2bv 8) (select MEM IDX_A))
-  //                             ((_ int2bv 8) (select MEM IDX_B))))))
-  //     (= C_NEW (store MEM IDX_C (ite a!1 (- a!2 256) a!2))))
-  //
-  // Replacement :
-  //   (= C_NEW (store MEM IDX_C (bvxor (select MEM IDX_A)
-  //                                    (select MEM IDX_B))))
+  // removing the int2bv and bv2int
   {
-    
+
     regex pat(
-        R"(\(let \(\(a!1 \(bvslt \(bvxor \(\(_ int2bv 8\)\s*)"
-        R"(\(select (\S+) (\S+)\)\)\s*)"                    // MEM, IDX_A
-        R"(\(\(_ int2bv 8\)\s*\(select \S+ (\S+)\)\)\)\s*)" // IDX_B
+        R"(\(let \(\(a!1 \(bvslt \((bv\w+) \(\(_ int2bv 8\)\s*)" // OP capture
+        R"(\(select (\S+) (\S+)\)\)\s*)"                         // MEM, IDX_A
+        R"(\(\(_ int2bv 8\)\s*\(select \S+ (\S+)\)\)\)\s*)"      // IDX_B
         R"(#x00\)\)\s*)"
-        R"(\(a!2 \(bv2int \(bvxor \(\(_ int2bv 8\)\s*)"
+        R"(\(a!2 \(bv2int \(\1 \(\(_ int2bv 8\)\s*)" // same OP via
+                                                     // backreference
         R"(\(select \S+ \S+\)\)\s*)"
         R"(\(\(_ int2bv 8\)\s*\(select \S+ \S+\)\)\)\)\)\s*)"
         R"(\(= (\S+)\s*)"                                            // C_NEW
@@ -90,18 +79,17 @@ string rewrite_to_bv(const string &filename) {
 
     while (regex_search(it, end, m, pat)) {
       result += m.prefix().str();
-      string mem = m[1];   
-      string idx_a = m[2]; 
-      string idx_b = m[3]; 
-      string c_new = m[4]; 
-      string mem2 = m[5];  
-      string idx_c = m[6]; 
+      string op = m[1];
+      string mem = m[2];
+      string idx_a = m[3];
+      string idx_b = m[4];
+      string c_new = m[5];
+      string mem2 = m[6];
+      string idx_c = m[7];
 
-      result += "(= " + c_new + " (store " + mem2 + " " + idx_c +
-                " (bvxor (select " + mem + " " + idx_a +
-                ")"
-                " (select " +
-                mem + " " + idx_b + "))))";
+      result += "(= " + c_new + " (store " + mem2 + " " + idx_c + " (" + op +
+                " (select " + mem + " " + idx_a + ")" + " (select " + mem +
+                " " + idx_b + "))))";
 
       it = m.suffix().first;
     }
@@ -109,7 +97,7 @@ string rewrite_to_bv(const string &filename) {
     content = result;
   }
 
-//remove any bvint and intbv
+  // remove any bvint and intbv
   {
     regex bv2int_pat(R"(\(bv2int (\([^)]+\))\))");
     content = regex_replace(content, bv2int_pat, "$1");
@@ -132,7 +120,6 @@ int main(int argc, char *argv[]) {
   string correct_file = (argc > 1) ? argv[1] : "../correct.smt2";
   string faulty_file = (argc > 2) ? argv[2] : "../funcSkip.smt2";
 
-  cout << "Rewriting to pure bitvector theory...\n";
   string correct_tmp = write_temp(rewrite_to_bv(correct_file), "correct");
   string faulty_tmp = write_temp(rewrite_to_bv(faulty_file), "faulty");
 
