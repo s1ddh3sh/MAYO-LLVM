@@ -38,7 +38,7 @@ string rewrite_to_bv(const string &filename) {
   {
     size_t pos = 0;
     const string from = "(Array Int Int)";
-    const string to = "(Array (_ BitVec 32) (_ BitVec 8))";
+    const string to = "(Array (_ BitVec 8) (_ BitVec 8))";
     while ((pos = content.find(from, pos)) != string::npos) {
       content.replace(pos, from.size(), to);
       pos += to.size();
@@ -49,7 +49,7 @@ string rewrite_to_bv(const string &filename) {
   for (const string &var : {"i_6_a_correct", "i_6_a_faulty", "i_7_b_correct",
                             "i_7_b_faulty", "i_8_c_correct", "i_8_c_faulty"}) {
     string from = "(declare-fun " + var + " () Int)";
-    string to = "(declare-fun " + var + " () (_ BitVec 32))";
+    string to = "(declare-fun " + var + " () (_ BitVec 8))";
     size_t pos = content.find(from);
     if (pos != string::npos)
       content.replace(pos, from.size(), to);
@@ -124,7 +124,6 @@ int main(int argc, char *argv[]) {
   string faulty_tmp = write_temp(rewrite_to_bv(faulty_file), "faulty");
 
   cout << "Written to " << correct_tmp << " and " << faulty_tmp << "\n";
-  cout << "Inspect these files if Z3 fails to parse.\n\n";
 
   context ctx;
   solver s(ctx);
@@ -140,9 +139,9 @@ int main(int argc, char *argv[]) {
   cout << "Loaded " << correct_exprs.size() << " correct + "
        << faulty_exprs.size() << " faulty assertions\n";
 
-  z3::sort bv32 = ctx.bv_sort(32);
+  // z3::sort bv8 = ctx.bv_sort(32);
   z3::sort bv8 = ctx.bv_sort(8);
-  z3::sort arr = ctx.array_sort(bv32, bv8);
+  z3::sort arr = ctx.array_sort(bv8, bv8);
 
   // Force all path booleans true (235 of them)
   for (int i = 1; i <= 235; i++) {
@@ -152,12 +151,12 @@ int main(int argc, char *argv[]) {
   cout << "Forced 235 path booleans true\n";
 
   // Same inputs
-  s.add(ctx.constant("i_6_a_correct", bv32) ==
-        ctx.constant("i_6_a_faulty", bv32));
-  s.add(ctx.constant("i_7_b_correct", bv32) ==
-        ctx.constant("i_7_b_faulty", bv32));
-  s.add(ctx.constant("i_8_c_correct", bv32) ==
-        ctx.constant("i_8_c_faulty", bv32));
+  s.add(ctx.constant("i_6_a_correct", bv8) ==
+        ctx.constant("i_6_a_faulty", bv8));
+  s.add(ctx.constant("i_7_b_correct", bv8) ==
+        ctx.constant("i_7_b_faulty", bv8));
+  s.add(ctx.constant("i_8_c_correct", bv8) ==
+        ctx.constant("i_8_c_faulty", bv8));
   s.add(ctx.constant("c_1_Global_M_correct", arr) ==
         ctx.constant("c_1_Global_M_faulty", arr));
 
@@ -173,9 +172,9 @@ int main(int argc, char *argv[]) {
     cout << "Result: SAT, fault IS observable\n\n";
     model m = s.get_model();
 
-    z3::expr a = ctx.constant("i_6_a_correct", bv32);
-    z3::expr b = ctx.constant("i_7_b_correct", bv32);
-    z3::expr c = ctx.constant("i_8_c_correct", bv32);
+    z3::expr a = ctx.constant("i_6_a_correct", bv8);
+    z3::expr b = ctx.constant("i_7_b_correct", bv8);
+    z3::expr c = ctx.constant("i_8_c_correct", bv8);
     z3::expr mem = ctx.constant("c_1_Global_M_correct", arr);
 
     auto ev = [&](expr e) { return m.eval(e, true); };
