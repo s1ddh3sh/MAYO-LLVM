@@ -6,3 +6,7 @@ clang -g -O0 -c -emit-llvm -I../include -I../src -I../src/common -I../src/generi
 
 llvm-link example.bc mayo.bc -o example_mayo.bc
 llvm-dis example_mayo.bc -o example_mayo.ll
+
+
+// FOR IR -> obj
+llc -mtriple=arm-none-eabi -mcpu=cortex-m4 -mattr=+thumb-mode -filetype=obj original.ll -o original.o

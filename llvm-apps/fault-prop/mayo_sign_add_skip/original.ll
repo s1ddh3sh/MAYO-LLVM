@@ -1661,7 +1661,7 @@ iter_77_end:                                      ; preds = %for.body3.iter77
 }
 
 ; Function Attrs: inlinehint
-define void @driver() local_unnamed_addr #1 {
+define i32 @main() local_unnamed_addr #1 {
 entry:
   %Vdec = alloca [780 x i8], align 16
   call void @llvm.memset.p0.i64(ptr noundef nonnull align 16 dereferenceable(780) %Vdec, i8 0, i64 780, i1 false)
@@ -1670,7 +1670,7 @@ entry:
   %s = alloca [860 x i8], align 16
   call void @llvm.memset.p0.i64(ptr noundef nonnull align 16 dereferenceable(860) %s, i8 0, i64 860, i1 false)
   call fastcc void @mat_add(ptr %Vdec, ptr %Ox, ptr %s, i32 78, i32 1)
-  ret void
+  ret i32 0
 }
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)

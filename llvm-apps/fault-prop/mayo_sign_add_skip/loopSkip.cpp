@@ -326,9 +326,9 @@ void createDynamicDriverFunction(Module &OriginalM, Module &ExtractedM,
                                  Function *TargetF) {
   LLVMContext &ctx = ExtractedM.getContext();
 
-  FunctionType *driverTy = FunctionType::get(Type::getVoidTy(ctx), false);
+  FunctionType *driverTy = FunctionType::get(Type::getInt32Ty (ctx), false);
   Function *driver = Function::Create(driverTy, GlobalValue::ExternalLinkage,
-                                      "driver", &ExtractedM);
+                                      "main", &ExtractedM);
 
   BasicBlock *entry = BasicBlock::Create(ctx, "entry", driver);
   IRBuilder<> builder(entry);
@@ -424,13 +424,13 @@ void createDynamicDriverFunction(Module &OriginalM, Module &ExtractedM,
 
   CallInst *callI = builder.CreateCall(TargetF, callArgs);
   callI->setCallingConv(TargetF->getCallingConv());
-  builder.CreateRetVoid();
+  builder.CreateRet(builder.getInt32(0));
 
   // Prevent the driver from being optimized away or inlined
   driver->addFnAttr(Attribute::NoInline);
   driver->addFnAttr(Attribute::OptimizeNone);
 
-  errs() << "Created dynamic driver function for " << TargetF->getName()
+  errs() << "Created driver function for " << TargetF->getName()
          << "\n";
 }
 
