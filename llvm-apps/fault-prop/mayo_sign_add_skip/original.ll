@@ -1660,7 +1660,25 @@ iter_77_end:                                      ; preds = %for.body3.iter77
   br label %for.end13
 }
 
+; Function Attrs: inlinehint
+define void @driver() local_unnamed_addr #1 {
+entry:
+  %Vdec = alloca [780 x i8], align 16
+  call void @llvm.memset.p0.i64(ptr noundef nonnull align 16 dereferenceable(780) %Vdec, i8 0, i64 780, i1 false)
+  %Ox = alloca [78 x i8], align 16
+  call void @llvm.memset.p0.i64(ptr noundef nonnull align 16 dereferenceable(78) %Ox, i8 0, i64 78, i1 false)
+  %s = alloca [860 x i8], align 16
+  call void @llvm.memset.p0.i64(ptr noundef nonnull align 16 dereferenceable(860) %s, i8 0, i64 860, i1 false)
+  call fastcc void @mat_add(ptr %Vdec, ptr %Ox, ptr %s, i32 78, i32 1)
+  ret void
+}
+
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
+
 attributes #0 = { inlinehint nounwind "no-builtins" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="cortex-m4" "target-features"="+armv7e-m,+dsp,+fp16,+hwdiv,+vfp2sp,+vfp3d16sp,+vfp4d16sp,-thumb-mode" }
+attributes #1 = { inlinehint }
+attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
 !llvm.dbg.cu = !{!35, !37, !2, !66, !77}
 !llvm.ident = !{!86, !86, !86, !86, !86}

@@ -8,7 +8,7 @@ build64/
 llvmbmc
 doc/*.html
 doc/doc.css
-rust/target
+.z3-trace
 
 # MSVC
 .vs

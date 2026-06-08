@@ -1,3 +1,4 @@
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -24,6 +25,7 @@
 #include "llvm/IR/Analysis.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constant.h"
+#include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
@@ -245,6 +247,193 @@ void dump_module(Module &M, const std::string &filename) {
   out.close();
 }
 
+/// Trace a value backwards to its original AllocaInst, GlobalVariable, or
+/// Constant.
+Value *traceArgToRoot(Value *V) {
+  std::set<Value *> visited;
+  while (V && visited.insert(V).second) {
+    if (auto *GEP = dyn_cast<GetElementPtrInst>(V)) {
+      V = GEP->getPointerOperand();
+    } else if (auto *BC = dyn_cast<BitCastInst>(V)) {
+      V = BC->getOperand(0);
+    } else if (auto *Arg = dyn_cast<Argument>(V)) {
+      Function *F = Arg->getParent();
+      bool foundCall = false;
+      for (User *U : F->users()) {
+        if (auto *CB = dyn_cast<CallBase>(U)) {
+          if (CB->getCalledFunction() == F) {
+            V = CB->getArgOperand(Arg->getArgNo());
+            foundCall = true;
+            break; // Just pick the first call site
+          }
+        }
+      }
+      if (!foundCall)
+        break;
+    } else if (auto *LI = dyn_cast<LoadInst>(V)) {
+      break;
+    } else {
+      break;
+    }
+  }
+  return V;
+}
+
+unsigned inferPointerAllocSize(Argument *arg, unsigned defaultSize) {
+  unsigned maxOffset = 0;
+  bool foundGEP = false;
+
+  std::function<void(Value *)> scanUsers = [&](Value *V) {
+    for (User *U : V->users()) {
+      if (auto *GEP = dyn_cast<GetElementPtrInst>(U)) {
+        APInt offset(32, 0);
+        if (GEP->accumulateConstantOffset(GEP->getModule()->getDataLayout(),
+                                          offset)) {
+          unsigned off = (unsigned)offset.getZExtValue();
+          unsigned accessSize = off + 1;
+          for (User *GU : GEP->users()) {
+            if (auto *LI = dyn_cast<LoadInst>(GU)) {
+              unsigned elemBytes =
+                  LI->getModule()->getDataLayout().getTypeStoreSize(
+                      LI->getType());
+              accessSize = off + elemBytes;
+            } else if (auto *SI = dyn_cast<StoreInst>(GU)) {
+              if (SI->getPointerOperand() == GEP) {
+                unsigned elemBytes =
+                    SI->getModule()->getDataLayout().getTypeStoreSize(
+                        SI->getValueOperand()->getType());
+                accessSize = off + elemBytes;
+              }
+            }
+          }
+          if (accessSize > maxOffset) {
+            maxOffset = accessSize;
+            foundGEP = true;
+          }
+        }
+        scanUsers(GEP);
+      } else if (auto *BC = dyn_cast<BitCastInst>(U)) {
+        scanUsers(BC);
+      }
+    }
+  };
+
+  scanUsers(arg);
+  return foundGEP ? maxOffset : defaultSize;
+}
+
+void createDynamicDriverFunction(Module &OriginalM, Module &ExtractedM,
+                                 Function *TargetF) {
+  LLVMContext &ctx = ExtractedM.getContext();
+
+  FunctionType *driverTy = FunctionType::get(Type::getVoidTy(ctx), false);
+  Function *driver = Function::Create(driverTy, GlobalValue::ExternalLinkage,
+                                      "driver", &ExtractedM);
+
+  BasicBlock *entry = BasicBlock::Create(ctx, "entry", driver);
+  IRBuilder<> builder(entry);
+
+  std::vector<Value *> callArgs;
+
+  Function *OrigF = OriginalM.getFunction(TargetF->getName());
+  CallBase *FirstCall = nullptr;
+  if (OrigF) {
+    for (User *U : OrigF->users()) {
+      if (auto *CB = dyn_cast<CallBase>(U)) {
+        if (CB->getCalledFunction() == OrigF) {
+          FirstCall = CB;
+          break;
+        }
+      }
+    }
+  }
+
+  for (unsigned i = 0; i < TargetF->arg_size(); i++) {
+    Argument *arg = TargetF->getArg(i);
+    Type *argTy = arg->getType();
+
+    Value *root = nullptr;
+    if (FirstCall) {
+      root = traceArgToRoot(FirstCall->getArgOperand(i));
+    }
+
+    if (argTy->isPointerTy()) {
+      Value *ptr = nullptr;
+      if (root) {
+        if (auto *AI = dyn_cast<AllocaInst>(root)) {
+          Type *allocTy = AI->getAllocatedType();
+          std::string name = AI->getName().str();
+          if (name.empty())
+            name = "buf";
+          AllocaInst *newAlloc = builder.CreateAlloca(allocTy, nullptr, name);
+          newAlloc->setAlignment(Align(16));
+          uint64_t allocSize =
+              ExtractedM.getDataLayout().getTypeAllocSize(allocTy);
+          builder.CreateMemSet(newAlloc, builder.getInt8(0), allocSize,
+                               Align(1));
+          ptr = builder.CreateBitCast(newAlloc, argTy);
+          errs() << "  Arg " << i << " (" << arg->getName()
+                 << "): alloca of type " << *allocTy << " named " << name
+                 << "\n";
+        } else if (auto *GV = dyn_cast<GlobalVariable>(root)) {
+          Type *valTy = GV->getValueType();
+          std::string name = GV->getName().str();
+          if (name.empty())
+            name = "buf";
+          AllocaInst *newAlloc = builder.CreateAlloca(valTy, nullptr, name);
+          newAlloc->setAlignment(Align(16));
+          uint64_t allocSize =
+              ExtractedM.getDataLayout().getTypeAllocSize(valTy);
+          builder.CreateMemSet(newAlloc, builder.getInt8(0), allocSize,
+                               Align(1));
+          ptr = builder.CreateBitCast(newAlloc, argTy);
+          errs() << "  Arg " << i << " (" << arg->getName()
+                 << "): global of type " << *valTy << " named " << name << "\n";
+        }
+      }
+
+      if (!ptr) {
+        unsigned allocSize = inferPointerAllocSize(arg, 128);
+        ArrayType *arrTy = ArrayType::get(Type::getInt8Ty(ctx), allocSize);
+        AllocaInst *alloc =
+            builder.CreateAlloca(arrTy, nullptr, arg->getName() + "_buf");
+        alloc->setAlignment(Align(16));
+        builder.CreateMemSet(alloc, builder.getInt8(0), allocSize, Align(1));
+        ptr = builder.CreateBitCast(alloc, argTy);
+        errs() << "  Arg " << i << " (" << arg->getName()
+               << "): fallback -> alloca [" << allocSize << " x i8]\n";
+      }
+      callArgs.push_back(ptr);
+
+    } else if (argTy->isIntegerTy()) {
+      if (root && isa<ConstantInt>(root)) {
+        ConstantInt *CI = cast<ConstantInt>(root);
+        callArgs.push_back(ConstantInt::get(argTy, CI->getZExtValue()));
+        errs() << "  Arg " << i << " (" << arg->getName() << "): constant "
+               << CI->getZExtValue() << "\n";
+      } else {
+        callArgs.push_back(ConstantInt::get(argTy, 0));
+        errs() << "  Arg " << i << " (" << arg->getName() << "): default 0\n";
+      }
+    } else {
+      callArgs.push_back(Constant::getNullValue(argTy));
+      errs() << "  Arg " << i << " (" << arg->getName()
+             << "): unknown type -> null\n";
+    }
+  }
+
+  CallInst *callI = builder.CreateCall(TargetF, callArgs);
+  callI->setCallingConv(TargetF->getCallingConv());
+  builder.CreateRetVoid();
+
+  // Prevent the driver from being optimized away or inlined
+  driver->addFnAttr(Attribute::NoInline);
+  driver->addFnAttr(Attribute::OptimizeNone);
+
+  errs() << "Created dynamic driver function for " << TargetF->getName()
+         << "\n";
+}
+
 std::unique_ptr<Module> extractFunction(Module &M, Function *F) {
   auto newMod = CloneModule(M);
 
@@ -450,7 +639,7 @@ public:
 
 int main(int argc, char **argv) {
   if (argc < 3) {
-    errs() << "Usage: loopSkip <input.ll> <mode>\n";
+    errs() << "Usage: loopSkip <input.ll> <mode> [funcName]\n";
     errs() << "0 => loopSkip\n";
     errs() << "1 => funcSkip\n";
     return 1;
@@ -458,6 +647,10 @@ int main(int argc, char **argv) {
 
   std::string inputFile = argv[1];
   int mode = std::stoi(argv[2]);
+  std::string funcName = "mat_add";
+  if (argc >= 4) {
+    funcName = argv[3];
+  }
 
   LLVMContext ctx;
   SMDiagnostic err;
@@ -467,9 +660,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Function *target = module->getFunction("mat_add");
+  Function *target = module->getFunction(funcName);
   if (!target) {
-    std::cout << "Function not found" << std::endl;
+    std::cout << "Function not found: " << funcName << std::endl;
     return 1;
   }
 
@@ -479,42 +672,54 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  // Make mat_add externally visible so GlobalOptPass doesn't delete it
-  if (Function *F = funcModule->getFunction("mat_add")) {
+  if (Function *F = funcModule->getFunction(funcName))
     F->setLinkage(GlobalValue::ExternalLinkage);
+
+  {
+    Function *extractedFunc = funcModule->getFunction(funcName);
+    if (extractedFunc) {
+      errs() << "Creating driver function for " << funcName << "...\n";
+      createDynamicDriverFunction(*module, *funcModule, extractedFunc);
+    }
   }
 
-  LoopAnalysisManager LAM;
-  FunctionAnalysisManager FAM;
-  CGSCCAnalysisManager CGAM;
-  ModuleAnalysisManager MAM;
+  auto makePB = [&](Module &M, auto buildPipeline) {
+    LoopAnalysisManager LAM;
+    FunctionAnalysisManager FAM;
+    CGSCCAnalysisManager CGAM;
+    ModuleAnalysisManager MAM;
+    PassBuilder PB;
+    PB.registerModuleAnalyses(MAM);
+    PB.registerCGSCCAnalyses(CGAM);
+    PB.registerFunctionAnalyses(FAM);
+    PB.registerLoopAnalyses(LAM);
+    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
-  PassBuilder PB;
-  PB.registerModuleAnalyses(MAM);
-  PB.registerCGSCCAnalyses(CGAM);
-  PB.registerFunctionAnalyses(FAM);
-  PB.registerLoopAnalyses(LAM);
-  PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+    ModulePassManager MPM;
+    buildPipeline(MPM);
+    MPM.run(M, MAM);
+  };
 
-  ModulePassManager MPM;
+  std::unique_ptr<Module> preUnrollClone;
+  if (mode == FUNC_SKIP) {
+    preUnrollClone = CloneModule(*funcModule);
+  }
 
-  if (mode == LOOP_SKIP) {
-    for (Function &F : *funcModule) {
-      F.removeFnAttr(Attribute::NoInline);
-      F.removeFnAttr(Attribute::OptimizeNone);
+  // Unroll for original.ll
+  for (Function &F : *funcModule) {
+    F.removeFnAttr(Attribute::NoInline);
+    F.removeFnAttr(Attribute::OptimizeNone);
+    if (!F.isDeclaration())
+      F.addFnAttr(Attribute::InlineHint);
+  }
 
-      if (!F.isDeclaration()) {
-        F.addFnAttr(Attribute::InlineHint);
-      }
-    }
-    // inline
+  makePB(*funcModule, [](ModulePassManager &MPM) {
     {
       InlineParams IP;
       IP.DefaultThreshold = 10000;
       MPM.addPass(ModuleInlinerPass(IP));
     }
-
-    // constant-prop
+    // Constant-prop + simplify
     {
       FunctionPassManager FPM;
       FPM.addPass(PromotePass());
@@ -524,101 +729,45 @@ int main(int argc, char **argv) {
       FPM.addPass(SimplifyCFGPass());
       MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
     }
+    // Loop unroll (no fault)
     {
       FunctionPassManager FPM;
       FPM.addPass(LoopSimplifyPass());
       FPM.addPass(LCSSAPass());
       FPM.addPass(createFunctionToLoopPassAdaptor(LoopRotatePass()));
       FPM.addPass(createFunctionToLoopPassAdaptor(IndVarSimplifyPass()));
-
       FPM.addPass(LabeledUnrollPass());
-
-      // FPM.addPass(InstCombinePass());
-      FPM.addPass(SCCPPass());
-      // FPM.addPass(SimplifyCFGPass());
-      FPM.addPass(PromotePass());
-
-      MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
-    }
-  } else if (mode == FUNC_SKIP) {
-    for (Function &F : *funcModule) {
-      F.removeFnAttr(Attribute::NoInline);
-      F.removeFnAttr(Attribute::OptimizeNone);
-
-      if (!F.isDeclaration()) {
-        F.addFnAttr(Attribute::InlineHint);
-      }
-    }
-
-    // Add prep passes to allow SE to determine trip count
-    {
-      FunctionPassManager FPM;
-      FPM.addPass(PromotePass());
-      FPM.addPass(SCCPPass());
-      FPM.addPass(CorrelatedValuePropagationPass());
-      FPM.addPass(InstCombinePass());
-      FPM.addPass(SimplifyCFGPass());
-      MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
-    }
-    {
-      FunctionPassManager FPM;
-      FPM.addPass(LoopSimplifyPass());
-      FPM.addPass(LCSSAPass());
-      FPM.addPass(createFunctionToLoopPassAdaptor(LoopRotatePass()));
-      FPM.addPass(createFunctionToLoopPassAdaptor(IndVarSimplifyPass()));
-
-      FPM.addPass(FuncSkip());
-
       FPM.addPass(SCCPPass());
       FPM.addPass(PromotePass());
       MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
     }
+    MPM.addPass(GlobalOptPass());
+  });
 
-    // inline remaining function calls
-    {
-      InlineParams IP;
-      IP.DefaultThreshold = 10000;
-      MPM.addPass(ModuleInlinerPass(IP));
-    }
-    {
-      // FunctionPassManager FPM;
-      // // FPM.addPass(InstCombinePass());
-      // FPM.addPass(SimplifyCFGPass());
-      // MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
-    }
-  } else {
-    errs() << "Invalid mode. Use 0 or 1\n";
-    return 1;
-  }
-  MPM.addPass(GlobalOptPass());
-
-  MPM.run(*funcModule, MAM);
-
-  // outs() << *funcModule;
   if (verifyModule(*funcModule, &errs())) {
-    errs() << "Invalid IR\n";
+    errs() << "Invalid IR after LabeledUnrollPass\n";
     return 1;
-  } else {
-    outs() << "IR verified";
   }
-  std::cout << "Dumping module..." << std::endl;
-  if (mode == LOOP_SKIP) {
-    dump_module(*funcModule, "../original.ll");
 
-    // --- Simulate loop-skip fault: skip iteration 1 ---
+  dump_module(*funcModule, "../original.ll");
+  outs() << "Wrote original.ll\n";
+
+  // Clone and inject fault
+
+  if (mode == LOOP_SKIP) {
     auto faultModule = CloneModule(*funcModule);
 
     unsigned skipIter = 1;
-    Function *faultFunc = faultModule->getFunction("mat_add");
+    Function *faultFunc = faultModule->getFunction(funcName);
     if (faultFunc) {
       std::string srcName = "iter_" + std::to_string(skipIter - 1) + "_end";
       std::string newTarget = "iter_" + std::to_string(skipIter + 1) + "_start";
       std::string skippedSuffix = ".iter" + std::to_string(skipIter);
       std::string prevSuffix = ".iter" + std::to_string(skipIter - 1);
 
-      // Collect blocks belonging to the skipped iteration
       std::string skipStartName = "iter_" + std::to_string(skipIter) + "_start";
       std::string skipEndName = "iter_" + std::to_string(skipIter) + "_end";
+
       std::vector<BasicBlock *> skippedBlocks;
       BasicBlock *srcBB = nullptr, *newTargetBB = nullptr;
       bool inSkipped = false;
@@ -645,15 +794,11 @@ int main(int argc, char **argv) {
             if (iName.empty())
               continue;
 
-            // Check if this instruction's name ends with the skipped suffix
             size_t pos = iName.rfind(skippedSuffix);
             if (pos == std::string::npos)
               continue;
 
-            // Build the corresponding previous-iteration name
             std::string prevName = iName.substr(0, pos) + prevSuffix;
-
-            // Find the instruction with that name in the function
             for (BasicBlock &searchBB : *faultFunc) {
               for (Instruction &searchI : searchBB) {
                 if (searchI.getName() == prevName) {
@@ -667,14 +812,13 @@ int main(int argc, char **argv) {
           }
         }
 
-        // Replace uses of skipped-iteration values in non-skipped blocks
+        // Replace uses of skipped-iteration values outside the skipped blocks
         for (auto &[skippedVal, prevVal] : remap) {
           std::vector<Use *> usesToReplace;
           for (Use &U : skippedVal->uses()) {
             Instruction *user = dyn_cast<Instruction>(U.getUser());
             if (!user)
               continue;
-            // Only replace uses outside the skipped blocks
             BasicBlock *userBB = user->getParent();
             bool isInSkipped = false;
             for (BasicBlock *sBB : skippedBlocks) {
@@ -683,16 +827,14 @@ int main(int argc, char **argv) {
                 break;
               }
             }
-            if (!isInSkipped) {
+            if (!isInSkipped)
               usesToReplace.push_back(&U);
-            }
           }
-          for (Use *U : usesToReplace) {
+          for (Use *U : usesToReplace)
             U->set(prevVal);
-          }
         }
 
-        // Redirect the branch
+        // Redirect the branch from iter_(N-1)_end to iter_(N+1)_start
         Instruction *term = srcBB->getTerminator();
         if (auto *br = dyn_cast<BranchInst>(term)) {
           BranchInst::Create(newTargetBB, srcBB);
@@ -700,13 +842,12 @@ int main(int argc, char **argv) {
           outs() << "Fault injected: " << srcName << " -> " << newTarget
                  << " (skipping iteration " << skipIter << ")\n";
         }
-        for (BasicBlock *BB : skippedBlocks) {
+
+        for (BasicBlock *BB : skippedBlocks)
           BB->dropAllReferences();
-        }
-        // *** THEN erase (safe now that no intra-dead-block uses remain) ***
-        for (BasicBlock *BB : skippedBlocks) {
+        for (BasicBlock *BB : skippedBlocks)
           BB->eraseFromParent();
-        }
+
       } else {
         errs() << "Could not find blocks for fault injection\n";
       }
@@ -716,19 +857,71 @@ int main(int argc, char **argv) {
       errs() << "Fault module has invalid IR\n";
     } else {
       dump_module(*faultModule, "../loopSkip.ll");
-      outs() << "Wrote ../loopSkip.ll\n";
+      outs() << "Wrote loopSkip.ll\n";
     }
+
+  } else if (mode == FUNC_SKIP) {
+    for (Function &F : *preUnrollClone) {
+      F.removeFnAttr(Attribute::NoInline);
+      F.removeFnAttr(Attribute::OptimizeNone);
+      if (!F.isDeclaration())
+        F.addFnAttr(Attribute::InlineHint);
+    }
+    // faultModule already has the clean unrolled IR from runPrep.
+    // Now run FuncSkip on it — this re-unrolls with the call skipped in
+    // iteration 0. We need loop canonicalization passes so SE can see loops.
+    // Note: if the LabeledUnrollPass already eliminated the original loops,
+    // FuncSkip won't find any — in that case FuncSkip should operate on a
+    // pre-unroll clone (see comment below).
+    makePB(*preUnrollClone, [](ModulePassManager &MPM) {
+      {
+        FunctionPassManager FPM;
+        FPM.addPass(LoopSimplifyPass());
+        FPM.addPass(LCSSAPass());
+        FPM.addPass(createFunctionToLoopPassAdaptor(LoopRotatePass()));
+        FPM.addPass(createFunctionToLoopPassAdaptor(IndVarSimplifyPass()));
+        FPM.addPass(FuncSkip());
+        FPM.addPass(SCCPPass());
+        FPM.addPass(PromotePass());
+        MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+      }
+
+      {
+        InlineParams IP;
+        IP.DefaultThreshold = 10000;
+        MPM.addPass(ModuleInlinerPass(IP));
+      }
+      MPM.addPass(GlobalOptPass());
+    });
+
+    if (verifyModule(*preUnrollClone, &errs())) {
+      errs() << "Fault module has invalid IR\n";
+    } else {
+      dump_module(*preUnrollClone, "../funcSkip.ll");
+      outs() << "Wrote funcSkip.ll\n";
+    }
+
   } else {
-    dump_module(*funcModule, "../funcSkip.ll");
+    errs() << "Invalid mode. Use 0 or 1\n";
+    return 1;
   }
 
-  run_command("../llvmbmc ../original.ll --dump-solver-query -f mat_add --var-suffix correct");
+  std::string bmcCmdCorrect =
+      "../llvmbmc ../original.ll --dump-solver-query -f " + funcName +
+      " --var-suffix correct";
+  run_command(bmcCmdCorrect);
   run_command("cp /tmp/test.smt2 ../correct.smt2");
   if (mode == LOOP_SKIP) {
-    run_command("../llvmbmc ../loopSkip.ll --dump-solver-query -f mat_add --var-suffix faulty");
+    std::string bmcCmdFaulty =
+        "../llvmbmc ../loopSkip.ll --dump-solver-query -f " + funcName +
+        " --var-suffix faulty";
+    run_command(bmcCmdFaulty);
     run_command("cp /tmp/test.smt2 ../loopFault.smt2");
   } else {
-    run_command("../llvmbmc ../funcSkip.ll --dump-solver-query -f mat_add --var-suffix faulty");
+    std::string bmcCmdFaulty =
+        "../llvmbmc ../funcSkip.ll --dump-solver-query -f " + funcName +
+        " --var-suffix faulty";
+    run_command(bmcCmdFaulty);
     run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
   }
 
