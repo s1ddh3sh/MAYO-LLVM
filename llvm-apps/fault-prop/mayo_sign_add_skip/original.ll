@@ -3,13 +3,6 @@ source_filename = "composite"
 target datalayout = "e-m:e-p:32:32-Fi8-i64:64-v128:64:128-a:0:32-n32-S64"
 target triple = "arm-unknown-none-eabi"
 
-%struct.AES256_CTR_DRBG_struct = type { [32 x i8], [16 x i8], i32 }
-
-@pqmayo_MAYO_1_ref_uint32_t_blocker = dso_local local_unnamed_addr global i32 0, align 4
-@pqmayo_MAYO_1_ref_uint64_t_blocker = dso_local local_unnamed_addr global i64 0, align 8
-@pqmayo_MAYO_1_ref_unsigned_char_blocker = dso_local local_unnamed_addr global i8 0, align 1
-@DRBG_ctx = dso_local local_unnamed_addr global %struct.AES256_CTR_DRBG_struct zeroinitializer, align 4
-
 ; Function Attrs: inlinehint nounwind
 define dso_local fastcc void @mat_add(ptr noundef nonnull %a, ptr noundef nonnull %b, ptr noundef nonnull %c, i32 noundef %m, i32 noundef %n) unnamed_addr #0 {
 entry:

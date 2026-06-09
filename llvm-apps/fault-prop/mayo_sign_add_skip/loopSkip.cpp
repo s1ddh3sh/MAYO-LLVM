@@ -8,9 +8,12 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "llvm/Transforms/IPO/GlobalDCE.h"
 #include "llvm/Transforms/IPO/GlobalOpt.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Scalar/ADCE.h"
 #include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
+#include "llvm/Transforms/Scalar/DCE.h"
 #include "llvm/Transforms/Scalar/IndVarSimplify.h"
 #include "llvm/Transforms/Scalar/LoopRotation.h"
 #include "llvm/Transforms/Scalar/LoopUnrollPass.h"
@@ -742,6 +745,11 @@ void cleanup(Module &M) {
     if (F.isDeclaration() && F.use_empty())
       F.eraseFromParent();
   }
+  for (auto GI = M.global_begin(); GI != M.global_end();) {
+    GlobalVariable *GV = &*GI++;
+    if (GV->use_empty())
+      GV->eraseFromParent();
+  }
 }
 int main(int argc, char **argv) {
   if (argc < 3) {
@@ -851,6 +859,32 @@ int main(int argc, char **argv) {
   });
   replaceMemoryIntrinsics(*funcModule, *module);
   cleanup(*funcModule);
+  {
+    LoopAnalysisManager LAM;
+    FunctionAnalysisManager FAM;
+    CGSCCAnalysisManager CGAM;
+    ModuleAnalysisManager MAM;
+
+    PassBuilder PB;
+
+    PB.registerModuleAnalyses(MAM);
+    PB.registerCGSCCAnalyses(CGAM);
+    PB.registerFunctionAnalyses(FAM);
+    PB.registerLoopAnalyses(LAM);
+    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+
+    ModulePassManager MPM;
+
+    MPM.addPass(GlobalDCEPass());
+
+    FunctionPassManager FPM;
+    FPM.addPass(ADCEPass());
+    FPM.addPass(DCEPass());
+
+    MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+
+    MPM.run(*funcModule, MAM);
+  }
   StripDebugInfo(*funcModule);
 
   if (verifyModule(*funcModule, &errs())) {
@@ -999,6 +1033,32 @@ int main(int argc, char **argv) {
     });
     replaceMemoryIntrinsics(*preUnrollClone, *module);
     cleanup(*preUnrollClone);
+    {
+      LoopAnalysisManager LAM;
+      FunctionAnalysisManager FAM;
+      CGSCCAnalysisManager CGAM;
+      ModuleAnalysisManager MAM;
+
+      PassBuilder PB;
+
+      PB.registerModuleAnalyses(MAM);
+      PB.registerCGSCCAnalyses(CGAM);
+      PB.registerFunctionAnalyses(FAM);
+      PB.registerLoopAnalyses(LAM);
+      PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+
+      ModulePassManager MPM;
+
+      MPM.addPass(GlobalDCEPass());
+
+      FunctionPassManager FPM;
+      FPM.addPass(ADCEPass());
+      FPM.addPass(DCEPass());
+
+      MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+
+      MPM.run(*preUnrollClone, MAM);
+    }
     StripDebugInfo(*preUnrollClone);
     if (verifyModule(*preUnrollClone, &errs())) {
       errs() << "Fault module has invalid IR\n";
@@ -1012,24 +1072,21 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  // std::string bmcCmdCorrect =
-  //     "../llvmbmc ../original.ll --dump-solver-query -f main --var-suffix
-  //     correct";
-  // run_command(bmcCmdCorrect);
-  // run_command("cp /tmp/test.smt2 ../correct.smt2");
-  // if (mode == LOOP_SKIP) {
-  //   std::string bmcCmdFaulty =
-  //       "../llvmbmc ../loopSkip.ll --dump-solver-query -f main --var-suffix
-  //       faulty";
-  //   run_command(bmcCmdFaulty);
-  //   run_command("cp /tmp/test.smt2 ../loopFault.smt2");
-  // } else {
-  //   std::string bmcCmdFaulty =
-  //       "../llvmbmc ../funcSkip.ll --dump-solver-query -f main --var-suffix
-  //       faulty";
-  //   run_command(bmcCmdFaulty);
-  //   run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
-  // }
+  std::string bmcCmdCorrect = "../llvmbmc ../original.ll --dump-solver-query "
+                              "-f main --var-suffix correct ";
+  run_command(bmcCmdCorrect);
+  run_command("cp /tmp/test.smt2 ../correct.smt2");
+  if (mode == LOOP_SKIP) {
+    std::string bmcCmdFaulty = "../llvmbmc ../loopSkip.ll --dump-solver-query "
+                               "-f main --var-suffix faulty ";
+    run_command(bmcCmdFaulty);
+    run_command("cp /tmp/test.smt2 ../loopFault.smt2");
+  } else {
+    std::string bmcCmdFaulty = "../llvmbmc ../funcSkip.ll --dump-solver-query "
+                               "-f main --var-suffix faulty ";
+    run_command(bmcCmdFaulty);
+    run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
+  }
 
   return 0;
 }
