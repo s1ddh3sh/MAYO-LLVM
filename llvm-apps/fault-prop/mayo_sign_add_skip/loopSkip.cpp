@@ -26,6 +26,7 @@
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
@@ -326,7 +327,7 @@ void createDynamicDriverFunction(Module &OriginalM, Module &ExtractedM,
                                  Function *TargetF) {
   LLVMContext &ctx = ExtractedM.getContext();
 
-  FunctionType *driverTy = FunctionType::get(Type::getInt32Ty (ctx), false);
+  FunctionType *driverTy = FunctionType::get(Type::getInt32Ty(ctx), false);
   Function *driver = Function::Create(driverTy, GlobalValue::ExternalLinkage,
                                       "main", &ExtractedM);
 
@@ -430,8 +431,7 @@ void createDynamicDriverFunction(Module &OriginalM, Module &ExtractedM,
   driver->addFnAttr(Attribute::NoInline);
   driver->addFnAttr(Attribute::OptimizeNone);
 
-  errs() << "Created driver function for " << TargetF->getName()
-         << "\n";
+  errs() << "Created driver function for " << TargetF->getName() << "\n";
 }
 
 std::unique_ptr<Module> extractFunction(Module &M, Function *F) {
@@ -637,6 +637,112 @@ public:
   }
 };
 
+Function *getOrCloneHelper(Module &M, Module &SourceM, StringRef Name) {
+
+  if (Function *F = M.getFunction(Name))
+    return F;
+
+  Function *Src = SourceM.getFunction(Name);
+  if (!Src)
+    return nullptr;
+
+  ValueToValueMapTy VMap;
+
+  Function *NewF = Function::Create(Src->getFunctionType(), Src->getLinkage(),
+                                    Src->getName(), &M);
+
+  auto DestI = NewF->arg_begin();
+  for (const Argument &Arg : Src->args()) {
+    DestI->setName(Arg.getName());
+    VMap[&Arg] = &*DestI++;
+  }
+
+  SmallVector<ReturnInst *, 8> Returns;
+
+  CloneFunctionInto(NewF, Src, VMap, CloneFunctionChangeType::LocalChangesOnly,
+                    Returns);
+
+  return NewF;
+}
+
+void replaceMemoryIntrinsics(Module &M, Module &SourceM) {
+
+  Function *MayoMemset = getOrCloneHelper(M, SourceM, "mayo_memset");
+
+  Function *MayoMemcpy = getOrCloneHelper(M, SourceM, "mayo_memcpy");
+
+  SmallVector<CallInst *, 64> Worklist;
+
+  for (Function &F : M) {
+    for (BasicBlock &BB : F) {
+      for (Instruction &I : BB) {
+
+        auto *CI = dyn_cast<CallInst>(&I);
+        if (!CI)
+          continue;
+
+        Function *Callee = CI->getCalledFunction();
+
+        if (!Callee || !Callee->isIntrinsic())
+          continue;
+
+        Intrinsic::ID ID = Callee->getIntrinsicID();
+
+        if (ID == Intrinsic::memset || ID == Intrinsic::memcpy)
+          Worklist.push_back(CI);
+      }
+    }
+  }
+
+  for (CallInst *CI : Worklist) {
+
+    IRBuilder<> B(CI);
+
+    Function *Callee = CI->getCalledFunction();
+
+    switch (Callee->getIntrinsicID()) {
+
+    case Intrinsic::memset: {
+
+      auto *MSI = cast<MemSetInst>(CI);
+
+      B.CreateCall(MayoMemset,
+                   {MSI->getDest(), MSI->getValue(),
+                    B.CreateIntCast(MSI->getLength(),
+                                    Type::getInt32Ty(M.getContext()), false)});
+
+      CI->eraseFromParent();
+      break;
+    }
+
+    case Intrinsic::memcpy: {
+
+      auto *MCI = cast<MemCpyInst>(CI);
+
+      B.CreateCall(MayoMemcpy,
+                   {MCI->getDest(), MCI->getSource(),
+                    B.CreateIntCast(MCI->getLength(),
+                                    Type::getInt32Ty(M.getContext()), false)});
+
+      CI->eraseFromParent();
+      break;
+    }
+
+    default:
+      break;
+    }
+  }
+}
+
+void cleanup(Module &M) {
+  for (auto FI = M.begin(); FI != M.end();) {
+
+    Function &F = *FI++;
+
+    if (F.isDeclaration() && F.use_empty())
+      F.eraseFromParent();
+  }
+}
 int main(int argc, char **argv) {
   if (argc < 3) {
     errs() << "Usage: loopSkip <input.ll> <mode> [funcName]\n";
@@ -647,7 +753,7 @@ int main(int argc, char **argv) {
 
   std::string inputFile = argv[1];
   int mode = std::stoi(argv[2]);
-  std::string funcName = "mat_add";
+  std::string funcName = "main";
   if (argc >= 4) {
     funcName = argv[3];
   }
@@ -743,6 +849,9 @@ int main(int argc, char **argv) {
     }
     MPM.addPass(GlobalOptPass());
   });
+  replaceMemoryIntrinsics(*funcModule, *module);
+  cleanup(*funcModule);
+  StripDebugInfo(*funcModule);
 
   if (verifyModule(*funcModule, &errs())) {
     errs() << "Invalid IR after LabeledUnrollPass\n";
@@ -867,12 +976,7 @@ int main(int argc, char **argv) {
       if (!F.isDeclaration())
         F.addFnAttr(Attribute::InlineHint);
     }
-    // faultModule already has the clean unrolled IR from runPrep.
-    // Now run FuncSkip on it — this re-unrolls with the call skipped in
-    // iteration 0. We need loop canonicalization passes so SE can see loops.
-    // Note: if the LabeledUnrollPass already eliminated the original loops,
-    // FuncSkip won't find any — in that case FuncSkip should operate on a
-    // pre-unroll clone (see comment below).
+
     makePB(*preUnrollClone, [](ModulePassManager &MPM) {
       {
         FunctionPassManager FPM;
@@ -893,7 +997,9 @@ int main(int argc, char **argv) {
       }
       MPM.addPass(GlobalOptPass());
     });
-
+    replaceMemoryIntrinsics(*preUnrollClone, *module);
+    cleanup(*preUnrollClone);
+    StripDebugInfo(*preUnrollClone);
     if (verifyModule(*preUnrollClone, &errs())) {
       errs() << "Fault module has invalid IR\n";
     } else {
@@ -906,24 +1012,24 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::string bmcCmdCorrect =
-      "../llvmbmc ../original.ll --dump-solver-query -f " + funcName +
-      " --var-suffix correct";
-  run_command(bmcCmdCorrect);
-  run_command("cp /tmp/test.smt2 ../correct.smt2");
-  if (mode == LOOP_SKIP) {
-    std::string bmcCmdFaulty =
-        "../llvmbmc ../loopSkip.ll --dump-solver-query -f " + funcName +
-        " --var-suffix faulty";
-    run_command(bmcCmdFaulty);
-    run_command("cp /tmp/test.smt2 ../loopFault.smt2");
-  } else {
-    std::string bmcCmdFaulty =
-        "../llvmbmc ../funcSkip.ll --dump-solver-query -f " + funcName +
-        " --var-suffix faulty";
-    run_command(bmcCmdFaulty);
-    run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
-  }
+  // std::string bmcCmdCorrect =
+  //     "../llvmbmc ../original.ll --dump-solver-query -f main --var-suffix
+  //     correct";
+  // run_command(bmcCmdCorrect);
+  // run_command("cp /tmp/test.smt2 ../correct.smt2");
+  // if (mode == LOOP_SKIP) {
+  //   std::string bmcCmdFaulty =
+  //       "../llvmbmc ../loopSkip.ll --dump-solver-query -f main --var-suffix
+  //       faulty";
+  //   run_command(bmcCmdFaulty);
+  //   run_command("cp /tmp/test.smt2 ../loopFault.smt2");
+  // } else {
+  //   std::string bmcCmdFaulty =
+  //       "../llvmbmc ../funcSkip.ll --dump-solver-query -f main --var-suffix
+  //       faulty";
+  //   run_command(bmcCmdFaulty);
+  //   run_command("cp /tmp/test.smt2 ../funcSkip.smt2");
+  // }
 
   return 0;
 }

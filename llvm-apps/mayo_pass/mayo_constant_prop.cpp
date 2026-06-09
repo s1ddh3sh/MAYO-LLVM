@@ -36,6 +36,175 @@
 
 using namespace llvm;
 
+static bool lowerIntrinsic(CallInst *CI) {
+
+  Function *Callee = CI->getCalledFunction();
+  if (!Callee || !Callee->isIntrinsic())
+    return false;
+
+  IRBuilder<> B(CI);
+
+  switch (Callee->getIntrinsicID()) {
+
+  case Intrinsic::memset: {
+    auto *MSI = cast<MemSetInst>(CI);
+
+    Module *M = CI->getModule();
+    LLVMContext &Ctx = M->getContext();
+
+    auto *I8PtrTy = PointerType::getUnqual(Ctx);
+    auto *I8Ty = Type::getInt8Ty(Ctx);
+    auto *I32Ty = Type::getInt32Ty(Ctx);
+
+    FunctionCallee Fn = M->getOrInsertFunction(
+        "mayo_memset", Type::getVoidTy(Ctx), I8PtrTy, I8Ty, I32Ty);
+
+    IRBuilder<> B(CI);
+
+    B.CreateCall(Fn, {MSI->getDest(), MSI->getValue(), MSI->getLength()});
+
+    CI->eraseFromParent();
+    return true;
+  }
+
+  case Intrinsic::memcpy: {
+    auto *MCI = cast<MemCpyInst>(CI);
+
+    Module *M = CI->getModule();
+    LLVMContext &Ctx = M->getContext();
+
+    auto *I8PtrTy = PointerType::getUnqual(Ctx);
+    auto *I32Ty = Type::getInt32Ty(Ctx);
+
+    FunctionCallee Fn = M->getOrInsertFunction(
+        "mayo_memcpy", Type::getVoidTy(Ctx), I8PtrTy, I8PtrTy, I32Ty);
+
+    IRBuilder<> B(CI);
+
+    B.CreateCall(Fn, {MCI->getDest(), MCI->getSource(), MCI->getLength()});
+
+    CI->eraseFromParent();
+    return true;
+  }
+  // llvm.smax.i32
+  case Intrinsic::smax: {
+    Value *A = CI->getArgOperand(0);
+    Value *Bv = CI->getArgOperand(1);
+
+    Value *Cmp = B.CreateICmpSGT(A, Bv);
+    Value *Res = B.CreateSelect(Cmp, A, Bv);
+
+    CI->replaceAllUsesWith(Res);
+    CI->eraseFromParent();
+    return true;
+  }
+
+  // llvm.umin.i32
+  case Intrinsic::umin: {
+    Value *A = CI->getArgOperand(0);
+    Value *Bv = CI->getArgOperand(1);
+
+    Value *Cmp = B.CreateICmpULT(A, Bv);
+    Value *Res = B.CreateSelect(Cmp, A, Bv);
+
+    CI->replaceAllUsesWith(Res);
+    CI->eraseFromParent();
+    return true;
+  }
+
+  // llvm.fshl
+  case Intrinsic::fshl: {
+
+    Value *X = CI->getArgOperand(0);
+    Value *Y = CI->getArgOperand(1);
+    Value *Shift = CI->getArgOperand(2);
+
+    IntegerType *Ty = cast<IntegerType>(X->getType());
+
+    unsigned BW = Ty->getBitWidth();
+
+    Value *BWVal = ConstantInt::get(Ty, BW);
+
+    Value *Mask = ConstantInt::get(Ty, BW - 1);
+
+    Shift = B.CreateAnd(Shift, Mask);
+
+    Value *Left = B.CreateShl(X, Shift);
+
+    Value *Sub = B.CreateSub(BWVal, Shift);
+
+    Value *Right = B.CreateLShr(Y, Sub);
+
+    Value *Res = B.CreateOr(Left, Right);
+
+    CI->replaceAllUsesWith(Res);
+    CI->eraseFromParent();
+    return true;
+  }
+
+  // llvm.bswap
+  case Intrinsic::bswap: {
+
+    Value *X = CI->getArgOperand(0);
+
+    IntegerType *Ty = cast<IntegerType>(X->getType());
+
+    unsigned BW = Ty->getBitWidth();
+
+    if (BW == 32) {
+
+      Value *B0 = B.CreateAnd(X, ConstantInt::get(Ty, 0x000000FF));
+      B0 = B.CreateShl(B0, 24);
+
+      Value *B1 = B.CreateAnd(X, ConstantInt::get(Ty, 0x0000FF00));
+      B1 = B.CreateShl(B1, 8);
+
+      Value *B2 = B.CreateAnd(X, ConstantInt::get(Ty, 0x00FF0000));
+      B2 = B.CreateLShr(B2, 8);
+
+      Value *B3 = B.CreateAnd(X, ConstantInt::get(Ty, 0xFF000000));
+      B3 = B.CreateLShr(B3, 24);
+
+      Value *Res = B.CreateOr(B0, B1);
+      Res = B.CreateOr(Res, B2);
+      Res = B.CreateOr(Res, B3);
+
+      CI->replaceAllUsesWith(Res);
+      CI->eraseFromParent();
+      return true;
+    }
+
+    if (BW == 64) {
+
+      Value *Res = ConstantInt::get(Ty, 0);
+
+      for (unsigned i = 0; i < 8; i++) {
+
+        uint64_t Mask = 0xFFULL << (8 * i);
+
+        Value *Byte = B.CreateAnd(X, ConstantInt::get(Ty, Mask));
+
+        if (i < 7 - i)
+          Byte = B.CreateShl(Byte, 8 * (7 - 2 * i));
+        else if (i > 7 - i)
+          Byte = B.CreateLShr(Byte, 8 * (2 * i - 7));
+
+        Res = B.CreateOr(Res, Byte);
+      }
+
+      CI->replaceAllUsesWith(Res);
+      CI->eraseFromParent();
+      return true;
+    }
+
+    return false;
+  }
+
+  default:
+    return false;
+  }
+}
+
 std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths,
                              const std::vector<std::string> &includeDirs,
                              LLVMContext &llvm_ctx, const std::string &variant,
@@ -60,7 +229,7 @@ std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths,
         "clang-tool",
         "-O0",
         // "-g",
-        // "-fno-builtin",
+        "-fno-builtin",
         // "-fno-freestanding",
         // "-debug-info-kind=limited",
         //   "-DENABLE_PARAMS_DYNAMIC=ON"
@@ -266,8 +435,16 @@ int main(int argc, char **argv) {
   };
 
   std::vector<std::string> files = {
-      "../example.c", "../../../src/mayo.c", "../../../src/arithmetic.c",
-      "../../../src/common/fips202.c", "../../../src/common/aes_c.c"};
+      "../example.c",
+      "../mem.c",
+      "../../../src/mayo.c",
+      "../../../src/arithmetic.c",
+      "../../../src/common/fips202.c",
+      "../../../src/common/aes_c.c",
+      "../../../src/common/mem.c",
+      "../../../src/common/randombytes_ctrdrbg.c",
+      // "../../../src/common/aes_c.c",
+  };
 
   std::vector<std::string> includes = {"../../../include", "../../../src",
                                        "../../../src/common",
@@ -290,6 +467,29 @@ int main(int argc, char **argv) {
     }
 
     prepare(module, variant);
+    bool Changed = false;
+
+    for (Function &F : *module) {
+      for (auto BI = F.begin(); BI != F.end(); ++BI) {
+
+        for (auto II = BI->begin(); II != BI->end();) {
+
+          Instruction *I = &*II++;
+
+          if (auto *CI = dyn_cast<CallInst>(I))
+            Changed |= lowerIntrinsic(CI);
+        }
+      }
+    }
+    if (Changed) {
+      for (auto FI = module->begin(); FI != module->end();) {
+        Function &F = *FI++;
+        if (F.isDeclaration() && F.use_empty())
+          F.eraseFromParent();
+      }
+    }
+
+    verifyModule(*module, &errs());
     std::string outPath = "../no_struct/" + suffix + ".ll";
     std::error_code EC;
     llvm::raw_fd_ostream outFile(outPath, EC);
