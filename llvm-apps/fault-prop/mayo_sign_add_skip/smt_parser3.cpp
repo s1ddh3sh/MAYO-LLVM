@@ -38,58 +38,63 @@ string rewrite_to_bv(const string &filename) {
   {
     size_t pos = 0;
     const string from = "(Array Int Int)";
-    const string to = "(Array (_ BitVec 8) (_ BitVec 8))";
+    const string to = "(Array Int (_ BitVec 8))";
     while ((pos = content.find(from, pos)) != string::npos) {
       content.replace(pos, from.size(), to);
       pos += to.size();
     }
   }
+  regex store_zero(R"(\(store\s+([^\s]+)\s+(.+?)\s+0\))");
 
+  content = regex_replace(content, store_zero, "(store $1 $2 #x00)");
+
+  // regex zero_pat(R"(\s0\)\))");
+  // content = regex_replace(content, zero_pat, " #x00))");
   // int to bitvec
-  for (const string &var : {"i_6_a_correct", "i_6_a_faulty", "i_7_b_correct",
-                            "i_7_b_faulty", "i_8_c_correct", "i_8_c_faulty"}) {
-    string from = "(declare-fun " + var + " () Int)";
-    string to = "(declare-fun " + var + " () (_ BitVec 8))";
-    size_t pos = content.find(from);
-    if (pos != string::npos)
-      content.replace(pos, from.size(), to);
-  }
+  // for (const string &var :
+  //      {"i_5_Vdec_correct", "i_5_Vdec_faulty", "i_7_Ox_correct",
+  //       "i_7_Ox_faulty", "i_9_s_correct", "i_9_s_faulty"}) {
+  //   string from = "(declare-fun " + var + " () Int)";
+  //   string to = "(declare-fun " + var + " () (_ BitVec 8))";
+  //   size_t pos = content.find(from);
+  //   if (pos != string::npos)
+  //     content.replace(pos, from.size(), to);
+  // }
 
   // removing the int2bv and bv2int
   {
 
-    regex pat(
-        R"(\(let \(\(a!1 \(bvslt \((bv\w+) \(\(_ int2bv 8\)\s*)" // OP capture
-        R"(\(select (\S+) (\S+)\)\)\s*)"                         // MEM, IDX_A
-        R"(\(\(_ int2bv 8\)\s*\(select \S+ (\S+)\)\)\)\s*)"      // IDX_B
-        R"(#x00\)\)\s*)"
-        R"(\(a!2 \(bv2int \(\1 \(\(_ int2bv 8\)\s*)" // same OP via
-                                                     // backreference
-        R"(\(select \S+ \S+\)\)\s*)"
-        R"(\(\(_ int2bv 8\)\s*\(select \S+ \S+\)\)\)\)\)\s*)"
-        R"(\(= (\S+)\s*)"                                            // C_NEW
-        R"(\(store (\S+) (\S+) \(ite a!1 \(- a!2 256\) a!2\)\)\)\))" // MEM2,
-                                                                     // IDX_C
-    );
+    regex pat(R"(\(assert\s*\(let\s*\(\(a!1\s*\((bv\w+)\s*)"
+              R"(\(\(_ int2bv 8\)\s*\(select\s+(\S+)\s+([^)]+)\)\)\s*)"
+              R"(\(\(_ int2bv 8\)\s*\(select\s+\S+\s+(\([^)]*\))\)\)\)\)\)\s*)"
+
+              R"(\(let\s*\(\(a!2\s*\(store\s+(\S+)\s+(\([^)]*\))\s*)"
+
+              R"(\(ite\s*\(bvslt\s+a!1\s+#x00\)\s*)"
+              R"(\(-\s*\(bv2int\s+a!1\)\s+256\)\s*)"
+              R"(\(bv2int\s+a!1\)\)\)\)\)\s*)"
+
+              R"(\(=\s+(\S+)\s+a!2\)\)\)\))");
 
     string result;
     auto it = content.cbegin();
     auto end = content.cend();
     smatch m;
-
+    int matches = 0;
     while (regex_search(it, end, m, pat)) {
+      matches++;
       result += m.prefix().str();
-      string op = m[1];
-      string mem = m[2];
-      string idx_a = m[3];
-      string idx_b = m[4];
-      string c_new = m[5];
-      string mem2 = m[6];
-      string idx_c = m[7];
+      string op = m[1];    // bvxor
+      string mem = m[2];   // c_13_Global_M_correct
+      string idx_a = m[3]; // i_5_Vdec_correct
+      string idx_b = m[4]; // (+ 780 i_7_Ox_correct)
+      string mem2 = m[5];  // c_13_Global_M_correct
+      string idx_c = m[6]; // (+ 858 i_9_s_correct)
+      string c_new = m[7];
 
-      result += "(= " + c_new + " (store " + mem2 + " " + idx_c + " (" + op +
-                " (select " + mem + " " + idx_a + ")" + " (select " + mem +
-                " " + idx_b + "))))";
+      result += "(assert (= " + c_new + " (store " + mem2 + " " + idx_c + " (" +
+                op + " (select " + mem + " " + idx_a + ")" + " (select " + mem +
+                " " + idx_b + ")))))";
 
       it = m.suffix().first;
     }
@@ -140,55 +145,102 @@ int main(int argc, char *argv[]) {
        << faulty_exprs.size() << " faulty assertions\n";
 
   // z3::sort bv8 = ctx.bv_sort(32);
+  z3::sort int_sort = ctx.int_sort();
   z3::sort bv8 = ctx.bv_sort(8);
-  z3::sort arr = ctx.array_sort(bv8, bv8);
+  z3::sort arr = ctx.array_sort(int_sort, bv8);
 
-  // Force all path booleans true (235 of them)
-  for (int i = 1; i <= 235; i++) {
-    string name = "b_" + to_string(i) + "_path";
-    s.add(ctx.bool_const(name.c_str()));
-  }
-  cout << "Forced 235 path booleans true\n";
+  // for (int i = 1; i <= 235; i++) {
+  //   string name = "b_" + to_string(i) + "_path";
+  //   s.add(ctx.bool_const(name.c_str()));
+  // }
+  // cout << "Forced 235 path booleans true\n";
 
   // Same inputs
-  s.add(ctx.constant("i_6_a_correct", bv8) ==
-        ctx.constant("i_6_a_faulty", bv8));
-  s.add(ctx.constant("i_7_b_correct", bv8) ==
-        ctx.constant("i_7_b_faulty", bv8));
-  s.add(ctx.constant("i_8_c_correct", bv8) ==
-        ctx.constant("i_8_c_faulty", bv8));
+  // s.add(ctx.constant("i_5_Vdec_correct", bv8) ==
+  //       ctx.constant("i_5_Vdec_faulty", bv8));
+
+  // s.add(ctx.constant("i_7_Ox_correct", bv8) ==
+  //       ctx.constant("i_7_Ox_faulty", bv8));
+
+  // s.add(ctx.constant("i_9_s_correct", bv8) ==
+  //       ctx.constant("i_9_s_faulty", bv8));
+  // s.add(ctx.constant("c_1_Global_M_correct", arr) ==
+  //       ctx.constant("c_1_Global_M_faulty", arr));
+
+  expr vdec_c = ctx.int_const("i_5_Vdec_correct");
+  expr vdec_f = ctx.int_const("i_5_Vdec_faulty");
+
+  expr ox_c = ctx.int_const("i_7_Ox_correct");
+  expr ox_f = ctx.int_const("i_7_Ox_faulty");
+
+  expr s_c = ctx.int_const("i_9_s_correct");
+  expr s_f = ctx.int_const("i_9_s_faulty");
+
+  s.add(vdec_c == vdec_f);
+  s.add(ox_c == ox_f);
+  s.add(s_c == s_f);
   s.add(ctx.constant("c_1_Global_M_correct", arr) ==
         ctx.constant("c_1_Global_M_faulty", arr));
 
+
+  s.add(vdec_c >= ctx.int_val(0));
+  s.add(vdec_c < ctx.int_val(780)); // must be in Vdec region
+
+  s.add(ox_c >= ctx.int_val(0));
+  s.add(ox_c < ctx.int_val(78)); // Ox range (loop bound was 78)
+
+  s.add(s_c >= ctx.int_val(0));
+  s.add(s_c < ctx.int_val(860));
+
+  expr mem = ctx.constant("c_1_Global_M_correct", arr);
+  s.add(select(mem, vdec_c) != ctx.bv_val(0, 8));
+  s.add(select(mem, ox_c + ctx.int_val(780)) != ctx.bv_val(0, 8));
+
   // Output differs
-  s.add(ctx.constant("c_314_Global_M_correct", arr) !=
-        ctx.constant("c_314_Global_M_faulty", arr));
+  s.add(ctx.constant("c_91_Global_M_correct", arr) !=
+        ctx.constant("c_91_Global_M_faulty", arr));
 
   cout << "Running Z3...\n";
 
   check_result result = s.check();
 
   if (result == sat) {
-    cout << "Result: SAT, fault IS observable\n\n";
+    cout << "Result: SAT,\n\n";
     model m = s.get_model();
 
-    z3::expr a = ctx.constant("i_6_a_correct", bv8);
-    z3::expr b = ctx.constant("i_7_b_correct", bv8);
-    z3::expr c = ctx.constant("i_8_c_correct", bv8);
-    z3::expr mem = ctx.constant("c_1_Global_M_correct", arr);
+    expr v = ctx.constant("i_5_Vdec_correct", int_sort);
+    expr ox = ctx.constant("i_7_Ox_correct", int_sort);
+    expr sidx = ctx.constant("i_9_s_correct", int_sort);
 
     auto ev = [&](expr e) { return m.eval(e, true); };
 
-    cout << "  i_6_a  = " << ev(a) << "\n";
-    cout << "  i_7_b  = " << ev(b) << "\n";
-    cout << "  i_8_c  = " << ev(c) << "\n";
-    cout << "  M[a]   = " << ev(select(mem, a)) << "\n";
-    cout << "  M[b]   = " << ev(select(mem, b)) << "\n";
-    cout << "  Correct: c[i_8_c] = M[a] bvxor M[b]\n";
-    cout << "  Faulty:  c[i_8_c] = M[a]  (b skipped)\n";
+    // Also show faulty output for comparison
+    // z3::sort arr_f = ctx.array_sort(int_sort, bv8);
+    expr mem_f = ctx.constant("c_91_Global_M_faulty", arr);
+    expr mem_c = ctx.constant("c_91_Global_M_correct", arr);
+    expr vdec_v = ev(v);
+    expr ox_v = ev(ox);
+    expr s_v = ev(sidx);
+
+    cout << "Vdec = " << vdec_v << "\n";
+    cout << "Ox   = " << ox_v << "\n";
+    cout << "s    = " << s_v << "\n\n";
+
+    // Show initial memory values at operand locations
+    cout << "M_init[Vdec]   = " << ev(select(mem, v)) << "\n";
+    cout << "M_init[780+Ox] = " << ev(select(mem, ox + ctx.int_val(780)))
+         << "\n\n";
+
+    // Compute write index concretely
+    expr write_idx = sidx + ctx.int_val(858);
+    cout << "Write index (858+s) = " << ev(write_idx) << "\n\n";
+
+    // Final outputs at the write location
+    cout << "c_91[858+s] correct = " << ev(select(mem_c, write_idx)) << "\n";
+    cout << "c_91[858+s] faulty  = " << ev(select(mem_f, write_idx)) << "\n";
 
   } else if (result == unsat) {
-    cout << "Result: UNSAT, fault masked for all inputs\n";
+    cout << "Result: UNSAT\n";
   } else {
     cout << "Result: UNKNOWN " << s.reason_unknown() << "\n";
   }
