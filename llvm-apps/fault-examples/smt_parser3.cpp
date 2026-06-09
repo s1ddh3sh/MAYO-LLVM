@@ -182,6 +182,7 @@ int main(int argc, char *argv[]) {
   s.add(ctx.constant("c_1_Global_M_correct", arr) ==
         ctx.constant("c_1_Global_M_faulty", arr));
 
+
   s.add(vdec_c >= ctx.int_val(0));
   s.add(vdec_c < ctx.int_val(780)); // must be in Vdec region
 
@@ -195,16 +196,12 @@ int main(int argc, char *argv[]) {
   s.add(select(mem, vdec_c) != ctx.bv_val(0, 8));
   s.add(select(mem, ox_c + ctx.int_val(780)) != ctx.bv_val(0, 8));
 
-  expr mem_f = ctx.constant("c_91_Global_M_faulty", arr);
-  expr mem_c = ctx.constant("c_91_Global_M_correct", arr);
-
-  s.add(mem_c != mem_f);
   // Output differs
-  // s.add(ctx.constant("c_91_Global_M_correct", arr) !=
-  //       ctx.constant("c_91_Global_M_faulty", arr));
+  s.add(ctx.constant("c_91_Global_M_correct", arr) !=
+        ctx.constant("c_91_Global_M_faulty", arr));
 
-  // cout << "Running Z3...\n";
-  // cout << s;
+  cout << "Running Z3...\n";
+
   check_result result = s.check();
 
   if (result == sat) {
@@ -219,16 +216,15 @@ int main(int argc, char *argv[]) {
 
     // Also show faulty output for comparison
     // z3::sort arr_f = ctx.array_sort(int_sort, bv8);
-    // cout << m << endl;
-    // cout << m[mem_c];
-    // cout << m[mem_f];
+    expr mem_f = ctx.constant("c_91_Global_M_faulty", arr);
+    expr mem_c = ctx.constant("c_91_Global_M_correct", arr);
     expr vdec_v = ev(v);
     expr ox_v = ev(ox);
     expr s_v = ev(sidx);
 
-    // cout << "Vdec = " << vdec_v << "\n";
-    // cout << "Ox   = " << ox_v << "\n";
-    // cout << "s    = " << s_v << "\n\n";
+    cout << "Vdec = " << vdec_v << "\n";
+    cout << "Ox   = " << ox_v << "\n";
+    cout << "s    = " << s_v << "\n\n";
 
     // Show initial memory values at operand locations
     cout << "M_init[Vdec]   = " << ev(select(mem, v)) << "\n";
@@ -236,7 +232,7 @@ int main(int argc, char *argv[]) {
          << "\n\n";
 
     // Compute write index concretely
-    expr write_idx = sidx + ctx.int_val(3);
+    expr write_idx = sidx + ctx.int_val(858);
     cout << "Write index (858+s) = " << ev(write_idx) << "\n\n";
 
     // Final outputs at the write location

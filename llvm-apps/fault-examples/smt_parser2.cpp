@@ -187,17 +187,15 @@ int main() {
   s.add(m_c1 == m_c2);
   s.add(m_c1 == m_f2);
 
-  // for (auto &tag : {"C1", "F1", "C2", "F2"}) {
-  //   string t = tag;
-  //   for (auto &p : {"b_2_path", "b_3_path", "b_5_path", "b_6_path",
-  //   "b_8_path",
-  //                   "b_12_path"})
-  //     s.add(ctx.bool_const((string(p) + "_" + t).c_str()));
-  //   for (auto &p : {"b_1_exit", "b_4_exit", "b_7_exit", "b_9_path",
-  //   "b_10_path",
-  //                   "b_11_path"})
-  //     s.add(!ctx.bool_const((string(p) + "_" + t).c_str()));
-  // }
+  for (auto &tag : {"C1", "F1", "C2", "F2"}) {
+    string t = tag;
+    for (auto &p : {"b_2_path", "b_3_path", "b_5_path", "b_6_path", "b_8_path",
+                    "b_12_path"})
+      s.add(ctx.bool_const((string(p) + "_" + t).c_str()));
+    for (auto &p : {"b_1_exit", "b_4_exit", "b_7_exit", "b_9_path", "b_10_path",
+                    "b_11_path"})
+      s.add(!ctx.bool_const((string(p) + "_" + t).c_str()));
+  }
 
   s.add(select(m_c1, vdec) != ctx.bv_val(0, 8));
   s.add(select(m_c1, ox1 + ctx.int_val(780)) != ctx.bv_val(0, 8));
@@ -215,41 +213,15 @@ int main() {
 
   if (s.check() == sat) {
     model m = s.get_model();
-    // cout << m;
     auto ev = [&](expr e) { return m.eval(e, true); };
-    expr mem = ctx.constant("c_1_Global_M_correct_C1", arr);
-    expr vdec_idx = ev(vdec);
-    expr ox1_idx = ev(ox1);
-    expr ox2_idx = ev(ox2);
-    expr s_idx = ev(sv);
-
-    // actual byte values from initial memory
-    expr M_vdec = ev(select(mem, vdec));
-    expr M_ox1 = ev(select(mem, ox1 + ctx.int_val(780)));
-    expr M_ox2 = ev(select(mem, ox2 + ctx.int_val(780)));
 
     cout << "SAT found Ox pair\n";
-
-    cout << "Vdec index = " << vdec_idx << "\n";
-    cout << "Ox1  index = " << ox1_idx
-         << "  (780+Ox1 = " << ev(ox1 + ctx.int_val(780)) << ")\n";
-    cout << "Ox2  index = " << ox2_idx
-         << "  (780+Ox2 = " << ev(ox2 + ctx.int_val(780)) << ")\n";
-    cout << "s    index = " << s_idx
-         << "  (858+s   = " << ev(sv + ctx.int_val(858)) << ")\n\n";
-
-    cout << "M[Vdec]      = " << M_vdec << "\n";
-    cout << "M[780+Ox1]   = " << M_ox1 << "\n";
-    cout << "M[780+Ox2]   = " << M_ox2 << "\n\n";
-
-    cout << "ineffective fault(Ox1) \n";
-    cout << "  s1_correct = " << ev(s1_c) << "\n";
-    cout << "  s1_faulty  = " << ev(s1_f) << "\n";
-    
-    cout << "effective fault(Ox2) \n";
-    cout << "  s2_correct = " << ev(s2_c) << "\n";
-    cout << "  s2_faulty  = " << ev(s2_f) << "\n";
-
+    cout << "Vdec = " << ev(vdec) << "\n";
+    cout << "Ox1  = " << ev(ox1)
+         << " (fault ineffective,  s1_c==s1_f=" << ev(s1_c) << ")\n";
+    cout << "Ox2  = " << ev(ox2) << " (fault effective, s2_c=" << ev(s2_c)
+         << " s2_f=" << ev(s2_f) << ")\n";
+    cout << "s    = " << ev(sv) << "\n";
   } else {
     cout << "UNSAT \n";
   }
