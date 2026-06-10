@@ -254,32 +254,152 @@ void dump_module(Module &M, const std::string &filename) {
 /// Trace a value backwards to its original AllocaInst, GlobalVariable, or
 /// Constant.
 Value *traceArgToRoot(Value *V) {
-  std::set<Value *> visited;
-  while (V && visited.insert(V).second) {
+  std::set<Value *> Visited;
+
+  while (V && Visited.insert(V).second) {
+
+    // Already a constant
+    if (isa<Constant>(V))
+      return V;
+
+    // GEP
     if (auto *GEP = dyn_cast<GetElementPtrInst>(V)) {
       V = GEP->getPointerOperand();
-    } else if (auto *BC = dyn_cast<BitCastInst>(V)) {
+      continue;
+    }
+
+    // Bitcast
+    if (auto *BC = dyn_cast<BitCastInst>(V)) {
       V = BC->getOperand(0);
-    } else if (auto *Arg = dyn_cast<Argument>(V)) {
+      continue;
+    }
+
+    // Casts
+    if (auto *CI = dyn_cast<CastInst>(V)) {
+      V = CI->getOperand(0);
+      continue;
+    }
+
+    // Argument -> caller argument
+    if (auto *Arg = dyn_cast<Argument>(V)) {
       Function *F = Arg->getParent();
-      bool foundCall = false;
+
+      bool FoundCall = false;
+
       for (User *U : F->users()) {
-        if (auto *CB = dyn_cast<CallBase>(U)) {
-          if (CB->getCalledFunction() == F) {
-            V = CB->getArgOperand(Arg->getArgNo());
-            foundCall = true;
-            break; // Just pick the first call site
+        auto *CB = dyn_cast<CallBase>(U);
+        if (!CB)
+          continue;
+
+        if (CB->getCalledFunction() != F)
+          continue;
+
+        V = CB->getArgOperand(Arg->getArgNo());
+        FoundCall = true;
+        break;
+      }
+
+      if (!FoundCall)
+        return V;
+
+      continue;
+    }
+
+    // Try constant-folding instructions
+    if (auto *I = dyn_cast<Instruction>(V)) {
+
+      if (Constant *C =
+              ConstantFoldInstruction(I, I->getModule()->getDataLayout()))
+        return C;
+
+      // Handle binary ops manually
+      if (auto *BO = dyn_cast<BinaryOperator>(I)) {
+
+        Value *L = traceArgToRoot(BO->getOperand(0));
+        Value *R = traceArgToRoot(BO->getOperand(1));
+
+        auto *LC = dyn_cast<ConstantInt>(L);
+        auto *RC = dyn_cast<ConstantInt>(R);
+
+        if (LC && RC) {
+
+          APInt LV = LC->getValue();
+          APInt RV = RC->getValue();
+
+          switch (BO->getOpcode()) {
+
+          case Instruction::Add:
+            return ConstantInt::get(I->getType(), LV + RV);
+
+          case Instruction::Sub:
+            return ConstantInt::get(I->getType(), LV - RV);
+
+          case Instruction::Mul:
+            return ConstantInt::get(I->getType(), LV * RV);
+
+          case Instruction::UDiv:
+            if (!RV.isZero())
+              return ConstantInt::get(I->getType(), LV.udiv(RV));
+            break;
+
+          case Instruction::SDiv:
+            if (!RV.isZero())
+              return ConstantInt::get(I->getType(), LV.sdiv(RV));
+            break;
+
+          default:
+            break;
           }
         }
       }
-      if (!foundCall)
-        break;
-    } else if (auto *LI = dyn_cast<LoadInst>(V)) {
-      break;
-    } else {
-      break;
+
+      // PHI with same incoming constant
+      if (auto *PN = dyn_cast<PHINode>(I)) {
+
+        Constant *First = nullptr;
+        bool Same = true;
+
+        for (unsigned i = 0; i < PN->getNumIncomingValues(); i++) {
+
+          Value *Root = traceArgToRoot(PN->getIncomingValue(i));
+
+          auto *C = dyn_cast<Constant>(Root);
+
+          if (!C) {
+            Same = false;
+            break;
+          }
+
+          if (!First)
+            First = C;
+          else if (First != C) {
+            Same = false;
+            break;
+          }
+        }
+
+        if (Same && First)
+          return First;
+      }
+
+      // Select with constant condition
+      if (auto *SI = dyn_cast<SelectInst>(I)) {
+
+        Value *Cond = traceArgToRoot(SI->getCondition());
+
+        if (auto *CC = dyn_cast<ConstantInt>(Cond)) {
+
+          if (CC->isZero())
+            return traceArgToRoot(SI->getFalseValue());
+
+          return traceArgToRoot(SI->getTrueValue());
+        }
+      }
     }
+
+    return V;
   }
+
   return V;
 }
 
