@@ -40,6 +40,7 @@ inline void m_vec_mul_add (int m_vec_limbs, const uint64_t *in, unsigned char a,
                 ^ ((in[i] >> 2) & lsb_ask) * ((tab >> 16) & 0xf)
                 ^ ((in[i] >> 3) & lsb_ask) * ((tab >> 24) & 0xf);
     }
+    PRINT_ARGS("m_vec_mul_add", m_vec_limbs, in, a, acc);
 }
 
 inline

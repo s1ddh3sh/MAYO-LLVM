@@ -51,7 +51,7 @@
         }
 
         printf("mayo_expand_sk -> ");
-        res = mayo_expand_sk(p, sk, esk);
+        res = mayo_expand_sk(p, sk, *esk);
         if (res != MAYO_OK) {
             printf("FAIL\n");
             res = -1;

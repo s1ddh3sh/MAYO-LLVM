@@ -116,7 +116,7 @@ static int bench_sig(const mayo_params_t *p, int runs, int csv) {
     BENCH_CODE_2("mayo_keypair", csv);
 
     BENCH_CODE_1(runs);
-    mayo_expand_sk(p, sk, esk);
+    mayo_expand_sk(p, sk, *esk);
     BENCH_CODE_2("mayo_expand_sk", csv);
 
     BENCH_CODE_1(runs);

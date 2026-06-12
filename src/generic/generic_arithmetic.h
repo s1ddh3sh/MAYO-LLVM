@@ -54,6 +54,8 @@ void mul_add_mat_trans_x_m_mat(const int m_vec_limbs, const unsigned char *mat, 
             }
         }
     }
+    PRINT_ARGS("mul_add_mat_trans_x_m_mat", mat, bs_mat ,acc, mat_rows, mat_cols, bs_mat_cols);
+
 }
 
 // multiplies a single matrix with m matrices and adds result to acc
@@ -76,6 +78,8 @@ void P1_times_O(const mayo_params_t* p, const uint64_t* P1, const unsigned char*
     (void) p;
     #endif
     mul_add_m_upper_triangular_mat_x_mat(PARAM_m_vec_limbs(p), P1, O, acc, PARAM_v(p), PARAM_v(p), PARAM_o(p), 1);
+    PRINT_ARGS("P1_times_O", P1,acc, O);
+
 }
 
 static inline
@@ -84,6 +88,7 @@ void P1_times_Vt(const mayo_params_t* p, const uint64_t* P1, const unsigned char
     (void) p;
     #endif
     mul_add_m_upper_triangular_mat_x_mat_trans(PARAM_m_vec_limbs(p), P1, V, acc, PARAM_v(p), PARAM_v(p), PARAM_k(p), 1);
+    PRINT_ARGS("P1_times_Vt", P1, V, acc);
 }
 
 #if defined(HAVE_STACKEFFICIENT) || defined(PQM4)
@@ -237,6 +242,8 @@ void P1P1t_times_O(const mayo_params_t* p, const uint64_t* P1, const unsigned ch
             bs_mat_entries_used += 1;
         }
     }
+    PRINT_ARGS("P1P1t_times_O", P1,acc, O);
+
 }
 
 
@@ -254,6 +261,7 @@ void compute_M_and_VPV(const mayo_params_t* p, const unsigned char* Vdec, const 
     uint64_t Pv[V_MAX * K_MAX * M_VEC_LIMBS_MAX] = {0};
     P1_times_Vt(p, P1, Vdec, Pv);
     mul_add_mat_x_m_mat(PARAM_m_vec_limbs(p), Vdec, Pv, VP1V, param_k, param_v, param_k);
+    PRINT_ARGS("compute_M_and_VPV", Vdec, L, P1, VL, VP1V);
 }
 
 static inline
@@ -268,6 +276,8 @@ void compute_P3(const mayo_params_t* p, const uint64_t* P1, uint64_t *P2, const 
 
     // compute P3 = O^t * (P1*O + P2)
     mul_add_mat_trans_x_m_mat(m_vec_limbs, O, P2, P3, param_v, param_o, param_o);
+    PRINT_ARGS("compute_P3", P1, P2, O, P3);
+
 }
 
 // compute P * S^t = [ P1  P2 ] * [S1] = [P1*S1 + P2*S2]

@@ -3,6 +3,7 @@
 #ifndef SIMPLE_ARITHMETIC_H
 #define SIMPLE_ARITHMETIC_H
 #include <mem.h>
+#include "trace.h"
 #include <stdbool.h>
 bool assert(bool);
 // GF(16) multiplication mod x^4 + x + 1
@@ -73,6 +74,8 @@ static inline unsigned char lincomb(const unsigned char *a,
     for (int i = 0; i < n; ++i, b += m) {
         ret = add_f(mul_f(a[i], *b), ret);
     }
+    // PRINT_ARGS("lincomb",a,b,n,m);
+
     return ret;
 }
 
@@ -83,6 +86,8 @@ static inline void mat_mul(const unsigned char *a, const unsigned char *b,
             *c = lincomb(a, b + j, colrow_ab, col_b);
         }
     }
+    PRINT_ARGS("mat_mul",a,b,c,colrow_ab, row_a, col_b);
+
 }
 
 static inline void mat_add(const unsigned char *a, const unsigned char *b,
@@ -92,6 +97,8 @@ static inline void mat_add(const unsigned char *a, const unsigned char *b,
             *(c + i * n + j) = add_f(*(a + i * n + j), *(b + i * n + j));
         }
     }
+    PRINT_ARGS("mat_mul",a,b,c, m,n);
+
 }
 
 static inline uint64_t gf16v_mul_u64( uint64_t a, uint8_t b ) {
