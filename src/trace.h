@@ -9,7 +9,7 @@ static int __trace_first = 1;
 
 static inline void json_begin(const char *funcname) {
   char filename[256];
-  snprintf(filename, sizeof(filename), "results/%s.json", funcname);
+  snprintf(filename, sizeof(filename), "../results/%s.json", funcname);
 
   __trace_file = fopen(filename, "a");
   if (!__trace_file)
@@ -34,7 +34,10 @@ static inline void json_sep(void) {
 
   __trace_first = 0;
 }
-
+static inline void json_output(const char *outarg) {
+  json_sep();
+  fprintf(__trace_file, "\"output\":\"%s\"", outarg);
+}
 /* ---------- printers ---------- */
 static inline void json_int(const char *name, int x) {
   json_sep();
@@ -147,10 +150,13 @@ static inline void json_unknown(const char *name, ...) {
 
 /* ---------- user macro ---------- */
 
-#define PRINT_ARGS(funcname, ...)                                              \
+#define PRINT_ARGS(funcname, outputarg, ...)                                   \
   do {                                                                         \
     json_begin(funcname);                                                      \
-    FOR_EACH(PRINT_ARG, __VA_ARGS__);                                          \
+    if (__trace_file) {                                                        \
+      json_output(outputarg);                                                  \
+      FOR_EACH(PRINT_ARG, __VA_ARGS__);                                        \
+    }                                                                          \
     json_end();                                                                \
   } while (0)
 

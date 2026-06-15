@@ -86,7 +86,7 @@ static inline void mat_mul(const unsigned char *a, const unsigned char *b,
             *c = lincomb(a, b + j, colrow_ab, col_b);
         }
     }
-    PRINT_ARGS("mat_mul",a,b,c,colrow_ab, row_a, col_b);
+    PRINT_ARGS("mat_mul","acc",a,b,c,colrow_ab, row_a, col_b);
 
 }
 
@@ -97,7 +97,7 @@ static inline void mat_add(const unsigned char *a, const unsigned char *b,
             *(c + i * n + j) = add_f(*(a + i * n + j), *(b + i * n + j));
         }
     }
-    PRINT_ARGS("mat_mul",a,b,c, m,n);
+    PRINT_ARGS("mat_mul","acc",a,b,c, m,n);
 
 }
 
