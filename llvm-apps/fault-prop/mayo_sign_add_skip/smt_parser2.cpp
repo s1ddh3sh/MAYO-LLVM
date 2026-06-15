@@ -14,7 +14,7 @@ string write_suffixed(const string &content, const string &tag) {
   regex ident(R"(\b((?:i|c|b)_\d+_[A-Za-z0-9_.]+)\b)");
   result = regex_replace(result, ident, "$1_" + tag);
 
-  string path = "/tmp/z3_" + tag + ".smt2";
+  string path = "../" + tag + ".smt2";
   ofstream ofs(path);
   ofs << result;
   return path;
@@ -220,24 +220,31 @@ int main() {
 
   if (s.check() == sat) {
     model m = s.get_model();
-    // cout << m << "\n";
+    cout << m << "\n";
     auto ev = [&](expr e) { return m.eval(e, true); };
     // cout << ev(ctx.constant("c_1_Global_M_correct_C1", arr)) << "\n";
     // cout << ev(ctx.constant("c_2_Global_M_correct_C1", arr)) << "\n";
     // cout << ev(ctx.constant("c_3_Global_M_correct_C1", arr)) << "\n";
     // cout << ev(ctx.constant("c_4_Global_M_correct_C1", arr)) << "\n";
     // cout << ev(ctx.constant("c_5_Global_M_correct_C1", arr)) << "\n";
-    cout << ev(ctx.constant("c_14_Global_M_correct_C1", arr)) << "\n";
-    cout << ev(ctx.constant("c_14_Global_M_faulty_F1", arr)) << "\n";
-    cout << ev(select(ctx.constant("c_14_Global_M_correct_C1", arr), out_idx))
-         << "\n";
+    // cout << ev(ctx.constant("c_14_Global_M_correct_C1", arr)) << "\n";
+    // cout << ev(ctx.constant("c_14_Global_M_faulty_F1", arr)) << "\n";
+    // cout << ev(select(ctx.constant("c_14_Global_M_correct_C1", arr),
+    // out_idx))
+    //      << "\n";
 
-    cout << ev(select(ctx.constant("c_14_Global_M_faulty_F1", arr), out_idx))
-         << "\n";
+    // cout << ev(select(ctx.constant("c_14_Global_M_faulty_F1", arr), out_idx))
+    //      << "\n";
 
     // cout << ev(ctx.bool_const("b_2_path_C1")) << "\n";
     // cout << ev(ctx.bool_const("b_3_path_C1")) << "\n";
     // cout << ev(ctx.bool_const("b_1_exit_C1")) << "\n";
+
+    // cout << "s1_c = " << ev(s1_c) << "\n";
+    // cout << "s1_f = " << ev(s1_f) << "\n";
+    // cout << "s2_c = " << ev(s2_c) << "\n";
+    // cout << "s2_f = " << ev(s2_f) << "\n";
+    // cout << "out_idx = " << ev(out_idx) << "\n";
 
     expr vdec_idx = ev(vdec);
     expr ox1_idx = ev(ox1);
