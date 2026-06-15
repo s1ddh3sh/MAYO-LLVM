@@ -74,45 +74,44 @@ string rewrite_to_bv(const string &filename) {
   // }
 
   // removing the int2bv and bv2int
-  {
 
-    regex pat(R"(\(assert\s*\(let\s*\(\(a!1\s*\((bv\w+)\s*)"
-              R"(\(\(_ int2bv 8\)\s*\(select\s+(\S+)\s+([^)]+)\)\)\s*)"
-              R"(\(\(_ int2bv 8\)\s*\(select\s+\S+\s+(\([^)]*\))\)\)\)\)\)\s*)"
+  regex pat(R"(\(assert\s*\(let\s*\(\(a!1\s*\((bv\w+)\s*)"
+            R"(\(\(_ int2bv 8\)\s*\(select\s+(\S+)\s+([^)]+)\)\)\s*)"
+            R"(\(\(_ int2bv 8\)\s*\(select\s+\S+\s+(\([^)]*\))\)\)\)\)\)\s*)"
 
-              R"(\(let\s*\(\(a!2\s*\(store\s+(\S+)\s+(\([^)]*\))\s*)"
+            R"(\(let\s*\(\(a!2\s*\(store\s+(\S+)\s+(\([^)]*\))\s*)"
 
-              R"(\(ite\s*\(bvslt\s+a!1\s+#x00\)\s*)"
-              R"(\(-\s*\(bv2int\s+a!1\)\s+256\)\s*)"
-              R"(\(bv2int\s+a!1\)\)\)\)\)\s*)"
+            R"(\(ite\s*\(bvslt\s+a!1\s+#x00\)\s*)"
+            R"(\(-\s*\(bv2int\s+a!1\)\s+256\)\s*)"
+            R"(\(bv2int\s+a!1\)\)\)\)\)\s*)"
 
-              R"(\(=\s+(\S+)\s+a!2\)\)\)\))");
+            R"(\(=\s+(\S+)\s+a!2\)\)\)\))");
 
-    string result;
-    auto it = content.cbegin();
-    auto end = content.cend();
-    smatch m;
-    int matches = 0;
-    while (regex_search(it, end, m, pat)) {
-      matches++;
-      result += m.prefix().str();
-      string op = m[1];    // bvxor
-      string mem = m[2];   // c_13_Global_M_correct
-      string idx_a = m[3]; // i_5_Vdec_correct
-      string idx_b = m[4]; // (+ 780 i_7_Ox_correct)
-      string mem2 = m[5];  // c_13_Global_M_correct
-      string idx_c = m[6]; // (+ 858 i_9_s_correct)
-      string c_new = m[7];
+  string result;
+  auto it = content.cbegin();
+  auto end = content.cend();
+  smatch m;
+  int matches = 0;
+  while (regex_search(it, end, m, pat)) {
+    matches++;
+    result += m.prefix().str();
+    string op = m[1];    // bvxor
+    string mem = m[2];   // c_13_Global_M_correct
+    string idx_a = m[3]; // i_5_Vdec_correct
+    string idx_b = m[4]; // (+ 780 i_7_Ox_correct)
+    string mem2 = m[5];  // c_13_Global_M_correct
+    string idx_c = m[6]; // (+ 858 i_9_s_correct)
+    string c_new = m[7];
 
-      result += "(assert (= " + c_new + " (store " + mem2 + " " + idx_c + " (" +
-                op + " (select " + mem + " " + idx_a + ")" + " (select " + mem +
-                " " + idx_b + ")))))";
+    result += "(assert (= " + c_new + " (store " + mem2 + " " + idx_c + " (" +
+              op + " (select " + mem + " " + idx_a + ")" + " (select " + mem +
+              " " + idx_b + ")))))";
+    // cout << "match " << matches << " c_new=" << m[7].str() << "\n";
 
-      it = m.suffix().first;
-    }
-    result += string(it, end);
-    content = result;
+    it = m.suffix().first;
   }
+  result += string(it, end);
+  content = result;
 
   // remove any bvint and intbv
   {
@@ -122,6 +121,7 @@ string rewrite_to_bv(const string &filename) {
     regex int2bv_pat(R"(\(\(_ int2bv 8\) ([^)]+)\))");
     content = regex_replace(content, int2bv_pat, "$1");
   }
+  // cout << matches << filename << "\n";
 
   return content;
 }
@@ -199,6 +199,15 @@ int main() {
   //     s.add(!ctx.bool_const((string(p) + "_" + t).c_str()));
   // }
 
+  for (auto tag : {"C1","F1","C2","F2"}) {
+    s.add(ctx.bool_const((string("b_2_path_")+tag).c_str()));
+    // s.add(ctx.bool_const((string("b_3_path_")+tag).c_str()));
+    // s.add(ctx.bool_const((string("b_5_path_")+tag).c_str()));
+    // s.add(ctx.bool_const((string("b_6_path_")+tag).c_str()));
+    // s.add(ctx.bool_const((string("b_8_path_")+tag).c_str()));
+    // s.add(ctx.bool_const((string("b_12_path_")+tag).c_str()));
+}
+
   s.add(select(m_c1, vdec) != ctx.bv_val(0, 8));
   s.add(select(m_c1, ox1 + ctx.int_val(780)) != ctx.bv_val(0, 8));
   s.add(select(m_c1, ox2 + ctx.int_val(780)) != ctx.bv_val(0, 8));
@@ -217,10 +226,10 @@ int main() {
   s.add(select(mem, vdec) != ctx.bv_val(0, 8));
   s.add(select(mem, ox1 + ctx.int_val(780)) != ctx.bv_val(0, 8));
   s.add(select(mem, ox2 + ctx.int_val(780)) != ctx.bv_val(0, 8));
-
+s.add(select(mem, ox1 + ctx.int_val(780)) != select(mem, ox2 + ctx.int_val(780)));
   if (s.check() == sat) {
     model m = s.get_model();
-    cout << m << "\n";
+    // cout << m << "\n";
     auto ev = [&](expr e) { return m.eval(e, true); };
     // cout << ev(ctx.constant("c_1_Global_M_correct_C1", arr)) << "\n";
     // cout << ev(ctx.constant("c_2_Global_M_correct_C1", arr)) << "\n";
