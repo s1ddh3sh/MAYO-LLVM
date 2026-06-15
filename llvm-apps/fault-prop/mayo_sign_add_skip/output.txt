@@ -1,16 +1,27 @@
+(let ((a!1 (store (store (store ((as const (Array Int (_ BitVec 8))) #x00)
+                                0
+                                #x01)
+                         780
+                         #x01)
+                  781
+                  #x01)))
+  (store a!1 858 #x00))
+((as const (Array Int (_ BitVec 8))) #x00)
+#x00
+#x00
 SAT found Ox pair
 Vdec index = 0
-Ox1  index = 77  (780+Ox1 = 857)
-Ox2  index = 0  (780+Ox2 = 780)
+Ox1  index = 0  (780+Ox1 = 780)
+Ox2  index = 1  (780+Ox2 = 781)
 s    index = 0  (858+s   = 858)
 
-M[Vdec]      = #x80
+M[Vdec]      = #x01
 M[780+Ox1]   = #x01
-M[780+Ox2]   = #x40
+M[780+Ox2]   = #x01
 
 ineffective fault(Ox1) 
   s1_correct = #x00
   s1_faulty  = #x00
-effective fault(Ox1) 
-  s2_correct = #x16
-  s2_faulty  = #x00
+effective fault(Ox2) 
+  s2_correct = #x00
+  s2_faulty  = #xff

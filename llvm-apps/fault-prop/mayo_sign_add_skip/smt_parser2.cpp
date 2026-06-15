@@ -168,7 +168,7 @@ int main() {
   s.add(ox2 < ctx.int_val(78));
   s.add(ctx.int_const("i_7_Ox_correct_C2") == ox2);
   s.add(ctx.int_const("i_7_Ox_faulty_F2") == ox2);
-
+  s.add(ox1 != ox2);
   // s index
   expr sv = ctx.int_const("s_shared");
   s.add(sv >= ctx.int_val(0));
@@ -205,19 +205,40 @@ int main() {
 
   expr out_idx = sv + ctx.int_val(858);
 
-  expr s1_c = select(ctx.constant("c_91_Global_M_correct_C1", arr), out_idx);
-  expr s1_f = select(ctx.constant("c_91_Global_M_faulty_F1", arr), out_idx);
-  expr s2_c = select(ctx.constant("c_91_Global_M_correct_C2", arr), out_idx);
-  expr s2_f = select(ctx.constant("c_91_Global_M_faulty_F2", arr), out_idx);
+  expr s1_c = select(ctx.constant("c_14_Global_M_correct_C1", arr), out_idx);
+  expr s1_f = select(ctx.constant("c_14_Global_M_faulty_F1", arr), out_idx);
+  expr s2_c = select(ctx.constant("c_14_Global_M_correct_C2", arr), out_idx);
+  expr s2_f = select(ctx.constant("c_14_Global_M_faulty_F2", arr), out_idx);
 
   s.add(s1_c == s1_f); // Ox1
-  s.add(s2_c != s2_f); // Ox2
+  s.add(s2_c != s2_f); // Ox2'
+
+  expr mem = ctx.constant("c_14_Global_M_correct_C1", arr);
+  s.add(select(mem, vdec) != ctx.bv_val(0, 8));
+  s.add(select(mem, ox1 + ctx.int_val(780)) != ctx.bv_val(0, 8));
+  s.add(select(mem, ox2 + ctx.int_val(780)) != ctx.bv_val(0, 8));
 
   if (s.check() == sat) {
     model m = s.get_model();
-    // cout << m;
+    // cout << m << "\n";
     auto ev = [&](expr e) { return m.eval(e, true); };
-    expr mem = ctx.constant("c_1_Global_M_correct_C1", arr);
+    // cout << ev(ctx.constant("c_1_Global_M_correct_C1", arr)) << "\n";
+    // cout << ev(ctx.constant("c_2_Global_M_correct_C1", arr)) << "\n";
+    // cout << ev(ctx.constant("c_3_Global_M_correct_C1", arr)) << "\n";
+    // cout << ev(ctx.constant("c_4_Global_M_correct_C1", arr)) << "\n";
+    // cout << ev(ctx.constant("c_5_Global_M_correct_C1", arr)) << "\n";
+    cout << ev(ctx.constant("c_14_Global_M_correct_C1", arr)) << "\n";
+    cout << ev(ctx.constant("c_14_Global_M_faulty_F1", arr)) << "\n";
+    cout << ev(select(ctx.constant("c_14_Global_M_correct_C1", arr), out_idx))
+         << "\n";
+
+    cout << ev(select(ctx.constant("c_14_Global_M_faulty_F1", arr), out_idx))
+         << "\n";
+
+    // cout << ev(ctx.bool_const("b_2_path_C1")) << "\n";
+    // cout << ev(ctx.bool_const("b_3_path_C1")) << "\n";
+    // cout << ev(ctx.bool_const("b_1_exit_C1")) << "\n";
+
     expr vdec_idx = ev(vdec);
     expr ox1_idx = ev(ox1);
     expr ox2_idx = ev(ox2);
@@ -245,7 +266,7 @@ int main() {
     cout << "ineffective fault(Ox1) \n";
     cout << "  s1_correct = " << ev(s1_c) << "\n";
     cout << "  s1_faulty  = " << ev(s1_f) << "\n";
-    
+
     cout << "effective fault(Ox2) \n";
     cout << "  s2_correct = " << ev(s2_c) << "\n";
     cout << "  s2_faulty  = " << ev(s2_f) << "\n";
