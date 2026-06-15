@@ -13,6 +13,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <system_error>
 
 using namespace llvm;
 using namespace std;
@@ -31,34 +32,110 @@ class LevelPropPass : public PassInfoMixin<LevelPropPass> {
   map<Function *, Level> funcLevel;
   vector<Function *> callStack;
 
+  // Per-function list of tainted instructions with their levels
+  map<Function *, map<Instruction *, Level>> funcTaintedInsts;
+
+  // Memoization: cache (Function*, max input level) -> result Env
+  struct CacheEntry {
+    Level inputLevel;  // max level of all input args when this was computed
+    Env result;
+  };
+  map<Function *, CacheEntry> funcCache;
+
 public:
   PreservedAnalyses run(Module &M, ModuleAnalysisManager &) {
     Function *main = M.getFunction("main");
+    if (!main) {
+      errs() << "Error: 'main' function not found in module.\n";
+      return PreservedAnalyses::all();
+    }
 
     Env global;
     analyzeFunc(main, global);
-    printMaps();
+    // printMaps();
+    dumpJSONs();
     return PreservedAnalyses::all();
   }
 
 private:
+  static StringRef levelStr(Level L) {
+    switch (L) {
+    case Level::Public:    return "Public";
+    case Level::EphSecret: return "EphSecret";
+    case Level::Secret:    return "Secret";
+    }
+    return "Unknown";
+  }
+
   void printMaps() {
-    outs() << "\n Function Sensitivity \n";
+    outs() << "\n===== Function Sensitivity =====\n\n";
 
     for (auto &it : funcLevel) {
-      outs() << it.first->getName() << " -> ";
+      outs() << it.first->getName() << " -> " << levelStr(it.second) << "\n";
+    }
 
-      if (it.second == Level::Public)
-        outs() << "Public";
-      else if (it.second == Level::EphSecret)
-        outs() << "EphSecret";
-      else
-        outs() << "Secret";
+    outs() << "\n===== Secret-Tainted Instructions Per Function =====\n";
 
-      outs() << "\n";
+    for (auto &[F, insts] : funcTaintedInsts) {
+      if (insts.empty())
+        continue;
+
+      outs() << "\n--- " << F->getName() << " (" << levelStr(funcLevel[F])
+             << ") ---\n";
+
+      for (auto &BB : *F) {
+        for (auto &I : BB) {
+          if (insts.count(&I)) {
+            outs() << "  [" << levelStr(insts[&I]) << "] " << I << "\n";
+          }
+        }
+      }
     }
 
     outs() << "\n";
+  }
+
+  void dumpJSONs() {
+    for (auto &[F, instMap] : funcTaintedInsts) {
+      if (instMap.empty())
+        continue;
+
+      std::error_code EC;
+      raw_fd_ostream os("../taintResults/"+F->getName().str() + ".json", EC);
+      if (EC) {
+        errs() << "Could not open file: " << EC.message() << "\n";
+        continue;
+      }
+
+      os << "{\n";
+      int lineNo = 0;
+      bool first = true;
+      for (auto &BB : *F) {
+        for (auto &I : BB) {
+          if (instMap.count(&I)) {
+            if (!first)
+              os << ",\n";
+            first = false;
+
+            std::string instStr;
+            raw_string_ostream rso(instStr);
+            I.print(rso);
+
+            std::string escaped;
+            for (char c : instStr) {
+              if (c == '"') escaped += "\\\"";
+              else if (c == '\\') escaped += "\\\\";
+              else if (c == '\n') escaped += "\\n";
+              else escaped += c;
+            }
+
+            os << "  \"" << lineNo << "\": \"" << escaped << "\"";
+          }
+          lineNo++;
+        }
+      }
+      os << "\n}\n";
+    }
   }
 
   Value *getBase(Value *V) {
@@ -78,13 +155,24 @@ private:
       if (f == F)
         return env;
 
+    // Compute a summary of the input level for cache lookup
+    Level inputLvl = Level::Public;
+    for (auto &arg : F->args()) {
+      inputLvl = join(inputLvl, env.reg[&arg]);
+      inputLvl = join(inputLvl, env.mem[&arg]);
+    }
+
+    // Check cache: if we already analyzed this function with the same
+    // or higher input level, reuse the cached result
+    auto cacheIt = funcCache.find(F);
+    if (cacheIt != funcCache.end() &&
+        (int)cacheIt->second.inputLevel >= (int)inputLvl) {
+      return cacheIt->second.result;
+    }
+
     callStack.push_back(F);
 
-    Level funcLvl = Level::Public;
-
-    for (auto &arg : F->args()) {
-      funcLvl = join(funcLvl, env.reg[&arg]);
-    }
+    Level funcLvl = inputLvl;
 
     set<Value *> local;
 
@@ -216,27 +304,53 @@ private:
     funcLvl = join(funcLvl, outLvl);
     funcLevel[F] = join(funcLevel[F], funcLvl);
 
+    // Collect tainted instructions for this function
+    auto &tainted = funcTaintedInsts[F];
+    for (auto &BB : *F) {
+      for (auto &I : BB) {
+        Level instLvl = Level::Public;
+
+        // Check register level (the value produced by this instruction)
+        auto regIt = env.reg.find(&I);
+        if (regIt != env.reg.end())
+          instLvl = join(instLvl, regIt->second);
+
+        // For stores, also check the mem level of the destination
+        if (auto *S = dyn_cast<StoreInst>(&I)) {
+          Value *dst = getBase(S->getPointerOperand());
+          auto memIt = env.mem.find(dst);
+          if (memIt != env.mem.end())
+            instLvl = join(instLvl, memIt->second);
+          // Also check the source value
+          auto srcIt = env.reg.find(S->getValueOperand());
+          if (srcIt != env.reg.end())
+            instLvl = join(instLvl, srcIt->second);
+        }
+
+        // For calls, check if any argument is secret
+        if (auto *C = dyn_cast<CallInst>(&I)) {
+          for (auto &arg : C->args()) {
+            Value *v = arg.get();
+            auto regIt = env.reg.find(v);
+            if (regIt != env.reg.end())
+              instLvl = join(instLvl, regIt->second);
+            auto memIt = env.mem.find(getBase(v));
+            if (memIt != env.mem.end())
+              instLvl = join(instLvl, memIt->second);
+          }
+        }
+
+        if (instLvl != Level::Public) {
+          tainted[&I] = join(tainted[&I], instLvl);
+        }
+      }
+    }
+
+    // Cache the result for this function
+    funcCache[F] = {inputLvl, env};
+
     callStack.pop_back();
 
-    // outs() << "\n--- Function: " << F->getName() << " ---\n";
-    // if (callStack.size() >= 2) {
-    //   outs() << "Called from: " << callStack[callStack.size() - 1]->getName()
-    //          << "\n";
-    // } else {
-    //   outs() << "Called from: <entry>\n";
-    // }
-    // for (auto &r : env.reg) {
-    //   outs() << "REG: ";
-    //   r.first->print(outs());
-    //   outs() << " -> Level : " << (int)r.second << "\n";
-    // }
-
-    // for (auto &m : env.mem) {
-    //   outs() << "MEM: ";
-    //   m.first->print(outs());
-    //   outs() << " -> Level : " << (int)m.second << "\n";
-    // }
-    // outs() << "\n\n";
     return env;
   }
 
@@ -297,7 +411,8 @@ private:
       return;
     }
 
-    for (int i = 0; i < C.arg_size(); i++) {
+    int minArgs = min((size_t)C.arg_size(), callee->arg_size());
+    for (int i = 0; i < minArgs; i++) {
       Value *caller_arg = C.getArgOperand(i);
       Argument &callee_arg = *callee->getArg(i);
 
@@ -332,7 +447,7 @@ private:
         }
       }
     }
-    for (int i = 0; i < (int)C.arg_size(); i++) {
+    for (int i = 0; i < minArgs; i++) {
       Value *callerArg = C.getArgOperand(i);
       Argument &calleeArg = *callee->getArg(i);
 
@@ -379,34 +494,21 @@ private:
   }
 };
 
-class DefUseGraph : public PassInfoMixin<DefUseGraph> {
-public:
-  PreservedAnalyses run(Module &M, ModuleAnalysisManager &) {
-    Function *main = M.getFunction("main");
 
-    for (auto &F : M) {
-      outs() << "Function : " << F.getName() << "\n";
-      for (auto &I : instructions(F)) {
-        if (!I.getType()->isVoidTy()) {
-          outs() << "\nDef : " << I << "\n";
-
-          for (auto *U : I.users()) {
-            if (auto *Ui = dyn_cast<Instruction>(U)) {
-              outs() << "   Use : " << *Ui << "\n";
-            }
-          }
-        }
-      }
-      outs() << "\n\n";
-    }
-    return PreservedAnalyses::all();
-  }
-};
-
-int main() {
+int main(int argc, char** argv) {
   LLVMContext ctx;
   SMDiagnostic err;
-  auto module = parseIRFile("../no-inline/mayo1.ll", err, ctx);
+  StringRef filename = "../no_struct/mayo1.ll";
+  if (argc > 1) {
+    filename = argv[1];
+  }
+  auto module = parseIRFile(filename, err, ctx);
+  
+  if (!module) {
+    errs() << "Error parsing IR file: " << filename << "\n";
+    err.print(argv[0], errs());
+    return 1;
+  }
 
   LoopAnalysisManager LAM;
   FunctionAnalysisManager FAM;
