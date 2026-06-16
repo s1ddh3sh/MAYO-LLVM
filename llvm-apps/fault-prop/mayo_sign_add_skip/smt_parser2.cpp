@@ -286,6 +286,7 @@ s.add(select(mem, ox1 + ctx.int_val(780)) != select(mem, ox2 + ctx.int_val(780))
     cout << "effective fault(Ox2) \n";
     cout << "  s2_correct = " << ev(s2_c) << "\n";
     cout << "  s2_faulty  = " << ev(s2_f) << "\n";
+    cout << m;
 
   } else {
     cout << "UNSAT \n";
