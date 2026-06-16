@@ -186,6 +186,14 @@ int main() {
   s.add(m_c1 == m_f1);
   s.add(m_c1 == m_c2);
   s.add(m_c1 == m_f2);
+  for (auto tag : {"C1", "F1", "C2", "F2"}) {
+    expr arr13 =
+        ctx.constant(("c_13_Global_M_" +
+                      string(tag[0] == 'C' ? "correct_" : "faulty_") + tag)
+                         .c_str(),
+                     arr);
+    s.add(select(arr13, ctx.int_val(9999)) == ctx.bv_val(0, 8));
+  }
 
   // for (auto &tag : {"C1", "F1", "C2", "F2"}) {
   //   string t = tag;
@@ -199,14 +207,14 @@ int main() {
   //     s.add(!ctx.bool_const((string(p) + "_" + t).c_str()));
   // }
 
-  for (auto tag : {"C1","F1","C2","F2"}) {
-    s.add(ctx.bool_const((string("b_2_path_")+tag).c_str()));
+  for (auto tag : {"C1", "F1", "C2", "F2"}) {
+    s.add(ctx.bool_const((string("b_2_path_") + tag).c_str()));
     // s.add(ctx.bool_const((string("b_3_path_")+tag).c_str()));
     // s.add(ctx.bool_const((string("b_5_path_")+tag).c_str()));
     // s.add(ctx.bool_const((string("b_6_path_")+tag).c_str()));
     // s.add(ctx.bool_const((string("b_8_path_")+tag).c_str()));
     // s.add(ctx.bool_const((string("b_12_path_")+tag).c_str()));
-}
+  }
 
   s.add(select(m_c1, vdec) != ctx.bv_val(0, 8));
   s.add(select(m_c1, ox1 + ctx.int_val(780)) != ctx.bv_val(0, 8));
@@ -214,22 +222,23 @@ int main() {
 
   expr out_idx = sv + ctx.int_val(858);
 
-  expr s1_c = select(ctx.constant("c_14_Global_M_correct_C1", arr), out_idx);
-  expr s1_f = select(ctx.constant("c_14_Global_M_faulty_F1", arr), out_idx);
-  expr s2_c = select(ctx.constant("c_14_Global_M_correct_C2", arr), out_idx);
-  expr s2_f = select(ctx.constant("c_14_Global_M_faulty_F2", arr), out_idx);
+  expr s1_c = select(ctx.constant("c_91_Global_M_correct_C1", arr), out_idx);
+  expr s1_f = select(ctx.constant("c_91_Global_M_faulty_F1", arr), out_idx);
+  expr s2_c = select(ctx.constant("c_91_Global_M_correct_C2", arr), out_idx);
+  expr s2_f = select(ctx.constant("c_91_Global_M_faulty_F2", arr), out_idx);
 
   s.add(s1_c == s1_f); // Ox1
   s.add(s2_c != s2_f); // Ox2'
 
-  expr mem = ctx.constant("c_14_Global_M_correct_C1", arr);
+  expr mem = ctx.constant("c_1_Global_M_correct_C1", arr);
   s.add(select(mem, vdec) != ctx.bv_val(0, 8));
   s.add(select(mem, ox1 + ctx.int_val(780)) != ctx.bv_val(0, 8));
   s.add(select(mem, ox2 + ctx.int_val(780)) != ctx.bv_val(0, 8));
-s.add(select(mem, ox1 + ctx.int_val(780)) != select(mem, ox2 + ctx.int_val(780)));
+  s.add(select(mem, ox1 + ctx.int_val(780)) !=
+        select(mem, ox2 + ctx.int_val(780)));
   if (s.check() == sat) {
     model m = s.get_model();
-    // cout << m << "\n";
+    cout << m << "\n";
     auto ev = [&](expr e) { return m.eval(e, true); };
     // cout << ev(ctx.constant("c_1_Global_M_correct_C1", arr)) << "\n";
     // cout << ev(ctx.constant("c_2_Global_M_correct_C1", arr)) << "\n";
@@ -286,7 +295,6 @@ s.add(select(mem, ox1 + ctx.int_val(780)) != select(mem, ox2 + ctx.int_val(780))
     cout << "effective fault(Ox2) \n";
     cout << "  s2_correct = " << ev(s2_c) << "\n";
     cout << "  s2_faulty  = " << ev(s2_f) << "\n";
-    cout << m;
 
   } else {
     cout << "UNSAT \n";
