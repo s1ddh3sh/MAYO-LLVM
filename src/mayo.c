@@ -28,7 +28,7 @@ static void decode(const unsigned char *m, unsigned char *mdec, int mdeclen) {
   if (mdeclen % 2 == 1) {
     *mdec++ = m[i] & 0x0f;
   }
-  PRINT_ARGS("decode", "mdec", m, mdec, mdeclen);
+  //PRINT_ARGS("decode", "mdec", m, mdec, mdeclen);
 }
 
 static void encode(const unsigned char *m, unsigned char *menc, int mlen) {
@@ -40,7 +40,7 @@ static void encode(const unsigned char *m, unsigned char *menc, int mlen) {
   if (mlen % 2 == 1) {
     menc[i] = (*m);
   }
-  PRINT_ARGS("encode", "menc",m, menc, mlen);
+  //PRINT_ARGS("encode", "menc",m, menc, mlen);
 }
 
 static void compute_rhs(const mayo_params_t *p, uint64_t *vPv,
@@ -111,7 +111,7 @@ static void compute_rhs(const mayo_params_t *p, uint64_t *vPv,
     y[i + 1] = t[i + 1] ^ (temp_bytes[i / 2] >> 4);
 #endif
   }
-  PRINT_ARGS("compute_rhs","y", vPv, y, t);
+  //PRINT_ARGS("compute_rhs","y", vPv, y, t);
 }
 
 static void transpose_16x16_nibbles(uint64_t *M) {
@@ -262,7 +262,7 @@ static void compute_A(const mayo_params_t *p, uint64_t *VtL,
       }
     }
   }
-  PRINT_ARGS("compute_A", "A_out",VtL, A_out);
+  //PRINT_ARGS("compute_A", "A_out",VtL, A_out);
 }
 
 static void unpack_m_vecs(const unsigned char *in, uint64_t *out, int vecs,
@@ -294,7 +294,7 @@ static void expand_P1_P2(const mayo_params_t *p, uint64_t *P,
   unpack_m_vecs((unsigned char *)P, P,
                 (PARAM_P1_limbs(p) + PARAM_P2_limbs(p)) / PARAM_m_vec_limbs(p),
                 PARAM_m(p));
-  PRINT_ARGS("expand_P1_P2", "P",P, seed_pk);
+  //PRINT_ARGS("expand_P1_P2", "P",P, seed_pk);
 }
 
 static void eval_public_map(const mayo_params_t *p, const unsigned char *s,
@@ -366,7 +366,7 @@ int mayo_expand_sk(const mayo_params_t *p, const unsigned char *csk, sk_t sk) {
 #endif
 
   mayo_secure_clear(S, PK_SEED_BYTES_MAX + O_BYTES_MAX);
-  PRINT_ARGS("mayo_expand_sk","sk", csk, sk);
+  //PRINT_ARGS("mayo_expand_sk","sk", csk, sk);
   return ret;
 }
 
@@ -507,7 +507,7 @@ err:
   mayo_secure_clear(Ox, sizeof(Ox));
   mayo_secure_clear(tmp, sizeof(tmp));
   mayo_secure_clear(Mtmp, sizeof(Mtmp));
-  PRINT_ARGS("mayo_sign_signature", "sig",sig, siglen, m, mlen, csk);
+  //PRINT_ARGS("mayo_sign_signature", "sig",sig, siglen, m, mlen, csk);
 
   return ret;
 }

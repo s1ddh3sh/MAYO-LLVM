@@ -211,7 +211,8 @@ std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths,
                              const std::string &buildType) {
   auto composite = std::make_unique<Module>("composite", llvm_ctx);
 
-  composite->setTargetTriple("arm-unknown-none-eabi");
+  // composite->setTargetTriple("arm-unknown-none-eabi");
+  composite->setTargetTriple("thumbv7em-unknown-none-eabihf");
   // composite->setDataLayout(
   //     llvm::DataLayout("e-m:e-p:32:32-Fi8-i64:64-v128:64:128-a:0:32-n32-S64"));
 
@@ -225,16 +226,36 @@ std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths,
         *VFS, new clang::TextDiagnosticPrinter(llvm::errs(),
                                                new clang::DiagnosticOptions()));
 
+    // std::vector<const char *> args = {
+    //     "clang-tool",
+    //     "-O0",
+    //     "-ffreestanding",
+    //     "-target",
+    //     "thumbv7em-unknown-none-eabihf",
+    //     "-mcpu=cortex-m4",
+    //     "-mfloat-abi=hard",
+    //     "-mfpu=fpv4-sp-d16",
+    // };
     std::vector<const char *> args = {
         "clang-tool",
         "-O0",
-        // "-g",
-        "-fno-builtin",
-        // "-fno-freestanding",
-        // "-debug-info-kind=limited",
-        //   "-DENABLE_PARAMS_DYNAMIC=ON"
+        "-ffreestanding",
+        "-triple",
+        "thumbv7em-unknown-none-eabihf",
+        "-target-cpu",
+        "cortex-m4",
+        "-target-abi",
+        "aapcs-vfp",
+        "-target-feature",
+        "+vfp4d16sp",
+        "-target-feature",
+        "+dsp",
+        "-target-feature",
+        "+fp16",
+        "-target-feature",
+        "+hwdiv",
+        // "-fno-builtin",
     };
-
     std::string variantDef = "-DMAYO_VARIANT=" + variant;
     std::string buildTypeDef = "-D" + buildType;
     args.push_back(variantDef.c_str());
@@ -283,18 +304,19 @@ std::unique_ptr<Module> c2ir(const std::vector<std::string> &filepaths,
     clang::CompilerInvocation::CreateFromArgs(compiler.getInvocation(), args,
                                               compiler.getDiagnostics());
 
-    CGO.FloatABI = "soft"; // or "hard" if FPU
+    CGO.FloatABI = "hard"; // or "hard" if FPU
     CGO.RelocationModel = llvm::Reloc::Model::Static;
     CGO.CodeModel = "small";
 
     auto &frontendOpts = compiler.getInvocation().getFrontendOpts();
     frontendOpts.Inputs.clear();
     frontendOpts.Inputs.emplace_back(filepath, clang::Language::C);
-    compiler.getInvocation().getTargetOpts().Triple = "arm-unknown-none-eabi";
+    // compiler.getInvocation().getTargetOpts().Triple =
+    // "arm-unknown-none-eabi";
 
-    auto &TO = compiler.getInvocation().getTargetOpts();
-    TO.CPU = "cortex-m4";
-    TO.Features = {"+thumb2"};
+    // auto &TO = compiler.getInvocation().getTargetOpts();
+    // TO.CPU = "cortex-m4";
+    // TO.Features = {"+thumb2"};
 
     compiler.createFileManager();
     compiler.createSourceManager(compiler.getFileManager());
@@ -459,8 +481,8 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    module->setTargetTriple("arm-unknown-none-eabi");
-
+    // module->setTargetTriple("arm-unknown-none-eabi");
+    module->setTargetTriple("thumbv7em-unknown-none-eabihf");
     if (llvm::verifyModule(*module, &llvm::errs())) {
       llvm::errs() << "Invalid module for " << variant << "\n";
       continue;
