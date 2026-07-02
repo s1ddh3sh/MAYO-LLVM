@@ -12,8 +12,8 @@
 #include <llvm-20/llvm/Support/raw_ostream.h>
 #include <map>
 #include <set>
-#include <vector>
 #include <system_error>
+#include <vector>
 
 using namespace llvm;
 using namespace std;
@@ -21,6 +21,32 @@ using namespace std;
 enum class Level { Public = 0, EphSecret = 1, Secret = 2 };
 
 Level join(Level a, Level b) { return (Level)max((int)a, (int)b); }
+
+static StringRef instTypeStr(Instruction &I) {
+  if (isa<AllocaInst>(&I))
+    return "AllocaInst";
+  if (isa<GetElementPtrInst>(&I))
+    return "GetElementPtrInst";
+  if (isa<LoadInst>(&I))
+    return "LoadInst";
+  if (isa<StoreInst>(&I))
+    return "StoreInst";
+  if (isa<BinaryOperator>(&I))
+    return "BinOp";
+  if (isa<CallInst>(&I))
+    return "CallInst";
+  if (isa<ReturnInst>(&I))
+    return "ReturnInst";
+  if (isa<PHINode>(&I))
+    return "PHINode";
+  if (isa<BranchInst>(&I))
+    return "BranchInst";
+  if (isa<CastInst>(&I))
+    return "CastInst";
+  if (isa<CmpInst>(&I))
+    return "CmpInst";
+  return "Other";
+}
 
 struct Env {
   map<Value *, Level> reg;
@@ -37,7 +63,7 @@ class LevelPropPass : public PassInfoMixin<LevelPropPass> {
 
   // Memoization: cache (Function*, max input level) -> result Env
   struct CacheEntry {
-    Level inputLevel;  // max level of all input args when this was computed
+    Level inputLevel; // max level of all input args when this was computed
     Env result;
   };
   map<Function *, CacheEntry> funcCache;
@@ -60,9 +86,12 @@ public:
 private:
   static StringRef levelStr(Level L) {
     switch (L) {
-    case Level::Public:    return "Public";
-    case Level::EphSecret: return "EphSecret";
-    case Level::Secret:    return "Secret";
+    case Level::Public:
+      return "Public";
+    case Level::EphSecret:
+      return "EphSecret";
+    case Level::Secret:
+      return "Secret";
     }
     return "Unknown";
   }
@@ -101,7 +130,7 @@ private:
         continue;
 
       std::error_code EC;
-      raw_fd_ostream os("../taintResults/"+F->getName().str() + ".json", EC);
+      raw_fd_ostream os("../taintResults/" + F->getName().str() + ".json", EC);
       if (EC) {
         errs() << "Could not open file: " << EC.message() << "\n";
         continue;
@@ -123,13 +152,32 @@ private:
 
             std::string escaped;
             for (char c : instStr) {
-              if (c == '"') escaped += "\\\"";
-              else if (c == '\\') escaped += "\\\\";
-              else if (c == '\n') escaped += "\\n";
-              else escaped += c;
+              if (c == '"')
+                escaped += "\\\"";
+              else if (c == '\\')
+                escaped += "\\\\";
+              else if (c == '\n')
+                escaped += "\\n";
+              else
+                escaped += c;
+            }
+            StringRef typeStr = instTypeStr(I);
+
+            os << "  \"" << lineNo << "\": {\n";
+            os << "    \"instr\": \"" << escaped << "\",\n";
+            os << "    \"type\": \"" << typeStr.str() << "\"";
+
+            if (auto *C = dyn_cast<CallInst>(&I)) {
+              if (Function *callee = C->getCalledFunction()) {
+                os << ",\n    \"callee\": \"" << callee->getName().str()
+                   << "\"";
+              } else {
+                // indirect call (function pointer) - no static name available
+                os << ",\n    \"callee\": null";
+              }
             }
 
-            os << "  \"" << lineNo << "\": \"" << escaped << "\"";
+            os << "\n  }";
           }
           lineNo++;
         }
@@ -494,8 +542,7 @@ private:
   }
 };
 
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   LLVMContext ctx;
   SMDiagnostic err;
   StringRef filename = "../no_struct/mayo1.ll";
@@ -503,7 +550,7 @@ int main(int argc, char** argv) {
     filename = argv[1];
   }
   auto module = parseIRFile(filename, err, ctx);
-  
+
   if (!module) {
     errs() << "Error parsing IR file: " << filename << "\n";
     err.print(argv[0], errs());

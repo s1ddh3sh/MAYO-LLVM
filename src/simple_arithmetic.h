@@ -42,7 +42,10 @@ static inline uint64_t mul_fx8(unsigned char a, uint64_t b) {
 
 // GF(16) addition
 static inline unsigned char add_f(unsigned char a, unsigned char b) {
-    return a ^ b;
+    unsigned char c = a ^ b;
+    PRINT_ARGS("add_f","c", a, b, c);
+
+    return c;
 }
 
 // GF(16) subtraction
