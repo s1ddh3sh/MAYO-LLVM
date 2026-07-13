@@ -4,7 +4,7 @@
 #define GENERIC_ARITHMETIC_H
 
 #include <simple_arithmetic.h>
-
+#include "../trace.h"
 #ifdef ENABLE_PARAMS_DYNAMIC
 #include <arithmetic_dynamic.h>
 #else
@@ -54,7 +54,7 @@ void mul_add_mat_trans_x_m_mat(const int m_vec_limbs, const unsigned char *mat, 
             }
         }
     }
-    //PRINT_ARGS("mul_add_mat_trans_x_m_mat", "acc",mat, bs_mat ,acc, mat_rows, mat_cols, bs_mat_cols);
+    PRINT_ARGS("mul_add_mat_trans_x_m_mat", "acc",m_vec_limbs,mat, bs_mat ,acc, mat_rows, mat_cols, bs_mat_cols);
 
 }
 
@@ -70,6 +70,8 @@ void mul_add_mat_x_m_mat(const int m_vec_limbs, const unsigned char *mat, const 
             }
         }
     }
+    PRINT_ARGS("mul_add_mat_x_m_mat", "acc",m_vec_limbs,mat, bs_mat ,acc, mat_rows, mat_cols, bs_mat_cols);
+
 }
 
 static inline
@@ -78,7 +80,7 @@ void P1_times_O(const mayo_params_t* p, const uint64_t* P1, const unsigned char*
     (void) p;
     #endif
     mul_add_m_upper_triangular_mat_x_mat(PARAM_m_vec_limbs(p), P1, O, acc, PARAM_v(p), PARAM_v(p), PARAM_o(p), 1);
-    //PRINT_ARGS("P1_times_O", "acc",P1,acc, O);
+    PRINT_ARGS("P1_times_O", "acc",p, P1,O, acc);
 
 }
 
@@ -88,7 +90,7 @@ void P1_times_Vt(const mayo_params_t* p, const uint64_t* P1, const unsigned char
     (void) p;
     #endif
     mul_add_m_upper_triangular_mat_x_mat_trans(PARAM_m_vec_limbs(p), P1, V, acc, PARAM_v(p), PARAM_v(p), PARAM_k(p), 1);
-    //PRINT_ARGS("P1_times_Vt", "acc",P1, V, acc);
+    PRINT_ARGS("P1_times_Vt", "acc",p, P1, V, acc);
 }
 
 #if defined(HAVE_STACKEFFICIENT) || defined(PQM4)
@@ -242,7 +244,7 @@ void P1P1t_times_O(const mayo_params_t* p, const uint64_t* P1, const unsigned ch
             bs_mat_entries_used += 1;
         }
     }
-    //PRINT_ARGS("P1P1t_times_O","acc", P1,acc, O);
+    PRINT_ARGS("P1P1t_times_O","acc", p,P1, O, acc);
 
 }
 
@@ -261,7 +263,7 @@ void compute_M_and_VPV(const mayo_params_t* p, const unsigned char* Vdec, const 
     uint64_t Pv[V_MAX * K_MAX * M_VEC_LIMBS_MAX] = {0};
     P1_times_Vt(p, P1, Vdec, Pv);
     mul_add_mat_x_m_mat(PARAM_m_vec_limbs(p), Vdec, Pv, VP1V, param_k, param_v, param_k);
-    //PRINT_ARGS("compute_M_and_VPV", "VL",Vdec, L, P1, VL, VP1V);
+    PRINT_ARGS("compute_M_and_VPV", "VL",p, Vdec, L, P1, VL, VP1V);
 }
 
 static inline
@@ -276,7 +278,7 @@ void compute_P3(const mayo_params_t* p, const uint64_t* P1, uint64_t *P2, const 
 
     // compute P3 = O^t * (P1*O + P2)
     mul_add_mat_trans_x_m_mat(m_vec_limbs, O, P2, P3, param_v, param_o, param_o);
-    //PRINT_ARGS("compute_P3", "P3",P1, P2, O, P3);
+    PRINT_ARGS("compute_P3", "P3",p, P1, P2, O, P3);
 
 }
 

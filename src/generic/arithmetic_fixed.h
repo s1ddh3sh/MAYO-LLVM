@@ -16,6 +16,7 @@ inline void m_vec_copy (int m_vec_limbs, const uint64_t *in, uint64_t *out) {
     {
         out[i] = in[i];
     }
+    PRINT_ARGS("m_vec_copy", "out",m_vec_limbs, in, out);
 }
 
 static
@@ -25,6 +26,7 @@ inline void m_vec_add (int m_vec_limbs, const uint64_t *in, uint64_t *acc) {
     {
         acc[i] ^= in[i];
     }
+    PRINT_ARGS("m_vec_add", "acc",m_vec_limbs, in, acc);
 }
 
 static 
@@ -40,7 +42,7 @@ inline void m_vec_mul_add (int m_vec_limbs, const uint64_t *in, unsigned char a,
                 ^ ((in[i] >> 2) & lsb_ask) * ((tab >> 16) & 0xf)
                 ^ ((in[i] >> 3) & lsb_ask) * ((tab >> 24) & 0xf);
     }
-    //PRINT_ARGS("m_vec_mul_add","acc", m_vec_limbs, in, a, acc);
+    PRINT_ARGS("m_vec_mul_add","acc", m_vec_limbs, in, a, acc);
 }
 
 inline

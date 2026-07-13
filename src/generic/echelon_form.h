@@ -6,6 +6,7 @@
 
 #include <stdalign.h>
 #include <stdint.h>
+#include "../trace.h"
 #include <mem.h>
 #include <arithmetic.h>
 
@@ -38,6 +39,7 @@ ef_pack_m_vec(const unsigned char *in, uint64_t *out, int ncols) {
         out8[i/2]  = (in[i+0] << 0);
 #endif
     }
+    PRINT_ARGS("ef_pack_m_vec", "out", in, out, ncols);
 }
 
 static inline void
@@ -52,6 +54,8 @@ ef_unpack_m_vec(int legs, const uint64_t *in, unsigned char *out) {
         out[i+1] = (in8[i/2] >> 4);
 #endif
     }
+    PRINT_ARGS("ef_unpack_m_vec", "out", in, out);
+
 }
 
 
@@ -146,6 +150,7 @@ static inline void EF(unsigned char *A, int nrows, int ncols) {
     mayo_secure_clear(_pivot_row, (K_MAX * O_MAX + 1 + 15) / 16 * 8);
     mayo_secure_clear(_pivot_row2, (K_MAX * O_MAX + 1 + 15) / 16 * 8);
     mayo_secure_clear(packed_A, ((K_MAX * O_MAX + 1 + 15) / 16) * M_MAX * 8);
+    PRINT_ARGS("EF", "A", A, nrows, ncols);
 }
 
 #endif
