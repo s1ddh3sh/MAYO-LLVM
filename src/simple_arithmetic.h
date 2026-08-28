@@ -23,7 +23,7 @@ static inline unsigned char mul_f(unsigned char a, unsigned char b) {
     // reduce mod x^4 + x + 1
     unsigned char top_p = p & 0xf0;
     unsigned char out = (p ^ (top_p >> 4) ^ (top_p >> 3)) & 0x0f;
-    PRINT_ARGS("mul_f", "ret", a,b, out);
+    PRINT_ARGS("mul_f", "out", a,b, out);
     return out;
 }
 
@@ -44,7 +44,7 @@ static inline uint64_t mul_fx8(unsigned char a, uint64_t b) {
 // GF(16) addition
 static inline unsigned char add_f(unsigned char a, unsigned char b) {
     unsigned char c = a ^ b;
-    PRINT_ARGS("add_f","ret", a, b, c);
+    PRINT_ARGS("add_f","c", a, b, c);
 
     return c;
 }
@@ -52,7 +52,7 @@ static inline unsigned char add_f(unsigned char a, unsigned char b) {
 // GF(16) subtraction
 static inline unsigned char sub_f(unsigned char a, unsigned char b) {
     unsigned char c = a ^ b;
-    PRINT_ARGS("sub_f","ret", a, b, c);
+    PRINT_ARGS("sub_f","c", a, b, c);
 
     return c;
 }
@@ -78,35 +78,33 @@ static inline unsigned char inverse_f(unsigned char a) {
 
 static inline unsigned char lincomb(const unsigned char *a,
                                     const unsigned char *b, int n, int m) {
-    unsigned char ret = 0;
+    unsigned char c = 0;
     for (int i = 0; i < n; ++i, b += m) {
-        ret = add_f(mul_f(a[i], *b), ret);
+        c = add_f(mul_f(a[i], *b), c);
     }
-    PRINT_ARGS("lincomb","ret", a,b,n,m, ret);
+    PRINT_ARGS("lincomb","c", a,b,n,m, c);
 
-    return ret;
+    return c;
 }
 
-static inline void mat_mul(const unsigned char *a, const unsigned char *b,
-                    unsigned char *c, int colrow_ab, int row_a, int col_b) {
-    for (int i = 0; i < row_a; ++i, a += colrow_ab) {
-        for (int j = 0; j < col_b; ++j, ++c) {
-            *c = lincomb(a, b + j, colrow_ab, col_b);
+static inline void mat_mul(const unsigned char *O, const unsigned char *x,
+                    unsigned char *Ox, int colrow_ab, int row_a, int col_b) {
+    for (int i = 0; i < row_a; ++i, O += colrow_ab) {
+        for (int j = 0; j < col_b; ++j, ++Ox) {
+            *Ox = lincomb(O, x + j, colrow_ab, col_b);
         }
     }
-    PRINT_ARGS("mat_mul","c",a,b,c,colrow_ab, row_a, col_b);
-
+    PRINT_ARGS("mat_mul", "Ox", O, x, Ox, colrow_ab, row_a, col_b);
 }
 
-static inline void mat_add(const unsigned char *a, const unsigned char *b,
-                    unsigned char *c, int m, int n) {
+static inline void mat_add(const unsigned char *Vdec, const unsigned char *Ox,
+                            unsigned char *s, int m, int n) {
     for (int i = 0; i < m; ++i) {
         for (int j = 0; j < n; ++j) {
-            *(c + i * n + j) = add_f(*(a + i * n + j), *(b + i * n + j));
+            *(s + i * n + j) = add_f(*(Vdec + i * n + j), *(Ox + i * n + j));
         }
     }
-    PRINT_ARGS("mat_add","c",a,b,c, m,n);
-
+    PRINT_ARGS("mat_add", "s", Vdec, Ox, s, m, n);
 }
 
 static inline uint64_t gf16v_mul_u64( uint64_t a, uint8_t b ) {

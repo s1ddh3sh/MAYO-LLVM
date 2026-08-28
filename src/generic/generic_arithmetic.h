@@ -263,7 +263,7 @@ void compute_M_and_VPV(const mayo_params_t* p, const unsigned char* Vdec, const 
     uint64_t Pv[V_MAX * K_MAX * M_VEC_LIMBS_MAX] = {0};
     P1_times_Vt(p, P1, Vdec, Pv);
     mul_add_mat_x_m_mat(PARAM_m_vec_limbs(p), Vdec, Pv, VP1V, param_k, param_v, param_k);
-    PRINT_ARGS("compute_M_and_VPV", "VL",p, Vdec, L, P1, VL, VP1V);
+    PRINT_ARGS("compute_M_and_VPV", ("VL", "VP1V"), p, Vdec, L, P1, VL, VP1V);
 }
 
 static inline

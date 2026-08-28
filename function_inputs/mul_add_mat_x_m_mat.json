@@ -1,0 +1,10 @@
+{"output":"acc","m_vec_limbs":5,"mat":12,"bs_mat":14557891358967509904,"acc":8243066815196366081,"mat_rows":10,"mat_cols":78,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":12,"bs_mat":14976195667568093141,"acc":3400786376938681547,"mat_rows":10,"mat_cols":78,"bs_mat_cols":10}
+{"output":"acc","m_vec_limbs":5,"mat":6,"bs_mat":8851854573994499089,"acc":6684290712615669607,"mat_rows":10,"mat_cols":78,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":6,"bs_mat":14002800124002389309,"acc":10275578645953713360,"mat_rows":10,"mat_cols":78,"bs_mat_cols":10}
+{"output":"acc","m_vec_limbs":5,"mat":12,"bs_mat":20954333635950358,"acc":2428676406770690858,"mat_rows":10,"mat_cols":78,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":12,"bs_mat":14564671158970628286,"acc":9096002791397813473,"mat_rows":10,"mat_cols":78,"bs_mat_cols":10}
+{"output":"acc","m_vec_limbs":5,"mat":2,"bs_mat":14383629791841574797,"acc":7861164401449615182,"mat_rows":10,"mat_cols":78,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":2,"bs_mat":15655125575981453769,"acc":16274024157953698337,"mat_rows":10,"mat_cols":78,"bs_mat_cols":10}
+{"output":"acc","m_vec_limbs":5,"mat":9,"bs_mat":10692070331495674234,"acc":1589942136670740581,"mat_rows":10,"mat_cols":78,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":9,"bs_mat":12513140675160045667,"acc":6219011429813019844,"mat_rows":10,"mat_cols":78,"bs_mat_cols":10}

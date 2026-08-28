@@ -1,0 +1,5 @@
+{"output":"acc","m_vec_limbs":5,"mat":15,"bs_mat":5362270621996202382,"acc":3836401154090384545,"mat_rows":78,"mat_cols":8,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":4,"bs_mat":14160667951586236907,"acc":89233817610956168,"mat_rows":78,"mat_cols":8,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":10,"bs_mat":4508180708893382806,"acc":9678878738504775373,"mat_rows":78,"mat_cols":8,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":2,"bs_mat":12531410592842740820,"acc":13460023709523464852,"mat_rows":78,"mat_cols":8,"bs_mat_cols":8}
+{"output":"acc","m_vec_limbs":5,"mat":7,"bs_mat":3322454411128208189,"acc":1333824203828141881,"mat_rows":78,"mat_cols":8,"bs_mat_cols":8}
