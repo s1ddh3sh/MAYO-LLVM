@@ -25,6 +25,7 @@ void mul_add_m_upper_triangular_mat_x_mat(const int m_vec_limbs, const uint64_t 
             bs_mat_entries_used += 1;
         }
     }
+    PRINT_ARGS("mul_add_m_upper_triangular_mat_x_mat", "acc",m_vec_limbs, bs_mat,mat,acc);
 }
 
 // multiplies m (possibly upper triangular) matrices with the transpose of a single matrix and adds result to acc
@@ -40,6 +41,8 @@ void mul_add_m_upper_triangular_mat_x_mat_trans(const int m_vec_limbs, const uin
             bs_mat_entries_used += 1;
         }
     }
+    PRINT_ARGS("mul_add_m_upper_triangular_mat_x_mat_trans", "acc", m_vec_limbs, bs_mat,mat,acc);
+
 }
 
 // multiplies the transpose of a single matrix with m matrices and adds result to acc
