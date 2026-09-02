@@ -15,6 +15,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "../trace.h"
 
 #define SHAKE128_RATE 168
 #define SHAKE256_RATE 136
@@ -887,25 +888,27 @@ void shake128(uint8_t *output, size_t outlen,
  *              - const uint8_t *input: pointer to input
  *              - size_t inlen: length of input in bytes
  **************************************************/
-void shake256(uint8_t *output, size_t outlen,
+void shake256(uint8_t *output1, size_t outlen,
               const uint8_t *input, size_t inlen) {
     size_t nblocks = outlen / SHAKE256_RATE;
     uint8_t t[SHAKE256_RATE];
     shake256ctx s;
 
     shake256_absorb(&s, input, inlen);
-    shake256_squeezeblocks(output, nblocks, &s);
+    shake256_squeezeblocks(output1, nblocks, &s);
 
-    output += nblocks * SHAKE256_RATE;
+    output1 += nblocks * SHAKE256_RATE;
     outlen -= nblocks * SHAKE256_RATE;
 
     if (outlen) {
         shake256_squeezeblocks(t, 1, &s);
         for (size_t i = 0; i < outlen; ++i) {
-            output[i] = t[i];
+            output1[i] = t[i];
         }
     }
     shake256_ctx_release(&s);
+    PRINT_ARGS("shake256", "output1", output1, outlen, input, inlen);
+
 }
 
 void sha3_256_inc_init(sha3_256incctx *state) {
