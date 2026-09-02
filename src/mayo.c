@@ -607,7 +607,7 @@ int mayo_keypair_compact(const mayo_params_t *p, unsigned char *cpk,
   m_upper(p, P3, P3_upper, param_o);
   pack_m_vecs(P3_upper, cpk + param_pk_seed_bytes, param_P3_limbs / m_vec_limbs,
               param_m);
-  // PRINT_ARGS("pqmayo_MAYO_1_ref_mayo_keypair_compact", "cpk",)
+  PRINT_ARGS("pqmayo_MAYO_1_ref_mayo_keypair_compact", "cpk",p, cpk, csk);
 #if !defined(PQM4) && !defined(HAVE_RANDOMBYTES_NORETVAL)
 err:
 #endif
