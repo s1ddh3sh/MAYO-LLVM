@@ -498,7 +498,7 @@ int mayo_sign_signature(const mayo_params_t *p, unsigned char *sig,
   memcpy(sig + param_sig_bytes - param_salt_bytes, salt, param_salt_bytes);
   *siglen = param_sig_bytes;
 
-  PRINT_ARGS("pqmayo_MAYO_1_ref_mayo_sign_signature", "sig",p,sig, siglen, m, mlen, csk);
+  PRINT_ARGS("pqmayo_MAYO_1_ref_mayo_sign_signature", ("sig","m"),p,sig, siglen, m, mlen, csk);
 err:
   mayo_secure_clear(V, sizeof(V));
   mayo_secure_clear(Vdec, sizeof(Vdec));
@@ -524,6 +524,7 @@ int mayo_sign(const mayo_params_t *p, unsigned char *sm, size_t *smlen,
     memset(sm, 0, siglen + mlen);
     goto err;
   }
+  PRINT_ARGS("pqmayo_MAYO_1_ref_mayo_sign", ("sm", "m"),p, sm, smlen, m, mlen, csk);
 
   *smlen = siglen + mlen;
 err:

@@ -71,7 +71,7 @@ static inline unsigned char inverse_f(unsigned char a) {
     unsigned char a8 = mul_f(a4, a4);
     unsigned char a6 = mul_f(a2, a4);
     unsigned char a14 = mul_f(a8, a6);
-    PRINT_ARGS("sub_f","ret", a);
+    PRINT_ARGS("inverse_f","ret", a);
 
     return a14;
 }
