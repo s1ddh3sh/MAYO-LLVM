@@ -316,6 +316,7 @@ int mayo_keypair(const mayo_params_t *p, unsigned char *pk, unsigned char *sk) {
   if (ret != MAYO_OK) {
     goto err;
   }
+  PRINT_ARGS("pqmayo_MAYO_1_ref_mayo_keypair", "pk",p, pk, sk);
 
 err:
   return ret;
