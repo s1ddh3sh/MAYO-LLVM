@@ -830,8 +830,9 @@ void shake256_absorb(shake256ctx *state, const uint8_t *input, size_t inlen) {
  *                                (written to output)
  *              - shake256ctx *state: pointer to input/output Keccak state
  **************************************************/
-void shake256_squeezeblocks(uint8_t *output, size_t nblocks, shake256ctx *state) {
-    keccak_squeezeblocks(output, nblocks, state->ctx, SHAKE256_RATE);
+void shake256_squeezeblocks(uint8_t *output1, size_t nblocks, shake256ctx *state) {
+    keccak_squeezeblocks(output1, nblocks, state->ctx, SHAKE256_RATE);
+    PRINT_ARGS("shake256_squeezeblocks", "output1", output1, nblocks, state);
 }
 
 void shake256_ctx_clone(shake256ctx *dest, const shake256ctx *src) {
