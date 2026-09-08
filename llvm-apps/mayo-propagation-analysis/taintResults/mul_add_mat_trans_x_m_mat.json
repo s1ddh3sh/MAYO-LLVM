@@ -1,4 +1,8 @@
 {
+  "15": {
+    "instr": "  %add.ptr = getelementptr inbounds nuw i8, ptr %bs_mat, i32 %add.ptr.idx, !dbg !169",
+    "type": "GetElementPtrInst"
+  },
   "17": {
     "instr": "  %0 = getelementptr i8, ptr %mat, i32 %mul8, !dbg !171",
     "type": "GetElementPtrInst"

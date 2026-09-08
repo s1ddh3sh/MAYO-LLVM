@@ -20,6 +20,18 @@
     "instr": "  %2 = load i8, ptr %arrayidx, align 1, !dbg !187",
     "type": "LoadInst"
   },
+  "30": {
+    "instr": "  %conv = zext i8 %2 to i32, !dbg !187",
+    "type": "CastInst"
+  },
+  "31": {
+    "instr": "  %add13 = add nuw nsw i32 %mul10, %conv, !dbg !188",
+    "type": "BinOp"
+  },
+  "32": {
+    "instr": "  %add.ptr15.idx = mul nuw nsw i32 %add13, 40, !dbg !189",
+    "type": "BinOp"
+  },
   "34": {
     "instr": "  call fastcc void @m_vec_add(i32 noundef 5, ptr noundef %add.ptr, ptr noundef nonnull %add.ptr15) #4, !dbg !190",
     "type": "CallInst",
@@ -45,6 +57,18 @@
     "instr": "  %5 = load i8, ptr %arrayidx41, align 1, !dbg !222",
     "type": "LoadInst"
   },
+  "59": {
+    "instr": "  %conv42 = zext i8 %5 to i32, !dbg !222",
+    "type": "CastInst"
+  },
+  "60": {
+    "instr": "  %add43 = add nuw nsw i32 %mul37, %conv42, !dbg !223",
+    "type": "BinOp"
+  },
+  "61": {
+    "instr": "  %add.ptr45.idx = mul nuw nsw i32 %add43, 40, !dbg !224",
+    "type": "BinOp"
+  },
   "63": {
     "instr": "  call fastcc void @m_vec_add(i32 noundef 5, ptr noundef %add.ptr33, ptr noundef nonnull %add.ptr45) #4, !dbg !225",
     "type": "CallInst",
@@ -65,6 +89,18 @@
   "95": {
     "instr": "  %8 = load i8, ptr %arrayidx78, align 1, !dbg !268",
     "type": "LoadInst"
+  },
+  "96": {
+    "instr": "  %conv79 = zext i8 %8 to i32, !dbg !268",
+    "type": "CastInst"
+  },
+  "97": {
+    "instr": "  %add80 = add nuw nsw i32 %mul75, %conv79, !dbg !269",
+    "type": "BinOp"
+  },
+  "98": {
+    "instr": "  %add.ptr82.idx = mul nuw nsw i32 %add80, 40, !dbg !270",
+    "type": "BinOp"
   },
   "100": {
     "instr": "  call fastcc void @m_vec_add(i32 noundef 5, ptr noundef %add.ptr71, ptr noundef nonnull %add.ptr82) #4, !dbg !271",

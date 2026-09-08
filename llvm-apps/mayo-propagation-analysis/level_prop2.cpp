@@ -324,6 +324,22 @@ private:
             env.reg[P] = regLvl;
             env.mem[P] = memLvl;
           }
+          else if (auto *C = dyn_cast<CastInst>(&I)) {
+            env.reg[&I] = env.reg[C->getOperand(0)];
+          }
+
+          // comparison
+          else if (auto *C = dyn_cast<CmpInst>(&I)) {
+            env.reg[&I] =
+                join(env.reg[C->getOperand(0)], env.reg[C->getOperand(1)]);
+          }
+
+          // select
+          else if (auto *S = dyn_cast<SelectInst>(&I)) {
+            env.reg[&I] = join(
+                env.reg[S->getCondition()],
+                join(env.reg[S->getTrueValue()], env.reg[S->getFalseValue()]));
+          }
           // funcLvl = join(funcLvl, env.reg[&I]);
         }
       }

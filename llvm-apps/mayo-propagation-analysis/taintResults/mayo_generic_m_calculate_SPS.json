@@ -20,6 +20,18 @@
     "instr": "  %1 = load i8, ptr %arrayidx, align 1, !dbg !180",
     "type": "LoadInst"
   },
+  "26": {
+    "instr": "  %conv = zext i8 %1 to i32, !dbg !180",
+    "type": "CastInst"
+  },
+  "27": {
+    "instr": "  %add14 = add nuw nsw i32 %mul11, %conv, !dbg !181",
+    "type": "BinOp"
+  },
+  "28": {
+    "instr": "  %add.ptr16.idx = mul nuw nsw i32 %add14, 40, !dbg !182",
+    "type": "BinOp"
+  },
   "30": {
     "instr": "  call fastcc void @m_vec_add(i32 noundef 5, ptr noundef %add.ptr, ptr noundef nonnull %add.ptr16) #4, !dbg !183",
     "type": "CallInst",

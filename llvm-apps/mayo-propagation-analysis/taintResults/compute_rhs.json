@@ -32,6 +32,10 @@
     "instr": "  %shr = lshr i64 %2, 52, !dbg !216",
     "type": "BinOp"
   },
+  "26": {
+    "instr": "  %rem.lhs.trunc = trunc i64 %shr to i8, !dbg !217",
+    "type": "CastInst"
+  },
   "28": {
     "instr": "  %shl11 = shl i64 %2, 4, !dbg !221",
     "type": "BinOp"
@@ -39,6 +43,10 @@
   "29": {
     "instr": "  store i64 %shl11, ptr %arrayidx10, align 8, !dbg !221",
     "type": "StoreInst"
+  },
+  "34": {
+    "instr": "  %rem1 = and i8 %rem.lhs.trunc, 15, !dbg !217",
+    "type": "BinOp"
   },
   "37": {
     "instr": "  %3 = load i64, ptr %arrayidx16, align 8, !dbg !232",
@@ -72,6 +80,11 @@
     "instr": "  store i64 %shl21, ptr %arrayidx20, align 8, !dbg !239",
     "type": "StoreInst"
   },
+  "59": {
+    "instr": "  %call = call fastcc zeroext i8 @mul_f(i8 noundef zeroext %rem1, i8 noundef zeroext %6) #4, !dbg !257",
+    "type": "CallInst",
+    "callee": "mul_f"
+  },
   "62": {
     "instr": "  %7 = load i8, ptr %arrayidx33, align 1, !dbg !260",
     "type": "LoadInst"
@@ -83,6 +96,15 @@
   "64": {
     "instr": "  store i8 %xor356, ptr %arrayidx33, align 1, !dbg !260",
     "type": "StoreInst"
+  },
+  "68": {
+    "instr": "  %call38 = call fastcc zeroext i8 @mul_f(i8 noundef zeroext %rem1, i8 noundef zeroext %8) #4, !dbg !264",
+    "type": "CallInst",
+    "callee": "mul_f"
+  },
+  "69": {
+    "instr": "  %shl40 = shl nuw i8 %call38, 4, !dbg !265",
+    "type": "BinOp"
   },
   "72": {
     "instr": "  %9 = load i8, ptr %arrayidx42, align 1, !dbg !268",
@@ -119,6 +141,10 @@
   "93": {
     "instr": "  %13 = load i64, ptr %arrayidx66, align 8, !dbg !285",
     "type": "LoadInst"
+  },
+  "94": {
+    "instr": "  %mul67 = select i1 %cmp59.not, i64 0, i64 %13, !dbg !286",
+    "type": "Other"
   },
   "95": {
     "instr": "  %xor68 = xor i64 %11, %mul67, !dbg !287",

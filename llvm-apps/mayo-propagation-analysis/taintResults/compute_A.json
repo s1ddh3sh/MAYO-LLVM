@@ -154,17 +154,37 @@
     "type": "CallInst",
     "callee": "mayo_memset"
   },
+  "155": {
+    "instr": "  %call = call fastcc zeroext i8 @mul_f(i8 noundef zeroext %16, i8 noundef zeroext 1) #4, !dbg !356",
+    "type": "CallInst",
+    "callee": "mul_f"
+  },
   "158": {
     "instr": "  store i8 %call, ptr %arrayidx121, align 1, !dbg !359",
     "type": "StoreInst"
+  },
+  "159": {
+    "instr": "  %call123 = call fastcc zeroext i8 @mul_f(i8 noundef zeroext %16, i8 noundef zeroext 2) #4, !dbg !360",
+    "type": "CallInst",
+    "callee": "mul_f"
   },
   "163": {
     "instr": "  store i8 %call123, ptr %arrayidx126, align 1, !dbg !364",
     "type": "StoreInst"
   },
+  "166": {
+    "instr": "  %call128 = call fastcc zeroext i8 @mul_f(i8 noundef zeroext %17, i8 noundef zeroext 4) #4, !dbg !366",
+    "type": "CallInst",
+    "callee": "mul_f"
+  },
   "170": {
     "instr": "  store i8 %call128, ptr %arrayidx131, align 1, !dbg !370",
     "type": "StoreInst"
+  },
+  "173": {
+    "instr": "  %call133 = call fastcc zeroext i8 @mul_f(i8 noundef zeroext %18, i8 noundef zeroext 8) #4, !dbg !372",
+    "type": "CallInst",
+    "callee": "mul_f"
   },
   "177": {
     "instr": "  store i8 %call133, ptr %arrayidx136, align 1, !dbg !376",
@@ -210,6 +230,10 @@
     "instr": "  %21 = load i8, ptr %arrayidx166, align 1, !dbg !426",
     "type": "LoadInst"
   },
+  "211": {
+    "instr": "  %conv = zext i8 %21 to i64, !dbg !426",
+    "type": "CastInst"
+  },
   "212": {
     "instr": "  %mul167 = mul i64 %and151, %conv, !dbg !427",
     "type": "BinOp"
@@ -217,6 +241,10 @@
   "216": {
     "instr": "  %22 = load i8, ptr %arrayidx170, align 1, !dbg !430",
     "type": "LoadInst"
+  },
+  "217": {
+    "instr": "  %conv171 = zext i8 %22 to i64, !dbg !430",
+    "type": "CastInst"
   },
   "218": {
     "instr": "  %mul172 = mul i64 %and154, %conv171, !dbg !431",
@@ -230,6 +258,10 @@
     "instr": "  %23 = load i8, ptr %arrayidx176, align 1, !dbg !435",
     "type": "LoadInst"
   },
+  "224": {
+    "instr": "  %conv177 = zext i8 %23 to i64, !dbg !435",
+    "type": "CastInst"
+  },
   "225": {
     "instr": "  %mul178 = mul i64 %and157, %conv177, !dbg !436",
     "type": "BinOp"
@@ -241,6 +273,10 @@
   "230": {
     "instr": "  %24 = load i8, ptr %arrayidx182, align 1, !dbg !440",
     "type": "LoadInst"
+  },
+  "231": {
+    "instr": "  %conv183 = zext i8 %24 to i64, !dbg !440",
+    "type": "CastInst"
   },
   "232": {
     "instr": "  %mul184 = mul i64 %and160, %conv183, !dbg !441",

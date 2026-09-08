@@ -8,6 +8,10 @@
     "type": "CallInst",
     "callee": "br_dec32le"
   },
+  "9": {
+    "instr": "  store i32 %call, ptr %v.addr.0, align 4, !dbg !142",
+    "type": "StoreInst"
+  },
   "10": {
     "instr": "  %add.ptr = getelementptr inbounds nuw i8, ptr %src.addr.0, i32 4, !dbg !143",
     "type": "GetElementPtrInst"
