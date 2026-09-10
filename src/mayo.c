@@ -111,7 +111,7 @@ static void compute_rhs(const mayo_params_t *p, uint64_t *vPv,
     y[i + 1] = t[i + 1] ^ (temp_bytes[i / 2] >> 4);
 #endif
   }
-  PRINT_ARGS("compute_rhs","y",p, vPv, y, t);
+  PRINT_ARGS("compute_rhs","y",p, vPv, t, y);
 }
 
 static void transpose_16x16_nibbles(uint64_t *M) {
