@@ -145,7 +145,9 @@ static inline uint32_t mul_table(uint8_t b){
     uint32_t high_nibble_mask = 0xf0f0f0f0;
 
     uint32_t high_half = x & high_nibble_mask;
-    return (x ^ (high_half >> 4) ^ (high_half >> 3));
+    x = (x ^ (high_half >> 4) ^ (high_half >> 3));
+    PRINT_ARGS("mul_table","x",b,x);
+    return x;
 }
 
 #endif
