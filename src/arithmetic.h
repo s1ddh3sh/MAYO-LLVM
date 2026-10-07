@@ -4,6 +4,7 @@
 #ifndef ARITHMETIC_H
 #define ARITHMETIC_H
 
+#include "trace.h"
 #include <stdint.h>
 #include <mayo.h>
 #include <stdint.h>
@@ -102,6 +103,7 @@ inline void vec_mul_add_u64(const int legs, const uint64_t *in, unsigned char a,
                 ^ ((in[i] >> 2) & lsb_ask) * ((tab >> 16) & 0xf)
                 ^ ((in[i] >> 3) & lsb_ask) * ((tab >> 24) & 0xf);
     }
+    PRINT_ARGS("vec_mul_add_u64", "acc",legs,in,a,acc);
 }
 
 // Calculate Upper in KeyGen
