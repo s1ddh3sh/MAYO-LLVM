@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
+#include "trace.h"
 #include <arithmetic.h>
 #include <simple_arithmetic.h>
 #include <mem.h>
@@ -120,6 +121,7 @@ int sample_solution(const mayo_params_t *p, unsigned char *A,
             finished = finished | correct_column;
         }
     }
+    PRINT_ARGS("pqmayo_MAYO_1_ref_sample_solution", "x", p,A,y, r,x, k, o, m, A_cols);
     return 1;
 }
 
